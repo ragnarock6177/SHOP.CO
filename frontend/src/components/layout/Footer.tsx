@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
           <div className="md:col-span-4 space-y-5">
             <Link href="/" className="inline-block">
               <span className="font-integral text-2xl sm:text-3xl font-black tracking-tighter text-black">
-                SHOP.CO
+                AIRAVÉ
               </span>
             </Link>
 
@@ -246,7 +246,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Bar: Copyright & Payment Icons */}
         <div className="pt-8 border-t border-gray-300/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-          <p>Shop.co &copy; 2000-2026. All Rights Reserved.</p>
+          <p>AIRAVÉ &copy; 2000-2026. All Rights Reserved.</p>
 
           {/* Payment Card Badges */}
           <div className="flex items-center gap-2">
@@ -271,7 +271,7 @@ export const Footer: React.FC = () => {
 
       <div className="relative z-0 -mt-16 sm:-mt-22 md:-mt-28 h-[250px] xs:h-[300px] sm:h-[350px] md:h-[380px] lg:h-[450px] w-full overflow-hidden">
         <AnimatedFooter
-          headingLines={["SHOP.CO"]}
+          headingLines={["AIRAVÉ"]}
           leftImage="/animated-footer/hand-left.jpg"
           rightImage="/animated-footer/hand-right.jpg"
           background="#F0F0F0"

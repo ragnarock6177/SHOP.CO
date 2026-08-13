@@ -1,4 +1,4 @@
-# SHOP.CO - Full-Stack E-Commerce Platform
+# AIRAVÉ - Full-Stack E-Commerce Platform
 
 A modern, high-performance e-commerce platform built with Next.js 16, Tailwind CSS v4, Node.js, Express, Prisma ORM, and PostgreSQL.
 
@@ -7,7 +7,7 @@ A modern, high-performance e-commerce platform built with Next.js 16, Tailwind C
 This is a unified monorepo containing both the frontend user interface and backend REST API:
 
 ```
-SHOP.CO/
+AIRAVÉ/
 ├── frontend/               # Next.js 16 App Router, Tailwind CSS v4, Lucide Icons
 │   ├── src/
 │   │   ├── app/            # Storefront, Shop, Cart, Checkout, Profile, Auth & Support pages
@@ -28,20 +28,24 @@ SHOP.CO/
 ## 🚀 Getting Started
 
 ### 1. Frontend Setup
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) to view the web application.
 
 ### 2. Backend Setup
+
 ```bash
 cd backend
 npm install
 npx prisma generate
 npm run dev
 ```
+
 The REST API runs at [http://localhost:5000/api/v1](http://localhost:5000/api/v1).
 
 ## 🛠 Tech Stack

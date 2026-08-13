@@ -56,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
 
             <Link href="/" className="flex items-center">
               <span className="font-integral text-2xl sm:text-3xl font-black tracking-tighter text-black">
-                SHOP.CO
+                AIRAVÉ
               </span>
             </Link>
           </div>
@@ -204,7 +204,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
               <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
                   <span className="font-integral text-2xl font-black text-black">
-                    SHOP.CO
+                    AIRAVÉ
                   </span>
                 </Link>
                 <button
