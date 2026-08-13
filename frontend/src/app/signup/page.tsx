@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { Mail, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import React, { useState } from "react";
+import Link from "next/link";
+import { Mail, Lock, User, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function SignUpPage() {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -19,7 +19,7 @@ export default function SignUpPage() {
     <div className="max-w-md mx-auto px-4 py-12 sm:py-16 space-y-8 text-black">
       <div className="text-center space-y-2">
         <h1 className="font-integral text-3xl font-black text-black uppercase">
-          JOIN SHOP.CO
+          JOIN AIRAVÉ
         </h1>
         <p className="text-xs text-gray-500">
           Create an account and get 20% off your first fashion order.
@@ -31,7 +31,7 @@ export default function SignUpPage() {
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => alert('Google Sign-Up')}
+            onClick={() => alert("Google Sign-Up")}
             className="py-3 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-50 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@ export default function SignUpPage() {
 
           <button
             type="button"
-            onClick={() => alert('Apple Sign-Up')}
+            onClick={() => alert("Apple Sign-Up")}
             className="py-3 px-4 rounded-full bg-black text-white flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-800 transition-colors"
           >
             <span> Apple</span>
@@ -133,7 +133,15 @@ export default function SignUpPage() {
                 className="accent-black rounded mt-0.5"
               />
               <span>
-                I agree to the <Link href="#" className="underline text-black font-semibold">Terms & Conditions</Link> and <Link href="#" className="underline text-black font-semibold">Privacy Policy</Link>.
+                I agree to the{" "}
+                <Link href="#" className="underline text-black font-semibold">
+                  Terms & Conditions
+                </Link>{" "}
+                and{" "}
+                <Link href="#" className="underline text-black font-semibold">
+                  Privacy Policy
+                </Link>
+                .
               </span>
             </label>
           </div>
@@ -154,7 +162,7 @@ export default function SignUpPage() {
       </div>
 
       <div className="text-center text-xs text-gray-500">
-        Already have an account?{' '}
+        Already have an account?{" "}
         <Link href="/login" className="font-bold text-black underline">
           Log In
         </Link>

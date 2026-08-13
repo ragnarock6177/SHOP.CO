@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import React, { useState } from "react";
+import Link from "next/link";
+import { Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +20,7 @@ export default function LoginPage() {
           WELCOME BACK
         </h1>
         <p className="text-xs text-gray-500">
-          Sign in to your SHOP.CO account to view orders and checkout faster.
+          Sign in to your AIRAVÉ account to view orders and checkout faster.
         </p>
       </div>
 
@@ -29,7 +29,7 @@ export default function LoginPage() {
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => alert('Google Sign-In')}
+            onClick={() => alert("Google Sign-In")}
             className="py-3 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-50 transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -55,7 +55,7 @@ export default function LoginPage() {
 
           <button
             type="button"
-            onClick={() => alert('Apple Sign-In')}
+            onClick={() => alert("Apple Sign-In")}
             className="py-3 px-4 rounded-full bg-black text-white flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-800 transition-colors"
           >
             <span> Apple</span>
@@ -106,7 +106,11 @@ export default function LoginPage() {
 
           <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" defaultChecked className="accent-black rounded" />
+              <input
+                type="checkbox"
+                defaultChecked
+                className="accent-black rounded"
+              />
               <span>Remember me</span>
             </label>
             <button type="button" className="hover:text-black font-semibold">
@@ -130,7 +134,7 @@ export default function LoginPage() {
       </div>
 
       <div className="text-center text-xs text-gray-500">
-        Don't have an account yet?{' '}
+        Don't have an account yet?{" "}
         <Link href="/signup" className="font-bold text-black underline">
           Sign Up
         </Link>

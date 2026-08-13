@@ -1,27 +1,37 @@
-'use client';
+"use client";
 
-import React from 'react';
+import { motion } from "framer-motion";
 
-export const BrandBanner: React.FC = () => {
+const USPs = [
+  "100% PREMIUM COTTON",
+  "ETHICALLY CRAFTED",
+  "FREE WORLDWIDE SHIPPING",
+  "LUXURY FIT & FINISH",
+  "EASY 30-DAY RETURNS",
+  "LIMITED EDITION DROPS",
+];
+
+export function BrandBanner() {
   return (
-    <section id="brands" className="bg-black py-8 px-4 sm:px-8">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-between gap-8 sm:gap-12 text-white">
-        <span className="font-serif font-black text-2xl sm:text-3xl tracking-widest hover:opacity-80 transition-opacity">
-          VERSACE
-        </span>
-        <span className="font-sans font-black text-2xl sm:text-3xl tracking-tighter hover:opacity-80 transition-opacity">
-          ZARA
-        </span>
-        <span className="font-serif font-bold text-2xl sm:text-3xl tracking-widest hover:opacity-80 transition-opacity">
-          GUCCI
-        </span>
-        <span className="font-sans font-black text-2xl sm:text-3xl tracking-wider hover:opacity-80 transition-opacity">
-          PRADA
-        </span>
-        <span className="font-sans font-semibold text-xl sm:text-2xl tracking-normal hover:opacity-80 transition-opacity">
-          Calvin Klein
-        </span>
-      </div>
-    </section>
+    <div className="relative z-20 -mt-25 sm:-mt-30 lg:-mt-32 w-full bg-black py-8  overflow-hidden flex items-center border-y border-white/10 select-none">
+      <motion.div
+        className="flex whitespace-nowrap gap-12 sm:gap-16 items-center"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{
+          repeat: Infinity,
+          ease: "linear",
+          duration: 45,
+        }}
+      >
+        {[...USPs, ...USPs].map((item, index) => (
+          <div key={index} className="flex items-center gap-12 sm:gap-16">
+            <span className="font-integral text-sm sm:text-base tracking-widest text-white uppercase font-bold">
+              {item}
+            </span>
+            <span className="text-[#CD0000] text-xs">✦</span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
   );
-};
+}

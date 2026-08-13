@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { X, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import React, { useState } from "react";
+import Link from "next/link";
+import { X, Mail, Lock, User, ArrowRight } from "lucide-react";
 
 interface AuthDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: 'login' | 'signup';
+  initialMode?: "login" | "signup";
 }
 
 export const AuthDrawer: React.FC<AuthDrawerProps> = ({
   isOpen,
   onClose,
-  initialMode = 'login'
+  initialMode = "login",
 }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [mode, setMode] = useState<"login" | "signup">(initialMode);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,13 +30,15 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
   return (
     <div
       className={`fixed inset-0 z-50 overflow-hidden transition-all duration-300 ${
-        isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        isOpen
+          ? "opacity-100 pointer-events-auto"
+          : "opacity-0 pointer-events-none"
       }`}
     >
       {/* Backdrop overlay */}
       <div
         className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
+          isOpen ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
       />
@@ -45,31 +47,34 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
         {/* Right drawer panel with smooth slide animation */}
         <div
           className={`w-screen max-w-md bg-white text-black flex flex-col shadow-2xl p-6 sm:p-8 overflow-y-auto transition-transform duration-300 ease-in-out transform ${
-            isOpen ? 'translate-x-0' : 'translate-x-full'
+            isOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 pb-4">
             <h2 className="font-integral text-xl font-black text-black">
-              {mode === 'login' ? 'LOG IN TO SHOP.CO' : 'CREATE YOUR ACCOUNT'}
+              {mode === "login" ? "LOG IN TO AIRAVÉ" : "CREATE YOUR ACCOUNT"}
             </h2>
-            <button onClick={onClose} className="p-1 text-gray-400 hover:text-black">
+            <button
+              onClick={onClose}
+              className="p-1 text-gray-400 hover:text-black"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="py-6 space-y-6 flex-1">
             <p className="text-xs text-gray-500">
-              {mode === 'login'
-                ? 'Welcome back! Enter your details to access your orders and wishlist.'
-                : 'Join Shop.co today for 20% off your first order and express checkout.'}
+              {mode === "login"
+                ? "Welcome back! Enter your details to access your orders and wishlist."
+                : "Join AIRAVÉ today for 20% off your first order and express checkout."}
             </p>
 
             {/* Social Logins */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => alert('Google Sign-In Triggered')}
+                onClick={() => alert("Google Sign-In Triggered")}
                 className="py-3 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-50 transition-colors"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -95,7 +100,7 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
 
               <button
                 type="button"
-                onClick={() => alert('Apple Sign-In Triggered')}
+                onClick={() => alert("Apple Sign-In Triggered")}
                 className="py-3 px-4 rounded-full bg-black text-white flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-800 transition-colors"
               >
                 <span> Apple</span>
@@ -110,7 +115,7 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'signup' && (
+              {mode === "signup" && (
                 <div>
                   <label className="text-xs font-bold uppercase text-gray-700 block mb-1">
                     Full Name
@@ -173,8 +178,11 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
                   />
                   <span>Remember me</span>
                 </label>
-                {mode === 'login' && (
-                  <button type="button" className="hover:text-black font-semibold">
+                {mode === "login" && (
+                  <button
+                    type="button"
+                    className="hover:text-black font-semibold"
+                  >
                     Forgot Password?
                   </button>
                 )}
@@ -184,7 +192,7 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
                 type="submit"
                 className="w-full py-4 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full transition-all shadow-md flex items-center justify-center gap-2"
               >
-                <span>{mode === 'login' ? 'Log In' : 'Create Account'}</span>
+                <span>{mode === "login" ? "Log In" : "Create Account"}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -192,11 +200,11 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
 
           {/* Bottom Switch Footer */}
           <div className="pt-4 border-t border-gray-200 text-center text-xs text-gray-500">
-            {mode === 'login' ? (
+            {mode === "login" ? (
               <p>
-                Don't have an account?{' '}
+                Don't have an account?{" "}
                 <button
-                  onClick={() => setMode('signup')}
+                  onClick={() => setMode("signup")}
                   className="font-bold text-black underline ml-1"
                 >
                   Sign Up
@@ -204,9 +212,9 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
               </p>
             ) : (
               <p>
-                Already have an account?{' '}
+                Already have an account?{" "}
                 <button
-                  onClick={() => setMode('login')}
+                  onClick={() => setMode("login")}
                   className="font-bold text-black underline ml-1"
                 >
                   Log In
@@ -214,7 +222,6 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
               </p>
             )}
           </div>
-
         </div>
       </div>
     </div>

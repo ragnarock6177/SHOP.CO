@@ -296,7 +296,7 @@ export default function ProductDetailPage() {
             {/* Reviews Section Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-xl sm:text-2xl text-black">
+                <h3 className="font-integral text-xl sm:text-2xl font-black text-black uppercase">
                   All Reviews
                 </h3>
                 <span className="text-sm text-gray-400 font-normal">
