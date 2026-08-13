@@ -58,7 +58,7 @@ export const CustomerReviews: React.FC = () => {
 
             {/* Customer Name & Verified Badge */}
             <div className="flex items-center gap-2 pt-1">
-              <h4 className="font-bold text-lg text-black">
+              <h4 className="font-satoshi font-bold text-lg text-black">
                 {review.userName}
               </h4>
               {review.verified && (
@@ -69,7 +69,7 @@ export const CustomerReviews: React.FC = () => {
             </div>
 
             {/* Review Comment Text */}
-            <p className="text-gray-600 text-sm leading-relaxed">
+            <p className="font-satoshi text-gray-600 text-sm leading-relaxed">
               "{review.comment}"
             </p>
           </div>

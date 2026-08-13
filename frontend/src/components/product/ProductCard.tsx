@@ -79,13 +79,13 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         
         {/* Product Title */}
         <Link href={`/product/${product.id}`}>
-          <h3 className="font-bold text-base text-black group-hover:text-gray-600 transition-colors line-clamp-1">
+          <h3 className="font-satoshi font-bold text-base text-black group-hover:text-gray-600 transition-colors line-clamp-1">
             {product.title}
           </h3>
         </Link>
 
         {/* Rating Score with Yellow Stars */}
-        <div className="flex items-center gap-1.5 text-xs">
+        <div className="flex items-center gap-1.5 text-xs font-satoshi">
           <div className="flex items-center gap-0.5">
             {renderStars(product.rating)}
           </div>
@@ -95,7 +95,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         </div>
 
         {/* Pricing Row */}
-        <div className="flex items-center gap-2 pt-0.5">
+        <div className="flex items-center gap-2 pt-0.5 font-satoshi">
           <span className="font-extrabold text-lg sm:text-xl text-black">
             ${product.price}
           </span>

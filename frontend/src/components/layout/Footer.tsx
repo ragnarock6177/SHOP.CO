@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
+import { AnimatedFooter } from "../ui/animated-footer";
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-[#F0F0F0] text-gray-600 pt-28 sm:pt-36 pb-8 border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        
+    <footer className="relative bg-[#F0F0F0] text-gray-600 pt-28 sm:pt-36 border-t border-gray-200 overflow-hidden">
+      {/* 1. Main Upper Footer Content Container */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 mb-4">
         {/* Main Footer Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
-          
           {/* Brand Info & Social Icons */}
           <div className="md:col-span-4 space-y-5">
             <Link href="/" className="inline-block">
@@ -20,7 +20,8 @@ export const Footer: React.FC = () => {
             </Link>
 
             <p className="text-sm text-gray-600 leading-relaxed max-w-sm">
-              We have clothes that suits your style and which you're proud to wear. From women to men.
+              We have clothes that suits your style and which you're proud to
+              wear. From women to men.
             </p>
 
             {/* Social Icons */}
@@ -77,68 +78,175 @@ export const Footer: React.FC = () => {
 
           {/* Links Columns */}
           <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6">
-            
             {/* COMPANY */}
             <div className="space-y-4">
-              <h4 className="font-bold text-sm text-black tracking-wider uppercase">
+              <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 COMPANY
               </h4>
               <ul className="space-y-3 text-sm">
-                <li><Link href="/about" className="hover:text-black transition-colors">About Us</Link></li>
-                <li><Link href="/shop" className="hover:text-black transition-colors">Features</Link></li>
-                <li><Link href="/about#works" className="hover:text-black transition-colors">Works</Link></li>
-                <li><Link href="/about#career" className="hover:text-black transition-colors">Career</Link></li>
+                <li>
+                  <Link
+                    href="/about"
+                    className="hover:text-black transition-colors"
+                  >
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/shop"
+                    className="hover:text-black transition-colors"
+                  >
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/about#works"
+                    className="hover:text-black transition-colors"
+                  >
+                    Works
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/about#career"
+                    className="hover:text-black transition-colors"
+                  >
+                    Career
+                  </Link>
+                </li>
               </ul>
             </div>
 
             {/* HELP */}
             <div className="space-y-4">
-              <h4 className="font-bold text-sm text-black tracking-wider uppercase">
+              <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 HELP
               </h4>
               <ul className="space-y-3 text-sm">
-                <li><Link href="/faq" className="hover:text-black transition-colors">Customer Support</Link></li>
-                <li><Link href="/delivery" className="hover:text-black transition-colors">Delivery Details</Link></li>
-                <li><Link href="/terms" className="hover:text-black transition-colors">Terms & Conditions</Link></li>
-                <li><Link href="/terms#privacy" className="hover:text-black transition-colors">Privacy Policy</Link></li>
+                <li>
+                  <Link
+                    href="/faq"
+                    className="hover:text-black transition-colors"
+                  >
+                    Customer Support
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/delivery"
+                    className="hover:text-black transition-colors"
+                  >
+                    Delivery Details
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/terms"
+                    className="hover:text-black transition-colors"
+                  >
+                    Terms & Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/terms#privacy"
+                    className="hover:text-black transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
               </ul>
             </div>
 
             {/* FAQ */}
             <div className="space-y-4">
-              <h4 className="font-bold text-sm text-black tracking-wider uppercase">
+              <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 FAQ
               </h4>
               <ul className="space-y-3 text-sm">
-                <li><Link href="/profile" className="hover:text-black transition-colors">Account</Link></li>
-                <li><Link href="/profile" className="hover:text-black transition-colors">Manage Deliveries</Link></li>
-                <li><Link href="/profile" className="hover:text-black transition-colors">Orders</Link></li>
-                <li><Link href="/profile" className="hover:text-black transition-colors">Payments</Link></li>
+                <li>
+                  <Link
+                    href="/profile"
+                    className="hover:text-black transition-colors"
+                  >
+                    Account
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/profile"
+                    className="hover:text-black transition-colors"
+                  >
+                    Manage Deliveries
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/profile"
+                    className="hover:text-black transition-colors"
+                  >
+                    Orders
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/profile"
+                    className="hover:text-black transition-colors"
+                  >
+                    Payments
+                  </Link>
+                </li>
               </ul>
             </div>
 
             {/* RESOURCES */}
             <div className="space-y-4">
-              <h4 className="font-bold text-sm text-black tracking-wider uppercase">
+              <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 RESOURCES
               </h4>
               <ul className="space-y-3 text-sm">
-                <li><Link href="/about#ebooks" className="hover:text-black transition-colors">Free eBooks</Link></li>
-                <li><Link href="/about#tutorials" className="hover:text-black transition-colors">Development Tutorial</Link></li>
-                <li><Link href="/about#blog" className="hover:text-black transition-colors">How to - Blog</Link></li>
-                <li><Link href="/about#youtube" className="hover:text-black transition-colors">Youtube Playlist</Link></li>
+                <li>
+                  <Link
+                    href="/about#ebooks"
+                    className="hover:text-black transition-colors"
+                  >
+                    Free eBooks
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/about#tutorials"
+                    className="hover:text-black transition-colors"
+                  >
+                    Development Tutorial
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/about#blog"
+                    className="hover:text-black transition-colors"
+                  >
+                    How to - Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/about#youtube"
+                    className="hover:text-black transition-colors"
+                  >
+                    Youtube Playlist
+                  </Link>
+                </li>
               </ul>
             </div>
-
           </div>
-
         </div>
 
         {/* Bottom Bar: Copyright & Payment Icons */}
         <div className="pt-8 border-t border-gray-300/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-          <p>
-            Shop.co &copy; 2000-2026. All Rights Reserved.
-          </p>
+          <p>Shop.co &copy; 2000-2026. All Rights Reserved.</p>
 
           {/* Payment Card Badges */}
           <div className="flex items-center gap-2">
@@ -159,7 +267,24 @@ export const Footer: React.FC = () => {
             </span>
           </div>
         </div>
+      </div>
 
+      <div className="relative z-0 -mt-16 sm:-mt-22 md:-mt-28 h-[250px] xs:h-[300px] sm:h-[350px] md:h-[380px] lg:h-[450px] w-full overflow-hidden">
+        <AnimatedFooter
+          headingLines={["SHOP.CO"]}
+          leftImage="/animated-footer/hand-left.jpg"
+          rightImage="/animated-footer/hand-right.jpg"
+          background="#F0F0F0"
+          textColor="#000000"
+          charColor="#1f2937"
+          hoverColor="#000000"
+          hoverCharColor="#ffffff"
+          columns={125}
+          cellSize={12}
+          fontSize={11}
+          handWidthClass="w-[45%] sm:w-[44%] md:w-[42%] max-w-[650px]"
+          handsAlignmentClass="items-center inset-y-0"
+        />
       </div>
     </footer>
   );

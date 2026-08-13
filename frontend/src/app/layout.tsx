@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
-import { Inter, Montserrat } from 'next/font/google';
+import { Inter, Montserrat, Geist } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '../context/CartContext';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { CartDrawer } from '../components/layout/CartDrawer';
+import { GhostScrollbar } from '../components/common/GhostScrollbar';
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const montserrat = Montserrat({ 
@@ -24,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
-      <body className={`${inter.className} bg-white text-black min-h-screen flex flex-col antialiased selection:bg-black selection:text-white`}>
+    <html lang="en" className={cn(inter.variable, montserrat.variable, "font-sans", geist.variable)}>
+      <body className={`${inter.className} font-satoshi bg-white text-black min-h-screen flex flex-col antialiased selection:bg-black selection:text-white`}>
         <CartProvider>
           <Header />
           <CartDrawer />
@@ -33,6 +37,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <GhostScrollbar />
         </CartProvider>
       </body>
     </html>
