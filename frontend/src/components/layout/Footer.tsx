@@ -6,31 +6,31 @@ import { AnimatedFooter } from "../ui/animated-footer";
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="relative bg-[#F0F0F0] text-gray-600 pt-28 sm:pt-36 border-t border-gray-200 overflow-hidden">
+    <footer className="relative bg-[#F0F0F0] text-gray-600 pt-32 xs:pt-36 sm:pt-40 lg:pt-44 border-t border-gray-200 overflow-hidden">
       {/* 1. Main Upper Footer Content Container */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 mb-4">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-12 mb-4">
         {/* Main Footer Content Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-10 lg:gap-12">
           {/* Brand Info & Social Icons */}
-          <div className="md:col-span-4 space-y-5">
+          <div className="md:col-span-4 space-y-4 sm:space-y-5 text-center md:text-left">
             <Link href="/" className="inline-block">
               <span className="font-integral text-2xl sm:text-3xl font-black tracking-tighter text-black">
                 AIRAVÉ
               </span>
             </Link>
 
-            <p className="text-sm text-gray-600 leading-relaxed max-w-sm">
-              We have clothes that suits your style and which you're proud to
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-sm mx-auto md:mx-0">
+              We have clothes that suit your style and which you're proud to
               wear. From women to men.
             </p>
 
             {/* Social Icons */}
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex items-center justify-center md:justify-start gap-3 pt-1 sm:pt-2">
               <a
                 href="https://twitter.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black hover:bg-black hover:text-white transition-colors shadow-sm"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black hover:bg-black hover:text-white active:scale-95 transition-all shadow-xs"
                 aria-label="Twitter"
               >
                 <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@ export const Footer: React.FC = () => {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-black text-white border border-black flex items-center justify-center hover:bg-gray-800 transition-colors shadow-sm"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-black text-white border border-black flex items-center justify-center hover:bg-gray-800 active:scale-95 transition-all shadow-xs"
                 aria-label="Facebook"
               >
                 <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@ export const Footer: React.FC = () => {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black hover:bg-black hover:text-white transition-colors shadow-sm"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black hover:bg-black hover:text-white active:scale-95 transition-all shadow-xs"
                 aria-label="Instagram"
               >
                 <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -66,7 +66,7 @@ export const Footer: React.FC = () => {
                 href="https://github.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black hover:bg-black hover:text-white transition-colors shadow-sm"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black hover:bg-black hover:text-white active:scale-95 transition-all shadow-xs"
                 aria-label="GitHub"
               >
                 <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -76,14 +76,14 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Links Columns */}
-          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6">
+          {/* Links Columns Grid */}
+          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
             {/* COMPANY */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 COMPANY
               </h4>
-              <ul className="space-y-3 text-sm">
+              <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
                 <li>
                   <Link
                     href="/about"
@@ -120,11 +120,11 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* HELP */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 HELP
               </h4>
-              <ul className="space-y-3 text-sm">
+              <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
                 <li>
                   <Link
                     href="/faq"
@@ -161,11 +161,11 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* FAQ */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 FAQ
               </h4>
-              <ul className="space-y-3 text-sm">
+              <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
                 <li>
                   <Link
                     href="/profile"
@@ -202,11 +202,11 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* RESOURCES */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 RESOURCES
               </h4>
-              <ul className="space-y-3 text-sm">
+              <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
                 <li>
                   <Link
                     href="/about#ebooks"
@@ -245,31 +245,31 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar: Copyright & Payment Icons */}
-        <div className="pt-8 border-t border-gray-300/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+        <div className="pt-6 sm:pt-8 border-t border-gray-300/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-[11px] sm:text-xs text-gray-500">
           <p>AIRAVÉ &copy; 2000-2026. All Rights Reserved.</p>
 
           {/* Payment Card Badges */}
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[11px] text-blue-800">
+          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+            <span className="px-2.5 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[10px] sm:text-[11px] text-blue-800 shadow-2xs">
               VISA
             </span>
-            <span className="px-3 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[11px] text-red-600">
+            <span className="px-2.5 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[10px] sm:text-[11px] text-red-600 shadow-2xs">
               Mastercard
             </span>
-            <span className="px-3 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[11px] text-blue-600">
+            <span className="px-2.5 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[10px] sm:text-[11px] text-blue-600 shadow-2xs">
               PayPal
             </span>
-            <span className="px-3 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[11px] text-black">
+            <span className="px-2.5 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[10px] sm:text-[11px] text-black shadow-2xs">
               Pay
             </span>
-            <span className="px-3 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[11px] text-blue-500">
+            <span className="px-2.5 py-1 bg-white rounded-md border border-gray-200 font-extrabold text-[10px] sm:text-[11px] text-blue-500 shadow-2xs">
               GPay
             </span>
           </div>
         </div>
       </div>
 
-      <div className="relative z-0 -mt-16 sm:-mt-22 md:-mt-28 h-[250px] xs:h-[300px] sm:h-[350px] md:h-[380px] lg:h-[450px] w-full overflow-hidden">
+      <div className="relative z-0 -mt-12 xs:-mt-16 sm:-mt-22 md:-mt-28 h-[200px] xs:h-[260px] sm:h-[350px] md:h-[380px] lg:h-[450px] w-full overflow-hidden">
         <AnimatedFooter
           headingLines={["AIRAVÉ"]}
           leftImage="/animated-footer/hand-left.jpg"
@@ -282,10 +282,11 @@ export const Footer: React.FC = () => {
           columns={125}
           cellSize={12}
           fontSize={11}
-          handWidthClass="w-[45%] sm:w-[44%] md:w-[42%] max-w-[650px]"
+          handWidthClass="w-[46%] sm:w-[44%] md:w-[42%] max-w-[650px]"
           handsAlignmentClass="items-center inset-y-0"
         />
       </div>
     </footer>
   );
 };
+
