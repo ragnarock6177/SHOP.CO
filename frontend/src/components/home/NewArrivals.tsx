@@ -4,7 +4,6 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, StarHalf } from "lucide-react";
-import { motion, Variants } from "framer-motion";
 
 const NEW_ARRIVALS = [
   {
@@ -66,59 +65,20 @@ function RatingStars({ rating }: { rating: number }) {
   );
 }
 
-// Stagger Parent Container Variants
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.12, // Har card ek ke baad ek 0.12s gap me aayega
-    },
-  },
-};
-
-// Item Animation Variants (Slide up without blur)
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  },
-};
-
 export function NewArrivals() {
   return (
     <section className="w-full bg-white py-12 sm:py-8 lg:py-5 px-4 sm:px-10 max-w-360 mx-auto border-b border-black/10 overflow-hidden">
       {/* Title */}
-      <motion.h2
-        initial={{ opacity: 0, y: 25 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="font-integral text-[32px] sm:text-[40px] lg:text-[48px] font-bold sm:font-extrabold text-black text-center uppercase tracking-normal sm:tracking-tight leading-none mb-8 sm:mb-14"
-      >
+      <h2 className="font-integral text-[32px] sm:text-[40px] lg:text-[48px] font-bold sm:font-extrabold text-black text-center uppercase tracking-normal sm:tracking-tight leading-none mb-8 sm:mb-14">
         NEW ARRIVALS
-      </motion.h2>
+      </h2>
 
-      {/* Product Cards Grid with Sequential Stagger Animation */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6"
-      >
+      {/* Product Cards Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
         {NEW_ARRIVALS.map((product) => (
-          <motion.div
+          <div
             key={product.id}
-            variants={itemVariants}
-            whileHover={{ y: -6 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="flex flex-col group cursor-pointer"
+            className="flex flex-col group cursor-pointer hover:-translate-y-1.5 transition-transform duration-200"
           >
             {/* Image Container */}
             <div className="w-full bg-[#F0EEED] rounded-[20px] aspect-square flex items-center justify-center p-4 overflow-hidden relative">
@@ -156,27 +116,22 @@ export function NewArrivals() {
                 </span>
               )}
             </div>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* View All Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full flex justify-center mt-9 sm:mt-12"
-      >
+      <div className="w-full flex justify-center mt-9 sm:mt-12">
         <Link
           href="/shop"
           className="w-full sm:w-54.5 h-13 bg-white border border-black/10 rounded-full font-satoshi font-medium text-black hover:text-white text-base cursor-pointer relative overflow-hidden transition-all duration-500 ease-in-out shadow-sm hover:shadow-md z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-black before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0 flex items-center justify-center"
         >
           View All
         </Link>
-      </motion.div>
+      </div>
     </section>
   );
 }
 
 export default NewArrivals;
+

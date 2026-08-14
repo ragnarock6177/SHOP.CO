@@ -12,7 +12,6 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../../context/CartContext";
 import { CATEGORIES } from "../../data/mockData";
 
@@ -38,12 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
     <>
       {/* Main Navigation Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ y: "-100%", opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center justify-between h-16 md:h-20 gap-4 md:gap-8"
-        >
+        <div className="flex items-center justify-between h-16 md:h-20 gap-4 md:gap-8">
           {/* Left: Mobile Menu Trigger Button & Brand Logo */}
           <div className="flex items-center gap-3">
             <button
@@ -73,7 +67,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
                 <ChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
               </Link>
 
-              {/* Animated Desktop Dropdown */}
+              {/* Desktop Dropdown */}
               <div className="absolute top-full left-0 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1 block">
                   Categories
@@ -155,13 +149,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
             >
               <ShoppingBag className="w-6 h-6" />
               {cartCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-0 right-0 w-4 h-4 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center"
-                >
+                <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
                   {cartCount}
-                </motion.span>
+                </span>
               )}
             </button>
 
@@ -175,133 +165,122 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
               <User className="w-6 h-6" />
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Mobile Navigation Left Drawer with Framer Motion AnimatePresence */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 md:hidden flex">
-            {/* Dark Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
+      {/* Mobile Navigation Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Dark Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
 
-            {/* Left Sliding Drawer Panel */}
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="relative w-80 max-w-[85vw] bg-white text-black z-10 flex flex-col shadow-2xl p-6 overflow-y-auto"
-            >
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
-                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-                  <span className="font-integral text-2xl font-black text-black">
-                    AIRAVÉ
-                  </span>
-                </Link>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1 text-gray-400 hover:text-black transition-colors"
-                  aria-label="Close menu"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              {/* Search Input inside Left Drawer */}
-              <form
-                onSubmit={handleSearchSubmit}
-                className="flex items-center bg-[#F0F0F0] rounded-full px-4 py-2.5 gap-3 mb-6"
+          {/* Left Sliding Drawer Panel */}
+          <div className="relative w-80 max-w-[85vw] bg-white text-black z-10 flex flex-col shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
+              <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                <span className="font-integral text-2xl font-black text-black">
+                  AIRAVÉ
+                </span>
+              </Link>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1 text-gray-400 hover:text-black transition-colors"
+                aria-label="Close menu"
               >
-                <Search className="w-4 h-4 text-gray-400 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search clothes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent text-xs text-black placeholder-gray-500 focus:outline-none"
-                />
-              </form>
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
-              {/* Navigation Links */}
-              <nav className="space-y-4 font-bold text-sm text-black flex-1">
-                <Link
-                  href="/shop"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>Shop All</span>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </Link>
+            {/* Search Input inside Left Drawer */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex items-center bg-[#F0F0F0] rounded-full px-4 py-2.5 gap-3 mb-6"
+            >
+              <Search className="w-4 h-4 text-gray-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search clothes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent text-xs text-black placeholder-gray-500 focus:outline-none"
+              />
+            </form>
 
-                <Link
-                  href="/shop?filter=on-sale"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>On Sale</span>
-                  <span className="bg-red-100 text-red-600 font-bold text-[10px] px-2 py-0.5 rounded-full">
-                    HOT
-                  </span>
-                </Link>
+            {/* Navigation Links */}
+            <nav className="space-y-4 font-bold text-sm text-black flex-1">
+              <Link
+                href="/shop"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+              >
+                <span>Shop All</span>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </Link>
 
-                <Link
-                  href="/shop?sort=newest"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>New Arrivals</span>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </Link>
+              <Link
+                href="/shop?filter=on-sale"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+              >
+                <span>On Sale</span>
+                <span className="bg-red-100 text-red-600 font-bold text-[10px] px-2 py-0.5 rounded-full">
+                  HOT
+                </span>
+              </Link>
 
-                <Link
-                  href="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>My Profile & Orders</span>
-                  <User className="w-4 h-4 text-gray-400" />
-                </Link>
+              <Link
+                href="/shop?sort=newest"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+              >
+                <span>New Arrivals</span>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </Link>
 
-                <Link
-                  href="/cart"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>Shopping Cart</span>
-                  <ShoppingBag className="w-4 h-4 text-gray-400" />
-                </Link>
-              </nav>
+              <Link
+                href="/profile"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+              >
+                <span>My Profile & Orders</span>
+                <User className="w-4 h-4 text-gray-400" />
+              </Link>
 
-              {/* Bottom Auth Buttons */}
-              <div className="pt-6 border-t border-gray-100 space-y-3">
-                <Link
-                  href="/signup"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full py-3 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full text-center block shadow-md transition-all"
-                >
-                  Create Account
-                </Link>
-                <Link
-                  href="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full py-3 bg-[#F0F0F0] hover:bg-gray-200 text-black font-bold text-xs uppercase rounded-full text-center block transition-all"
-                >
-                  Log In
-                </Link>
-              </div>
-            </motion.div>
+              <Link
+                href="/cart"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+              >
+                <span>Shopping Cart</span>
+                <ShoppingBag className="w-4 h-4 text-gray-400" />
+              </Link>
+            </nav>
+
+            {/* Bottom Auth Buttons */}
+            <div className="pt-6 border-t border-gray-100 space-y-3">
+              <Link
+                href="/signup"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-3 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full text-center block shadow-md transition-all"
+              >
+                Create Account
+              </Link>
+              <Link
+                href="/login"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-3 bg-[#F0F0F0] hover:bg-gray-200 text-black font-bold text-xs uppercase rounded-full text-center block transition-all"
+              >
+                Log In
+              </Link>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </>
   );
 };
+
