@@ -13,7 +13,6 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const montserrat = Montserrat({
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800", "900"],
   variable: "--font-integral-cf",
 });
 
