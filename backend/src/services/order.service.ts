@@ -1,4 +1,4 @@
-import { orderRepository } from '../repositories/order.repository.js';
+import { orderRepository } from "../repositories/order.repository.js";
 
 export class OrderService {
   async placeOrder(payload: {

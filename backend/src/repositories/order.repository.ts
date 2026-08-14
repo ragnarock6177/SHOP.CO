@@ -1,4 +1,4 @@
-import { prisma } from '../config/db.js';
+import { prisma } from "../config/db.js";
 
 export class OrderRepository {
   async create(data: {
@@ -43,7 +43,7 @@ export class OrderRepository {
         items: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }

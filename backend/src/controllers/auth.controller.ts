@@ -1,57 +1,87 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
+import { AuthService } from "../services/auth.service.js";
+import { sendResponse } from "../utils/response.util.js";
 
-export const loginUser = (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({
-        success: false,
-        message: 'Email and password are required'
-      });
-      return;
+export class AuthController {
+  /**
+   * POST /api/v1/auth/register
+   * Unified registration / authentication endpoint for email, phone, and google.
+   */
+  public static async register(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const result = await AuthService.register(req.body);
+      sendResponse(res, 200, "Authentication successful", result);
+    } catch (error) {
+      next(error);
     }
-
-    res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      token: 'mock-jwt-token-shop-co-2026',
-      user: {
-        id: 'usr-1',
-        name: 'Alex Morgan',
-        email,
-        role: 'customer'
-      }
-    });
-  } catch (error) {
-    next(error);
   }
-};
 
-export const registerUser = (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      res.status(400).json({
-        success: false,
-        message: 'Name, email, and password are required'
-      });
-      return;
+  /**
+   * POST /api/v1/auth/login
+   * Login endpoint for email + password authentication.
+   */
+  public static async login(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const result = await AuthService.login(req.body);
+      sendResponse(res, 200, "Login successful", result);
+    } catch (error) {
+      next(error);
     }
-
-    res.status(201).json({
-      success: true,
-      message: 'Account created successfully',
-      token: 'mock-jwt-token-shop-co-2026',
-      user: {
-        id: `usr-${Date.now()}`,
-        name,
-        email,
-        role: 'customer'
-      }
-    });
-  } catch (error) {
-    next(error);
   }
-};
+
+  /**
+   * GET /api/v1/auth/me
+   * Retrieves authenticated user details.
+   */
+  public static async me(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      sendResponse(res, 200, "User profile retrieved successfully", {
+        user: req.user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/auth/logout
+   * Client logout signal.
+   */
+  public static async logout(
+    _req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      sendResponse(res, 200, "Logout successful");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async checkUser(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const result = await AuthService.checkUser(req.body);
+      sendResponse(res, 200, "User check completed successfully", result);
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
