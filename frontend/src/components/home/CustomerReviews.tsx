@@ -1,81 +1,113 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Star, Check, ArrowLeft, ArrowRight } from 'lucide-react';
-import { REVIEWS } from '../../data/mockData';
+import React, { useEffect, useRef } from "react";
+import { Star, Check } from "lucide-react";
+import { motion } from "framer-motion";
+import gsap from "gsap";
+import { REVIEWS } from "../../data/mockData";
+
+// Duplicate reviews to create a seamless infinite train scroll
+const MARQUEE_REVIEWS = [...REVIEWS, ...REVIEWS, ...REVIEWS, ...REVIEWS];
 
 export const CustomerReviews: React.FC = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const tweenRef = useRef<gsap.core.Tween | null>(null);
 
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev === 0 ? REVIEWS.length - 1 : prev - 1));
-  };
+  useEffect(() => {
+    if (!trackRef.current) return;
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % REVIEWS.length);
-  };
+    const ctx = gsap.context(() => {
+      tweenRef.current = gsap.to(trackRef.current, {
+        xPercent: -50,
+        ease: "none",
+        duration: 55,
+        repeat: -1,
+      });
+    }, trackRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-16 space-y-8">
-      
-      {/* Header with Title and Navigation Arrows */}
-      <div className="flex items-end justify-between">
-        <h2 className="font-integral text-3xl sm:text-4xl lg:text-5xl font-black text-black tracking-tight">
-          OUR HAPPY CUSTOMERS
-        </h2>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={prevSlide}
-            className="p-2.5 rounded-full border border-gray-200 text-black hover:bg-black hover:text-white transition-colors"
-            aria-label="Previous Review"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="p-2.5 rounded-full border border-gray-200 text-black hover:bg-black hover:text-white transition-colors"
-            aria-label="Next Review"
-          >
-            <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
+    <section className="w-full my-16 space-y-8 overflow-hidden">
+      {/* Header with Title (Kept within 7xl container for alignment) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
+        >
+          <h2 className="font-integral text-3xl sm:text-4xl lg:text-5xl font-black text-black tracking-tight">
+            OUR HAPPY CUSTOMERS
+          </h2>
+        </motion.div>
       </div>
 
-      {/* Testimonials Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {REVIEWS.map((review, idx) => (
-          <div
-            key={review.id}
-            className="border border-gray-200/80 rounded-2xl p-6 sm:p-7 bg-white space-y-3 shadow-sm hover:shadow-md transition-shadow"
-          >
-            {/* 5 Yellow Stars */}
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 fill-[#FFC633] text-[#FFC633]" />
-              ))}
-            </div>
+      {/* Full-Width Edge-to-Edge Continuous Train Marquee Track */}
+      <div
+        className="relative w-full overflow-hidden py-6"
+        onMouseEnter={() => tweenRef.current?.pause()}
+        onMouseLeave={() => tweenRef.current?.play()}
+        onTouchStart={() => tweenRef.current?.pause()}
+        onTouchEnd={() => tweenRef.current?.play()}
+      >
+        {/* Soft edge fade overlays */}
+        <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 lg:w-48 bg-linear-to-r from-white via-white/80 to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 lg:w-48 bg-linear-to-l from-white via-white/80 to-transparent z-10 pointer-events-none" />
 
-            {/* Customer Name & Verified Badge */}
-            <div className="flex items-center gap-2 pt-1">
-              <h4 className="font-satoshi font-bold text-lg text-black">
-                {review.userName}
-              </h4>
-              {review.verified && (
-                <span className="w-5 h-5 rounded-full bg-[#01AB31] text-white flex items-center justify-center text-[10px]" title="Verified Buyer">
-                  <Check className="w-3 h-3 stroke-3" />
-                </span>
+        {/* GSAP Train Animation Track */}
+        <div
+          ref={trackRef}
+          className="flex gap-6 w-max will-change-transform cursor-pointer"
+        >
+          {MARQUEE_REVIEWS.map((review, index) => (
+            <div
+              key={`${review.id}-${index}`}
+              className="w-[320px] sm:w-[380px] lg:w-[400px] min-h-[220px] flex-none border border-gray-200/90 rounded-2xl p-6 sm:p-7 bg-white flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-1.5 hover:border-gray-300 transition-transform duration-300 cursor-default select-none"
+            >
+              <div className="space-y-3">
+                {/* 5 Yellow Stars */}
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="w-5 h-5 fill-[#FFC633] text-[#FFC633]"
+                    />
+                  ))}
+                </div>
+
+                {/* Customer Name & Verified Badge */}
+                <div className="flex items-center gap-2 pt-1">
+                  <h3 className="font-satoshi font-bold text-lg text-black">
+                    {review.userName}
+                  </h3>
+                  {review.verified && (
+                    <span
+                      className="w-5 h-5 rounded-full bg-[#01AB31] text-white flex items-center justify-center text-[10px]"
+                      title="Verified Buyer"
+                    >
+                      <Check className="w-3 h-3 stroke-3" />
+                    </span>
+                  )}
+                </div>
+
+                {/* Review Comment Text */}
+                <p className="font-satoshi text-gray-600 text-sm leading-relaxed">
+                  "{review.comment}"
+                </p>
+              </div>
+
+              {/* Review Date */}
+              {review.date && (
+                <p className="font-satoshi text-xs text-gray-400 font-medium pt-4 border-t border-gray-100 mt-4">
+                  {review.date}
+                </p>
               )}
             </div>
-
-            {/* Review Comment Text */}
-            <p className="font-satoshi text-gray-600 text-sm leading-relaxed">
-              "{review.comment}"
-            </p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-
     </section>
   );
 };
