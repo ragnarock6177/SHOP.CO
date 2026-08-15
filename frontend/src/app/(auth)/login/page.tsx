@@ -2,27 +2,24 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import {
   Mail,
   Lock,
   ArrowRight,
-  ArrowLeft,
   Phone,
   CheckCircle2,
-  AlertCircle,
   Eye,
   EyeOff,
-  KeyRound,
   Edit2,
 } from "lucide-react";
 import {
   RealPhoneInput,
   isValidPhoneNumber,
 } from "@/components/ui/RealPhoneInput";
-import { FormFieldError } from "@/components/ui/FormFieldError";
 
 // Zod Validation Schemas for Step 1
 const mobileStepSchema = z.object({
@@ -73,7 +70,6 @@ export default function LoginPage() {
 
   // OTP State
   const [otpValues, setOtpValues] = useState<string[]>(Array(6).fill(""));
-  const [otpError, setOtpError] = useState("");
   const [resendTimer, setResendTimer] = useState(30);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -129,7 +125,7 @@ export default function LoginPage() {
     resetStep1({ identifier: "" });
   };
 
-  // Step 1 Submission Handler (Simulates calling check-user API)
+  // Step 1 Submission Handlers (Valid & Invalid)
   const onStep1Submit = (data: Step1FormData) => {
     setIsLoading(true);
     setSavedIdentifier(data.identifier);
@@ -138,17 +134,22 @@ export default function LoginPage() {
     setTimeout(() => {
       setIsLoading(false);
       if (inputMode === "mobile") {
-        // Mobile mode -> Proceed to OTP screen
         setStep("otp");
         setResendTimer(30);
         setOtpValues(Array(6).fill(""));
-        setOtpError("");
+        toast.success(`OTP sent to ${data.identifier}`);
       } else {
-        // Email mode -> Proceed to Password screen
         setStep("password");
         resetPassword({ password: "" });
+        toast.info("Please enter your account password.");
       }
     }, 600);
+  };
+
+  const onStep1Invalid = (errors: FieldErrors<Step1FormData>) => {
+    if (errors.identifier?.message) {
+      toast.error(errors.identifier.message);
+    }
   };
 
   // OTP Handling Functions
@@ -159,7 +160,6 @@ export default function LoginPage() {
     const newOtp = [...otpValues];
     newOtp[index] = clean.slice(-1);
     setOtpValues(newOtp);
-    setOtpError("");
 
     if (clean && index < 5) {
       otpRefs.current[index + 1]?.focus();
@@ -185,7 +185,6 @@ export default function LoginPage() {
       newOtp[i] = pasted[i];
     }
     setOtpValues(newOtp);
-    setOtpError("");
 
     if (pasted.length < 6) {
       otpRefs.current[pasted.length]?.focus();
@@ -199,7 +198,7 @@ export default function LoginPage() {
     const fullOtp = otpValues.join("");
 
     if (fullOtp.length < 6) {
-      setOtpError("Please enter all 6 digits of the OTP code.");
+      toast.error("Please enter all 6 digits of the OTP code.");
       return;
     }
 
@@ -207,16 +206,29 @@ export default function LoginPage() {
     setTimeout(() => {
       setIsLoading(false);
       setStep("success");
+      toast.success("Logged in successfully!");
     }, 700);
   };
 
-  // Password Submission Handler
+  const handleResendOtp = () => {
+    setResendTimer(30);
+    toast.success(`A new 6-digit OTP code has been sent to ${savedIdentifier}`);
+  };
+
+  // Password Submission Handlers
   const onPasswordSubmit = (_data: PasswordFormData) => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
       setStep("success");
+      toast.success("Logged in successfully!");
     }, 700);
+  };
+
+  const onPasswordInvalid = (errors: FieldErrors<PasswordFormData>) => {
+    if (errors.password?.message) {
+      toast.error(errors.password.message);
+    }
   };
 
   // Go back to input step
@@ -287,20 +299,12 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleGoBack}
-                  className="text-[11px] font-bold text-black underline flex items-center gap-1 hover:text-gray-600 shrink-0 ml-2"
+                  className="text-[11px] font-bold text-black underline flex items-center gap-1 hover:text-gray-600 shrink-0 ml-2 cursor-pointer"
                 >
                   <Edit2 className="w-3 h-3" />
                   <span>Edit</span>
                 </button>
               </div>
-
-              {/* Form Error Alert */}
-              {otpError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-3 text-xs font-medium flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-                  <span>{otpError}</span>
-                </div>
-              )}
 
               <form onSubmit={handleVerifyOtp} className="space-y-6">
                 <div>
@@ -339,8 +343,8 @@ export default function LoginPage() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setResendTimer(30)}
-                      className="font-bold text-black underline hover:text-gray-700"
+                      onClick={handleResendOtp}
+                      className="font-bold text-black underline hover:text-gray-700 cursor-pointer"
                     >
                       Resend OTP Code
                     </button>
@@ -373,7 +377,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleGoBack}
-                  className="text-[11px] font-bold text-black underline flex items-center gap-1 hover:text-gray-600 shrink-0 ml-2"
+                  className="text-[11px] font-bold text-black underline flex items-center gap-1 hover:text-gray-600 shrink-0 ml-2 cursor-pointer"
                 >
                   <Edit2 className="w-3 h-3" />
                   <span>Edit</span>
@@ -382,7 +386,7 @@ export default function LoginPage() {
 
               {/* Password Form */}
               <form
-                onSubmit={handleSubmitPassword(onPasswordSubmit)}
+                onSubmit={handleSubmitPassword(onPasswordSubmit, onPasswordInvalid)}
                 className="space-y-4"
                 noValidate
               >
@@ -438,7 +442,6 @@ export default function LoginPage() {
                       )}
                     </button>
                   </div>
-                  <FormFieldError message={errorsPassword.password?.message} />
                 </div>
 
                 {/* Remember Me & Forgot Password */}
@@ -454,11 +457,9 @@ export default function LoginPage() {
                   </label>
                   <button
                     type="button"
-                    onClick={() =>
-                      alert(
-                        "Password reset link sent to your registered email.",
-                      )
-                    }
+                    onClick={() => {
+                      toast.info("Password reset link sent to your email.");
+                    }}
                     className="hover:text-black font-semibold text-xs cursor-pointer"
                   >
                     Forgot Password?
@@ -483,7 +484,7 @@ export default function LoginPage() {
               <div>
                 <button
                   type="button"
-                  onClick={() => alert("Google Sign-In clicked!")}
+                  onClick={() => toast.info("Google Sign-In clicked")}
                   className="w-full py-3.5 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -515,19 +516,9 @@ export default function LoginPage() {
                 </span>
               </div>
 
-              {/* Form Validation Summary Alert */}
-              {Object.keys(errorsStep1).length > 0 && (
-                <div className="bg-red-50 border border-red-200/80 text-red-700 rounded-2xl p-3.5 text-xs font-medium flex items-center gap-2.5 shadow-2xs">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
-                  <span>
-                    Please correct the highlighted field below to continue.
-                  </span>
-                </div>
-              )}
-
               {/* Step 1 Input Form */}
               <form
-                onSubmit={handleSubmitStep1(onStep1Submit)}
+                onSubmit={handleSubmitStep1(onStep1Submit, onStep1Invalid)}
                 className="space-y-4"
                 noValidate
               >
@@ -595,7 +586,6 @@ export default function LoginPage() {
                       </>
                     )}
                   </div>
-                  <FormFieldError message={errorsStep1.identifier?.message} />
                 </div>
 
                 {/* Submit Step 1 Button */}
