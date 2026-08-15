@@ -94,7 +94,7 @@ export const Footer: React.FC = () => {
                 </li>
                 <li>
                   <Link
-                    href="/shop"
+                    href="/product"
                     className="hover:text-black transition-colors"
                   >
                     Features

@@ -14,7 +14,7 @@ import {
   Download,
   Package,
 } from "lucide-react";
-import { useCart, OrderRecord } from "../../context/CartContext";
+import { useCart, OrderRecord } from "@/context/CartContext";
 
 export default function CheckoutPage() {
   const { cart, cartSubtotal, clearCart, addOrder } = useCart();
@@ -263,7 +263,7 @@ export default function CheckoutPage() {
             Your Cart is Empty
           </h2>
           <Link
-            href="/shop"
+            href="/product"
             className="inline-block px-8 py-3.5 bg-black text-white font-bold text-xs rounded-full"
           >
             Browse Clothes

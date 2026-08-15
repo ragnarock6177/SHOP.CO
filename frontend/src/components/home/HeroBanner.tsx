@@ -42,7 +42,7 @@ export const HeroBanner: React.FC = () => {
 
           <div className="w-full sm:w-52.5 mb-8 sm:mb-12">
             <Link
-              href="/shop"
+              href="/product"
               className="w-50 sm:w-52.5 bg-black h-13 my-3 flex items-center justify-center rounded-full font-satoshi font-medium text-base text-white hover:text-black cursor-pointer relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg border border-black z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
             >
               Shop Now

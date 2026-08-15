@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   ArrowRight
 } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '@/context/CartContext';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, cartSubtotal, clearCart } = useCart();
@@ -55,7 +55,7 @@ export default function CartPage() {
         </div>
 
         <Link
-          href="/shop"
+          href="/product"
           className="text-xs text-black hover:text-gray-600 flex items-center gap-1 font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -73,7 +73,7 @@ export default function CartPage() {
             Explore our curated collections and discover clothes matching your style.
           </p>
           <Link
-            href="/shop"
+            href="/product"
             className="inline-block px-8 py-3.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-full transition-all shadow-md"
           >
             Explore Catalog

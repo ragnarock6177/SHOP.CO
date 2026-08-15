@@ -1,79 +1,82 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { 
-  Package, 
-  MapPin, 
-  CreditCard, 
-  Heart, 
-  Settings, 
-  LogOut, 
-  ChevronRight, 
-  Plus, 
-  Trash2, 
-  ShoppingBag
-} from 'lucide-react';
-import { useCart } from '../../context/CartContext';
-import { PRODUCTS } from '../../data/mockData';
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Package,
+  MapPin,
+  CreditCard,
+  Heart,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Plus,
+  Trash2,
+  ShoppingBag,
+} from "lucide-react";
+import { useCart } from "../../../context/CartContext";
+import { PRODUCTS } from "../../../data/mockData";
 
 export default function ProfilePage() {
   const { wishlist, orders, addToCart, toggleWishlist } = useCart();
-  const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'payments' | 'wishlist' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<
+    "orders" | "addresses" | "payments" | "wishlist" | "settings"
+  >("orders");
 
   // Mock User Info
   const user = {
-    name: 'Alex Morgan',
-    email: 'alex.morgan@example.com',
-    phone: '+1 (555) 234-5678',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300',
-    memberSince: 'January 2024',
-    tier: 'VIP Gold Member',
+    name: "Alex Morgan",
+    email: "alex.morgan@example.com",
+    phone: "+1 (555) 234-5678",
+    avatar:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300",
+    memberSince: "January 2024",
+    tier: "VIP Gold Member",
   };
 
   // Mock Addresses
   const [addresses, setAddresses] = useState([
     {
-      id: 'addr-1',
-      type: 'Home (Default)',
-      name: 'Alex Morgan',
-      street: '742 Evergreen Terrace',
-      city: 'Springfield',
-      state: 'IL',
-      zip: '62704',
+      id: "addr-1",
+      type: "Home (Default)",
+      name: "Alex Morgan",
+      street: "742 Evergreen Terrace",
+      city: "Springfield",
+      state: "IL",
+      zip: "62704",
       isDefault: true,
     },
     {
-      id: 'addr-2',
-      type: 'Office',
-      name: 'Alex Morgan',
-      street: '100 Innovation Way, Suite 400',
-      city: 'Chicago',
-      state: 'IL',
-      zip: '60601',
+      id: "addr-2",
+      type: "Office",
+      name: "Alex Morgan",
+      street: "100 Innovation Way, Suite 400",
+      city: "Chicago",
+      state: "IL",
+      zip: "60601",
       isDefault: false,
-    }
+    },
   ]);
 
   // Mock Payment Cards
   const [cards] = useState([
     {
-      id: 'card-1',
-      brand: 'Visa',
-      last4: '4242',
-      expiry: '08/28',
-      holder: 'ALEX MORGAN',
+      id: "card-1",
+      brand: "Visa",
+      last4: "4242",
+      expiry: "08/28",
+      holder: "ALEX MORGAN",
       isDefault: true,
     },
     {
-      id: 'card-2',
-      brand: 'Mastercard',
-      last4: '8819',
-      expiry: '11/27',
-      holder: 'ALEX MORGAN',
+      id: "card-2",
+      brand: "Mastercard",
+      last4: "8819",
+      expiry: "11/27",
+      holder: "ALEX MORGAN",
       isDefault: false,
-    }
+    },
   ]);
 
   // Wishlist products
@@ -81,7 +84,6 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 space-y-8 text-black">
-      
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-6">
         <div>
@@ -89,12 +91,13 @@ export default function ProfilePage() {
             MY ACCOUNT
           </h1>
           <p className="text-xs text-gray-500 mt-1">
-            Manage your profile, order history, shipping addresses, and account settings.
+            Manage your profile, order history, shipping addresses, and account
+            settings.
           </p>
         </div>
 
         <Link
-          href="/shop"
+          href="/product"
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#F0F0F0] rounded-full text-xs font-bold text-black hover:bg-gray-200 transition-colors"
         >
           <ShoppingBag className="w-4 h-4" />
@@ -104,7 +107,6 @@ export default function ProfilePage() {
 
       {/* Profile Overview Card */}
       <div className="bg-[#F0F0F0] rounded-3xl p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-        
         {/* Left: User Avatar & Info */}
         <div className="md:col-span-8 flex items-center gap-5">
           <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-black shrink-0">
@@ -142,35 +144,41 @@ export default function ProfilePage() {
             <span className="font-integral text-xl sm:text-2xl font-black text-black block">
               {orders.length}
             </span>
-            <span className="text-[11px] text-gray-500 font-medium">Orders</span>
+            <span className="text-[11px] text-gray-500 font-medium">
+              Orders
+            </span>
           </div>
 
           <div>
             <span className="font-integral text-xl sm:text-2xl font-black text-black block">
               {wishlist.length}
             </span>
-            <span className="text-[11px] text-gray-500 font-medium">Wishlist</span>
+            <span className="text-[11px] text-gray-500 font-medium">
+              Wishlist
+            </span>
           </div>
 
           <div>
             <span className="font-integral text-xl sm:text-2xl font-black text-black block">
               {addresses.length}
             </span>
-            <span className="text-[11px] text-gray-500 font-medium">Addresses</span>
+            <span className="text-[11px] text-gray-500 font-medium">
+              Addresses
+            </span>
           </div>
         </div>
-
       </div>
 
       {/* Main Layout: Tabs Navigation + Tab Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
         {/* Left Sidebar Navigation (4 Cols) */}
         <aside className="lg:col-span-4 bg-white border border-gray-200 rounded-3xl p-3 sm:p-4 space-y-1 shadow-sm">
           <button
-            onClick={() => setActiveTab('orders')}
+            onClick={() => setActiveTab("orders")}
             className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'orders' ? 'bg-black text-white' : 'text-gray-600 hover:bg-[#F0F0F0]'
+              activeTab === "orders"
+                ? "bg-black text-white"
+                : "text-gray-600 hover:bg-[#F0F0F0]"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -181,9 +189,11 @@ export default function ProfilePage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('addresses')}
+            onClick={() => setActiveTab("addresses")}
             className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'addresses' ? 'bg-black text-white' : 'text-gray-600 hover:bg-[#F0F0F0]'
+              activeTab === "addresses"
+                ? "bg-black text-white"
+                : "text-gray-600 hover:bg-[#F0F0F0]"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -194,9 +204,11 @@ export default function ProfilePage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('payments')}
+            onClick={() => setActiveTab("payments")}
             className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'payments' ? 'bg-black text-white' : 'text-gray-600 hover:bg-[#F0F0F0]'
+              activeTab === "payments"
+                ? "bg-black text-white"
+                : "text-gray-600 hover:bg-[#F0F0F0]"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -207,9 +219,11 @@ export default function ProfilePage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('wishlist')}
+            onClick={() => setActiveTab("wishlist")}
             className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'wishlist' ? 'bg-black text-white' : 'text-gray-600 hover:bg-[#F0F0F0]'
+              activeTab === "wishlist"
+                ? "bg-black text-white"
+                : "text-gray-600 hover:bg-[#F0F0F0]"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -220,9 +234,11 @@ export default function ProfilePage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('settings')}
+            onClick={() => setActiveTab("settings")}
             className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'settings' ? 'bg-black text-white' : 'text-gray-600 hover:bg-[#F0F0F0]'
+              activeTab === "settings"
+                ? "bg-black text-white"
+                : "text-gray-600 hover:bg-[#F0F0F0]"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -235,7 +251,7 @@ export default function ProfilePage() {
           <div className="pt-2 border-t border-gray-100">
             <Link
               href="/"
-              onClick={() => alert('Logged Out')}
+              onClick={() => alert("Logged Out")}
               className="w-full flex items-center gap-3 px-4 py-3.5 text-xs sm:text-sm font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
             >
               <LogOut className="w-4 h-4" />
@@ -246,9 +262,8 @@ export default function ProfilePage() {
 
         {/* Right Content Area (8 Cols) */}
         <main className="lg:col-span-8 space-y-6">
-          
           {/* TAB 1: MY ORDERS */}
-          {activeTab === 'orders' && (
+          {activeTab === "orders" && (
             <div className="space-y-6">
               <h2 className="font-integral text-xl font-black uppercase text-black">
                 Order History
@@ -257,8 +272,13 @@ export default function ProfilePage() {
               {orders.length === 0 ? (
                 <div className="bg-[#F0F0F0] rounded-3xl p-12 text-center space-y-3">
                   <Package className="w-10 h-10 text-gray-400 mx-auto" />
-                  <p className="text-gray-600 text-sm font-medium">You haven't placed any orders yet.</p>
-                  <Link href="/shop" className="inline-block px-6 py-2.5 bg-black text-white font-bold text-xs rounded-full">
+                  <p className="text-gray-600 text-sm font-medium">
+                    You haven't placed any orders yet.
+                  </p>
+                  <Link
+                    href="/product"
+                    className="inline-block px-6 py-2.5 bg-black text-white font-bold text-xs rounded-full"
+                  >
                     Start Shopping
                   </Link>
                 </div>
@@ -275,11 +295,15 @@ export default function ProfilePage() {
                           <span className="font-extrabold text-black text-sm block">
                             {order.id}
                           </span>
-                          <span className="text-gray-400">Placed on {order.date}</span>
+                          <span className="text-gray-400">
+                            Placed on {order.date}
+                          </span>
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <span className={`px-3 py-1 rounded-full font-bold text-[11px] ${order.statusColor}`}>
+                          <span
+                            className={`px-3 py-1 rounded-full font-bold text-[11px] ${order.statusColor}`}
+                          >
                             {order.status}
                           </span>
                           <span className="font-extrabold text-black text-sm">
@@ -306,7 +330,8 @@ export default function ProfilePage() {
                                 {item.title}
                               </h4>
                               <p className="text-xs text-gray-400">
-                                Size: {item.size} &bull; Color: {item.color} &bull; Qty: {item.quantity}
+                                Size: {item.size} &bull; Color: {item.color}{" "}
+                                &bull; Qty: {item.quantity}
                               </p>
                               <span className="font-bold text-xs text-black">
                                 ${item.price}
@@ -319,18 +344,25 @@ export default function ProfilePage() {
                       {/* Actions Bar */}
                       <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
                         <span className="text-gray-500 font-medium">
-                          Tracking: <strong className="text-black">{order.trackingNum}</strong>
+                          Tracking:{" "}
+                          <strong className="text-black">
+                            {order.trackingNum}
+                          </strong>
                         </span>
 
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => alert(`Tracking information for ${order.trackingNum}`)}
+                            onClick={() =>
+                              alert(
+                                `Tracking information for ${order.trackingNum}`,
+                              )
+                            }
                             className="px-4 py-2 bg-[#F0F0F0] rounded-full font-bold text-black hover:bg-gray-200 transition-colors"
                           >
                             Track Package
                           </button>
                           <Link
-                            href="/shop"
+                            href="/product"
                             className="px-4 py-2 bg-black text-white rounded-full font-bold hover:bg-gray-800 transition-colors"
                           >
                             Buy Again
@@ -345,14 +377,14 @@ export default function ProfilePage() {
           )}
 
           {/* TAB 2: SAVED ADDRESSES */}
-          {activeTab === 'addresses' && (
+          {activeTab === "addresses" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="font-integral text-xl font-black uppercase text-black">
                   Saved Addresses
                 </h2>
                 <button
-                  onClick={() => alert('Add New Address Modal')}
+                  onClick={() => alert("Add New Address Modal")}
                   className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
@@ -379,7 +411,8 @@ export default function ProfilePage() {
 
                     <p className="text-xs text-gray-600 leading-relaxed">
                       <strong className="text-black block">{addr.name}</strong>
-                      {addr.street}<br />
+                      {addr.street}
+                      <br />
                       {addr.city}, {addr.state} {addr.zip}
                     </p>
 
@@ -391,7 +424,11 @@ export default function ProfilePage() {
                         Edit
                       </button>
                       <button
-                        onClick={() => setAddresses(addresses.filter(a => a.id !== addr.id))}
+                        onClick={() =>
+                          setAddresses(
+                            addresses.filter((a) => a.id !== addr.id),
+                          )
+                        }
                         className="text-red-500 hover:text-red-700 font-medium"
                       >
                         Delete
@@ -404,14 +441,14 @@ export default function ProfilePage() {
           )}
 
           {/* TAB 3: PAYMENT METHODS */}
-          {activeTab === 'payments' && (
+          {activeTab === "payments" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="font-integral text-xl font-black uppercase text-black">
                   Payment Methods
                 </h2>
                 <button
-                  onClick={() => alert('Add Payment Card Modal')}
+                  onClick={() => alert("Add Payment Card Modal")}
                   className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
@@ -442,12 +479,20 @@ export default function ProfilePage() {
 
                     <div className="flex justify-between items-end text-xs text-gray-300">
                       <div>
-                        <span className="block text-[10px] text-gray-400 uppercase">Cardholder</span>
-                        <span className="font-bold text-white">{card.holder}</span>
+                        <span className="block text-[10px] text-gray-400 uppercase">
+                          Cardholder
+                        </span>
+                        <span className="font-bold text-white">
+                          {card.holder}
+                        </span>
                       </div>
                       <div>
-                        <span className="block text-[10px] text-gray-400 uppercase">Expires</span>
-                        <span className="font-bold text-white">{card.expiry}</span>
+                        <span className="block text-[10px] text-gray-400 uppercase">
+                          Expires
+                        </span>
+                        <span className="font-bold text-white">
+                          {card.expiry}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -457,7 +502,7 @@ export default function ProfilePage() {
           )}
 
           {/* TAB 4: WISHLIST */}
-          {activeTab === 'wishlist' && (
+          {activeTab === "wishlist" && (
             <div className="space-y-6">
               <h2 className="font-integral text-xl font-black uppercase text-black">
                 My Saved Wishlist ({wishedProducts.length})
@@ -466,9 +511,11 @@ export default function ProfilePage() {
               {wishedProducts.length === 0 ? (
                 <div className="bg-[#F0F0F0] rounded-3xl p-12 text-center space-y-4">
                   <Heart className="w-10 h-10 text-gray-400 mx-auto" />
-                  <p className="text-gray-600 text-sm font-medium">Your wishlist is currently empty.</p>
+                  <p className="text-gray-600 text-sm font-medium">
+                    Your wishlist is currently empty.
+                  </p>
                   <Link
-                    href="/shop"
+                    href="/product"
                     className="inline-block px-6 py-3 bg-black text-white font-bold text-xs rounded-full"
                   >
                     Browse Clothes
@@ -520,13 +567,19 @@ export default function ProfilePage() {
           )}
 
           {/* TAB 5: ACCOUNT SETTINGS */}
-          {activeTab === 'settings' && (
+          {activeTab === "settings" && (
             <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
               <h2 className="font-integral text-xl font-black uppercase text-black border-b border-gray-200 pb-4">
                 Account Settings & Security
               </h2>
 
-              <form onSubmit={(e) => { e.preventDefault(); alert('Settings Saved!'); }} className="space-y-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  alert("Settings Saved!");
+                }}
+                className="space-y-4"
+              >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-bold uppercase text-gray-700 block mb-1">
@@ -568,13 +621,23 @@ export default function ProfilePage() {
                   </h3>
 
                   <label className="flex items-center gap-3 cursor-pointer text-xs text-gray-600">
-                    <input type="checkbox" defaultChecked className="accent-black rounded" />
+                    <input
+                      type="checkbox"
+                      defaultChecked
+                      className="accent-black rounded"
+                    />
                     <span>Receive SMS delivery status updates</span>
                   </label>
 
                   <label className="flex items-center gap-3 cursor-pointer text-xs text-gray-600">
-                    <input type="checkbox" defaultChecked className="accent-black rounded" />
-                    <span>Receive promotional emails and special discount codes</span>
+                    <input
+                      type="checkbox"
+                      defaultChecked
+                      className="accent-black rounded"
+                    />
+                    <span>
+                      Receive promotional emails and special discount codes
+                    </span>
                   </label>
                 </div>
 
@@ -589,10 +652,8 @@ export default function ProfilePage() {
               </form>
             </div>
           )}
-
         </main>
       </div>
-
     </div>
   );
 }
