@@ -159,7 +159,7 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
                 <ActiveFlagComponent title={selectedCountry} />
               </div>
             )}
-            <span className="font-mono text-xs font-semibold text-black">
+            <span className="text-xs font-semibold text-black">
               +{callingCode}
             </span>
             <ChevronDown
@@ -215,7 +215,7 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
                           )}
                           <span className="truncate text-xs">{countryName}</span>
                         </div>
-                        <span className="font-mono text-gray-500 text-[11px] shrink-0 ml-2">
+                        <span className="text-gray-500 text-[11px] shrink-0 ml-2">
                           +{cCodeNum}
                         </span>
                       </button>
@@ -235,13 +235,13 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
           value={formattedDisplay}
           onChange={handleInputChange}
           onBlur={onBlur}
-          className="w-full bg-transparent py-2 pr-3 text-xs text-black placeholder-gray-400 font-mono tracking-wider focus:outline-none"
+          className="w-full bg-transparent py-2 pr-3 text-xs text-black placeholder-gray-400 focus:outline-none"
         />
 
         {/* Live Country Digit Progress Counter (e.g. 10/10) */}
         {rawDigits.length > 0 && (
           <span
-            className={`pr-3 text-[10px] font-bold select-none shrink-0 font-mono ${
+            className={`pr-3 text-[10px] font-bold select-none shrink-0 ${
               error ? "text-red-500" : "text-gray-400"
             }`}
           >
