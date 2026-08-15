@@ -203,18 +203,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-100px)] py-10 sm:py-14">
-      {/* Top Left Corner Back to Home Button */}
-      <div className="absolute top-4 left-4 sm:top-6 sm:left-8 z-20">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-xs font-bold text-gray-700 hover:text-black transition-all group bg-white border border-gray-200 hover:border-gray-300 rounded-full px-4 py-2.5 shadow-2xs hover:shadow-xs"
-        >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          <span>Back to Home</span>
-        </Link>
-      </div>
-
+    <>
       <div className="max-w-md mx-auto px-4 pt-12 sm:pt-6 space-y-6 text-black">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -522,7 +511,7 @@ export default function SignUpPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-4 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-4 mt-8 font-bold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black border border-black text-white hover:text-black relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
                 >
                   <span>
                     {isLoading ? "Sending OTP..." : "Get OTP Verification"}
@@ -601,7 +590,7 @@ export default function SignUpPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-4 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-4 mt-8 font-bold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black border border-black text-white hover:text-black relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
                   >
                     <span>
                       {isLoading
@@ -649,14 +638,7 @@ export default function SignUpPage() {
             </div>
           )}
         </div>
-
-        <div className="text-center text-xs text-gray-500">
-          Already have an account?{" "}
-          <Link href="/login" className="font-bold text-black underline">
-            Log In
-          </Link>
-        </div>
       </div>
-    </div>
+    </>
   );
 }
