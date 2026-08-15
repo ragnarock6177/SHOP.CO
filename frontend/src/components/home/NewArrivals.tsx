@@ -123,7 +123,7 @@ export function NewArrivals() {
       {/* View All Button */}
       <div className="w-full flex justify-center mt-9 sm:mt-12">
         <Link
-          href="/shop"
+          href="/product"
           className="w-full sm:w-54.5 h-13 bg-white border border-black/10 rounded-full font-satoshi font-medium text-black hover:text-white text-base cursor-pointer relative overflow-hidden transition-all duration-500 ease-in-out shadow-sm hover:shadow-md z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-black before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0 flex items-center justify-center"
         >
           View All

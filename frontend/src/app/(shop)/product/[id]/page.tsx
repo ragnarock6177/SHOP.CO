@@ -15,11 +15,11 @@ import {
   MoreHorizontal,
   ChevronDown
 } from 'lucide-react';
-import { PRODUCTS, REVIEWS } from '../../../data/mockData';
-import { useCart } from '../../../context/CartContext';
-import { ProductCard } from '../../../components/product/ProductCard';
-import { WriteReviewModal } from '../../../components/product/WriteReviewModal';
-import { Review } from '../../../types/ecommerce';
+import { PRODUCTS, REVIEWS } from '@/data/mockData';
+import { useCart } from '@/context/CartContext';
+import { ProductCard } from '@/components/product/ProductCard';
+import { WriteReviewModal } from '@/components/product/WriteReviewModal';
+import { Review } from '@/types/ecommerce';
 
 export default function ProductDetailPage() {
   const params = useParams();

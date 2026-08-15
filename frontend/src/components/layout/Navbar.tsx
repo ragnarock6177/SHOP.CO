@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingBag,
   Search,
@@ -25,10 +26,30 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Lock body scroll & add Escape key listener when mobile drawer is open
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/product?search=${encodeURIComponent(searchQuery.trim())}`);
       setIsMobileMenuOpen(false);
     }
   };
@@ -60,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
             {/* Shop Dropdown */}
             <div className="relative group py-4 cursor-pointer">
               <Link
-                href="/shop"
+                href="/product"
                 className="flex items-center gap-1 hover:text-gray-600 transition-colors"
               >
                 Shop
@@ -75,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
                 {CATEGORIES.map((cat) => (
                   <Link
                     key={cat.id}
-                    href={`/shop?category=${cat.slug}`}
+                    href={`/product?category=${cat.slug}`}
                     className="flex items-center justify-between px-3 py-2 rounded-xl text-gray-800 hover:bg-gray-100 hover:text-black transition-colors text-xs font-semibold"
                   >
                     <span>{cat.name}</span>
@@ -88,14 +109,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
             </div>
 
             <Link
-              href="/shop?filter=on-sale"
+              href="/product?filter=on-sale"
               className="hover:text-gray-600 transition-colors"
             >
               On Sale
             </Link>
 
             <Link
-              href="/shop?sort=newest"
+              href="/product?sort=newest"
               className="hover:text-gray-600 transition-colors"
             >
               New Arrivals
@@ -132,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
                 const query = prompt("Search for products:");
                 if (query)
                   router.push(
-                    `/shop?search=${encodeURIComponent(query.trim())}`,
+                    `/product?search=${encodeURIComponent(query.trim())}`,
                   );
               }}
               className="md:hidden p-2 text-black hover:text-gray-600 transition-colors"
@@ -168,119 +189,109 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
         </div>
       </div>
 
-      {/* Mobile Navigation Drawer */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
-          {/* Dark Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
+      {/* Mobile Navigation Drawer with Buttery Smooth 60FPS Framer Motion Animation */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-50 md:hidden flex overflow-hidden">
+            {/* Hardware-accelerated Dark Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+              style={{ willChange: "opacity", transform: "translateZ(0)" }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-[2px]"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
 
-          {/* Left Sliding Drawer Panel */}
-          <div className="relative w-80 max-w-[85vw] bg-white text-black z-10 flex flex-col shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300">
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-                <span className="font-integral text-2xl font-black text-black">
-                  AIRAVÉ
-                </span>
-              </Link>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 text-gray-400 hover:text-black transition-colors"
-                aria-label="Close menu"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Search Input inside Left Drawer */}
-            <form
-              onSubmit={handleSearchSubmit}
-              className="flex items-center bg-[#F0F0F0] rounded-full px-4 py-2.5 gap-3 mb-6"
+            {/* Left Sliding Drawer Panel with 60fps GPU Hardware Acceleration */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{
+                duration: 0.32,
+                ease: [0.32, 0.72, 0, 1], // iOS style smooth cubic-bezier curve
+              }}
+              style={{
+                willChange: "transform",
+                transform: "translateZ(0)",
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+              }}
+              className="relative w-80 max-w-[85vw] bg-white text-black z-10 flex flex-col shadow-2xl p-6 overflow-y-auto"
             >
-              <Search className="w-4 h-4 text-gray-400 shrink-0" />
-              <input
-                type="text"
-                placeholder="Search clothes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent text-xs text-black placeholder-gray-500 focus:outline-none"
-              />
-            </form>
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
+                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                  <span className="font-integral text-2xl font-black text-black">
+                    AIRAVÉ
+                  </span>
+                </Link>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1 text-gray-400 hover:text-black transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
-            {/* Navigation Links */}
-            <nav className="space-y-4 font-bold text-sm text-black flex-1">
-              <Link
-                href="/shop"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-              >
-                <span>Shop All</span>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              </Link>
+              {/* Navigation Links */}
+              <nav className="space-y-4 font-bold text-sm text-black flex-1">
+                <Link
+                  href="/product"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <span>Shop All</span>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </Link>
 
-              <Link
-                href="/shop?filter=on-sale"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-              >
-                <span>On Sale</span>
-                <span className="bg-red-100 text-red-600 font-bold text-[10px] px-2 py-0.5 rounded-full">
-                  HOT
-                </span>
-              </Link>
+                <Link
+                  href="/product?filter=on-sale"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <span>On Sale</span>
+                  <span className="bg-red-100 text-red-600 font-bold text-[10px] px-2 py-0.5 rounded-full">
+                    HOT
+                  </span>
+                </Link>
 
-              <Link
-                href="/shop?sort=newest"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-              >
-                <span>New Arrivals</span>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              </Link>
+                <Link
+                  href="/product?sort=newest"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <span>New Arrivals</span>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </Link>
 
-              <Link
-                href="/profile"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-              >
-                <span>My Profile & Orders</span>
-                <User className="w-4 h-4 text-gray-400" />
-              </Link>
+                <Link
+                  href="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <span>My Profile & Orders</span>
+                  <User className="w-4 h-4 text-gray-400" />
+                </Link>
 
-              <Link
-                href="/cart"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-              >
-                <span>Shopping Cart</span>
-                <ShoppingBag className="w-4 h-4 text-gray-400" />
-              </Link>
-            </nav>
-
-            {/* Bottom Auth Buttons */}
-            <div className="pt-6 border-t border-gray-100 space-y-3">
-              <Link
-                href="/signup"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full py-3 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full text-center block shadow-md transition-all"
-              >
-                Create Account
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full py-3 bg-[#F0F0F0] hover:bg-gray-200 text-black font-bold text-xs uppercase rounded-full text-center block transition-all"
-              >
-                Log In
-              </Link>
-            </div>
+                <Link
+                  href="/cart"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <span>Shopping Cart</span>
+                  <ShoppingBag className="w-4 h-4 text-gray-400" />
+                </Link>
+              </nav>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 };
+
 

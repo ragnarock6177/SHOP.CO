@@ -2,13 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { HeroBanner } from '../components/home/HeroBanner';
-import { BrandBanner } from '../components/home/BrandBanner';
-import { NewArrivals } from '../components/home/NewArrivals';
-import { TopSelling } from '../components/home/TopSelling';
-import { CategoryGrid } from '../components/home/CategoryGrid';
-import { CustomerReviews } from '../components/home/CustomerReviews';
-import { NewsletterBanner } from '../components/home/NewsletterBanner';
+import { HeroBanner } from '@/components/home/HeroBanner';
+import { BrandBanner } from '@/components/home/BrandBanner';
+import { NewArrivals } from '@/components/home/NewArrivals';
+import { TopSelling } from '@/components/home/TopSelling';
+import { CategoryGrid } from '@/components/home/CategoryGrid';
+import { CustomerReviews } from '@/components/home/CustomerReviews';
+import { NewsletterBanner } from '@/components/home/NewsletterBanner';
 
 export default function HomePage() {
   return (

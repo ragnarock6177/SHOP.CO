@@ -5,11 +5,11 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { SlidersHorizontal, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Drawer } from 'vaul';
-import { ProductCard } from '../../components/product/ProductCard';
-import { FilterSidebar } from '../../components/shop/FilterSidebar';
-import { CustomSelect } from '../../components/common/CustomSelect';
-import { ProductSkeleton } from '../../components/common/ProductSkeleton';
-import { PRODUCTS } from '../../data/mockData';
+import { ProductCard } from '@/components/product/ProductCard';
+import { FilterSidebar } from '@/components/shop/FilterSidebar';
+import { CustomSelect } from '@/components/common/CustomSelect';
+import { ProductSkeleton } from '@/components/common/ProductSkeleton';
+import { PRODUCTS } from '@/data/mockData';
 
 const SORT_OPTIONS = [
   { label: 'Most Popular', value: 'popular' },

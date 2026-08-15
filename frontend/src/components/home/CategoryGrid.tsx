@@ -10,7 +10,7 @@ const DRESS_STYLES = [
     title: "Casual",
     image:
       "https://images.unsplash.com/photo-1516826957135-700dedea698c?w=800&q=80",
-    href: "/shop?category=casual",
+    href: "/product?category=casual",
     colSpan: "lg:col-span-4",
     imgClass: "object-cover object-right-top",
   },
@@ -19,7 +19,7 @@ const DRESS_STYLES = [
     title: "Formal",
     image:
       "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80",
-    href: "/shop?category=formal",
+    href: "/product?category=formal",
     colSpan: "lg:col-span-8",
     imgClass: "object-cover object-right-top",
   },
@@ -28,7 +28,7 @@ const DRESS_STYLES = [
     title: "Party",
     image:
       "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80",
-    href: "/shop?category=party",
+    href: "/product?category=party",
     colSpan: "lg:col-span-8",
     imgClass: "object-cover object-center",
   },
@@ -37,7 +37,7 @@ const DRESS_STYLES = [
     title: "Gym",
     image:
       "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&q=80",
-    href: "/shop?category=gym",
+    href: "/product?category=gym",
     colSpan: "lg:col-span-4",
     imgClass: "object-cover object-right-top",
   },
