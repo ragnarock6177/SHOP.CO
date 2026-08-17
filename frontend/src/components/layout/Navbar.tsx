@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   User,
+  Heart,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -22,7 +23,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
   const router = useRouter();
-  const { cartCount, setIsCartOpen } = useCart();
+  const { cartCount, wishlistCount, setIsCartOpen } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -162,6 +163,21 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
               <Search className="w-6 h-6" />
             </button>
 
+            {/* Wishlist Button (BEFORE CART) */}
+            <Link
+              href="/wishlist"
+              className="p-2 text-black hover:text-rose-600 transition-colors relative"
+              aria-label="Wishlist"
+              title="My Wishlist"
+            >
+              <Heart className="w-6 h-6" />
+              {wishlistCount > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+
             {/* Shopping Cart Button */}
             <button
               onClick={() => setIsCartOpen(true)}
@@ -266,6 +282,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
                 >
                   <span>New Arrivals</span>
                   <ChevronRight className="w-4 h-4 text-gray-400" />
+                </Link>
+
+                <Link
+                  href="/wishlist"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>My Wishlist</span>
+                    {wishlistCount > 0 && (
+                      <span className="bg-rose-100 text-rose-600 font-bold text-[10px] px-2.5 py-0.5 rounded-full">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </span>
+                  <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
                 </Link>
 
                 <Link

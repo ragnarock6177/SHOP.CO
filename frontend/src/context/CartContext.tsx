@@ -35,7 +35,9 @@ interface CartContextType {
   addOrder: (order: OrderRecord) => void;
   toggleWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
+  clearWishlist: () => void;
   cartCount: number;
+  wishlistCount: number;
   cartSubtotal: number;
 }
 
@@ -212,7 +214,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const isInWishlist = (productId: string) => wishlist.includes(productId);
 
+  const clearWishlist = () => {
+    setWishlist([]);
+  };
+
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const wishlistCount = wishlist.length;
 
   const cartSubtotal = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
@@ -234,7 +241,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addOrder,
         toggleWishlist,
         isInWishlist,
+        clearWishlist,
         cartCount,
+        wishlistCount,
         cartSubtotal
       }}
     >

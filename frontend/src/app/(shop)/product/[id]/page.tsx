@@ -252,6 +252,18 @@ export default function ProductDetailPage() {
             >
               Add to Cart
             </button>
+
+            <button
+              onClick={() => toggleWishlist(product.id)}
+              className={`p-4 rounded-full border-2 transition-all flex items-center justify-center ${
+                isWished
+                  ? 'bg-rose-50 border-rose-500 text-rose-500'
+                  : 'border-gray-200 text-gray-600 hover:border-black hover:text-black'
+              }`}
+              title={isWished ? 'Remove from Wishlist' : 'Add to Wishlist'}
+            >
+              <Heart className={`w-5 h-5 ${isWished ? 'fill-current' : ''}`} />
+            </button>
           </div>
 
         </div>
