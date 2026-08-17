@@ -637,6 +637,14 @@ export default function SignUpPage() {
               </Link>
             </div>
           )}
+
+          {/* Switch to Login */}
+          <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100 mt-6">
+            Already have an account?{" "}
+            <Link href="/login" className="font-bold text-black underline">
+              Log In
+            </Link>
+          </div>
         </div>
       </div>
     </>

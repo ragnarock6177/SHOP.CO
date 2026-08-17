@@ -22,9 +22,28 @@ export const initFirebase = (): App | null => {
     return null;
   }
 
-  if (privateKey.includes("\\n")) {
-    privateKey = privateKey.replace(/\\n/g, "\n");
+  // Check for default / placeholder values
+  const isPlaceholder =
+    privateKey.includes("YOUR_PRIVATE_KEY_HERE") ||
+    projectId === "your-firebase-project-id" ||
+    clientEmail.includes("firebase-adminsdk-xxx");
+
+  if (isPlaceholder) {
+    console.warn(
+      "⚠️ Firebase Admin SDK is using placeholder credentials in .env. Firebase token verification will be disabled until valid credentials are added.",
+    );
+    return null;
   }
+
+  // Sanitize and format private key (strip wrapping quotes and convert escaped newlines)
+  privateKey = privateKey.trim();
+  if (
+    (privateKey.startsWith('"') && privateKey.endsWith('"')) ||
+    (privateKey.startsWith("'") && privateKey.endsWith("'"))
+  ) {
+    privateKey = privateKey.slice(1, -1);
+  }
+  privateKey = privateKey.replace(/\\n/g, "\n");
 
   try {
     firebaseApp = initializeApp({
@@ -36,8 +55,10 @@ export const initFirebase = (): App | null => {
     });
     console.log("✅ Firebase Admin SDK initialized successfully.");
     return firebaseApp;
-  } catch (error) {
-    console.error("❌ Failed to initialize Firebase Admin SDK:", error);
+  } catch (error: any) {
+    console.warn(
+      `⚠️ Failed to initialize Firebase Admin SDK: ${error?.message || error}`,
+    );
     return null;
   }
 };

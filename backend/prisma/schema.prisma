@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -50,8 +51,8 @@ model User {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  orders          Order[]
-  reviews         Review[]
+  orders  Order[]
+  reviews Review[]
 
   @@index([email])
   @@index([phoneNumber])
@@ -104,20 +105,20 @@ model Product {
 }
 
 model ProductColor {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   name      String
   hex       String
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_colors")
 }
 
 model ProductSize {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   size      String
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_sizes")
 }
