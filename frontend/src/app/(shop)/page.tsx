@@ -1,14 +1,23 @@
-'use client';
-
 import React from 'react';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { HeroBanner } from '@/components/home/HeroBanner';
 import { BrandBanner } from '@/components/home/BrandBanner';
 import { NewArrivals } from '@/components/home/NewArrivals';
 import { TopSelling } from '@/components/home/TopSelling';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
-import { CustomerReviews } from '@/components/home/CustomerReviews';
 import { NewsletterBanner } from '@/components/home/NewsletterBanner';
+
+// Dynamically import CustomerReviews (GSAP marquee animation) to split heavy JS bundle
+const CustomerReviews = dynamic(
+  () => import('@/components/home/CustomerReviews').then((mod) => mod.CustomerReviews),
+  {
+    loading: () => (
+      <div className="w-full h-64 bg-gray-50 animate-pulse rounded-2xl flex items-center justify-center">
+        <span className="text-sm font-semibold text-gray-400">Loading Customer Reviews...</span>
+      </div>
+    ),
+  }
+);
 
 export default function HomePage() {
   return (

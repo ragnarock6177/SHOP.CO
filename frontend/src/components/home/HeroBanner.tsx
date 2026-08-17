@@ -168,6 +168,7 @@ export const HeroBanner: React.FC = () => {
               width={700}
               height={663}
               priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
               className="object-contain object-bottom w-full h-auto max-h-110 sm:max-h-137.5 lg:max-h-165.75"
             />
           </div>

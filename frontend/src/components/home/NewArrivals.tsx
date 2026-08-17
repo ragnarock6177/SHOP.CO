@@ -87,7 +87,8 @@ export function NewArrivals() {
                 alt={product.name}
                 width={300}
                 height={300}
-                priority
+                loading="lazy"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 300px"
                 className="object-cover w-full h-full rounded-xl group-hover:scale-105 transition-transform duration-300"
               />
             </div>

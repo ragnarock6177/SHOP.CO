@@ -73,7 +73,7 @@ export function CategoryGrid() {
                       alt={`${style.title} Style`}
                       fill
                       sizes="(max-width: 768px) 100vw, 60vw"
-                      priority
+                      loading="lazy"
                       className={`w-full h-full ${style.imgClass} group-hover:scale-105 transition-transform duration-500`}
                     />
                   </div>
