@@ -89,7 +89,7 @@ export const Footer: React.FC = () => {
                     href="/about"
                     className="hover:text-black transition-colors"
                   >
-                    About Us
+                    About AIRAVÉ
                   </Link>
                 </li>
                 <li>
@@ -97,32 +97,24 @@ export const Footer: React.FC = () => {
                     href="/product"
                     className="hover:text-black transition-colors"
                   >
-                    Features
+                    Our Collections
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/about#works"
+                    href="/about"
                     className="hover:text-black transition-colors"
                   >
-                    Works
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about#career"
-                    className="hover:text-black transition-colors"
-                  >
-                    Career
+                    Careers
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* HELP */}
+            {/* CUSTOMER CARE */}
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
-                HELP
+                CUSTOMER CARE
               </h4>
               <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
                 <li>
@@ -130,7 +122,7 @@ export const Footer: React.FC = () => {
                     href="/faq"
                     className="hover:text-black transition-colors"
                   >
-                    Customer Support
+                    Help & Support
                   </Link>
                 </li>
                 <li>
@@ -138,7 +130,7 @@ export const Footer: React.FC = () => {
                     href="/delivery"
                     className="hover:text-black transition-colors"
                   >
-                    Delivery Details
+                    Shipping & Returns
                   </Link>
                 </li>
                 <li>
@@ -151,7 +143,7 @@ export const Footer: React.FC = () => {
                 </li>
                 <li>
                   <Link
-                    href="/terms#privacy"
+                    href="/terms"
                     className="hover:text-black transition-colors"
                   >
                     Privacy Policy
@@ -160,83 +152,83 @@ export const Footer: React.FC = () => {
               </ul>
             </div>
 
-            {/* FAQ */}
+            {/* SHOP CATEGORIES */}
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
-                FAQ
+                CATEGORIES
               </h4>
               <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
                 <li>
                   <Link
-                    href="/profile"
+                    href="/product?category=casual"
                     className="hover:text-black transition-colors"
                   >
-                    Account
+                    Casual Wear
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/profile"
+                    href="/product?category=formal"
                     className="hover:text-black transition-colors"
                   >
-                    Manage Deliveries
+                    Formal Outfits
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/profile"
+                    href="/product?category=party"
                     className="hover:text-black transition-colors"
                   >
-                    Orders
+                    Party Collections
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/profile"
+                    href="/product?category=gym"
                     className="hover:text-black transition-colors"
                   >
-                    Payments
+                    Gym & Activewear
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* RESOURCES */}
+            {/* QUICK LINKS */}
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
-                RESOURCES
+                QUICK LINKS
               </h4>
               <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
                 <li>
                   <Link
-                    href="/about#ebooks"
+                    href="/profile"
                     className="hover:text-black transition-colors"
                   >
-                    Free eBooks
+                    My Account
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/about#tutorials"
+                    href="/profile"
                     className="hover:text-black transition-colors"
                   >
-                    Development Tutorial
+                    Track Orders
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/about#blog"
+                    href="/cart"
                     className="hover:text-black transition-colors"
                   >
-                    How to - Blog
+                    Shopping Cart
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/about#youtube"
+                    href="/wishlist"
                     className="hover:text-black transition-colors"
                   >
-                    Youtube Playlist
+                    Wishlist
                   </Link>
                 </li>
               </ul>
