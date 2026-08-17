@@ -3,12 +3,13 @@
 import React, { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { SlidersHorizontal, ArrowLeft, ArrowRight } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { Drawer } from 'vaul';
 import { ProductCard } from '@/components/product/ProductCard';
 import { FilterSidebar } from '@/components/shop/FilterSidebar';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { ProductSkeleton } from '@/components/common/ProductSkeleton';
+import { Pagination } from '@/components/common/Pagination';
 import { PRODUCTS } from '@/data/mockData';
 
 const SORT_OPTIONS = [
@@ -156,59 +157,15 @@ function ShopContent() {
             />
           </Suspense>
 
-          <hr className="border-gray-200 pt-4" />
-
-          {/* Responsive Pagination Bar */}
-          <div className="flex items-center justify-between pt-2 text-xs sm:text-sm font-semibold">
-            {/* Previous Button */}
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              className="flex items-center gap-1 px-3 sm:px-4 py-2 border border-gray-200 rounded-xl text-black hover:bg-black hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Previous</span>
-            </button>
-
-            {/* Page Numbers */}
-            <div className="flex items-center gap-1">
-              {[1, 2].map((num) => (
-                <button
-                  key={num}
-                  onClick={() => setCurrentPage(num)}
-                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl font-bold transition-colors ${
-                    currentPage === num
-                      ? 'bg-[#F0F0F0] text-black border border-gray-200'
-                      : 'text-gray-500 hover:text-black'
-                  }`}
-                >
-                  {num}
-                </button>
-              ))}
-              <span className="px-1 text-gray-400">...</span>
-              {[9, 10].map((num) => (
-                <button
-                  key={num}
-                  onClick={() => setCurrentPage(num)}
-                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl font-bold transition-colors ${
-                    currentPage === num
-                      ? 'bg-[#F0F0F0] text-black border border-gray-200'
-                      : 'text-gray-500 hover:text-black'
-                  }`}
-                >
-                  {num}
-                </button>
-              ))}
-            </div>
-
-            {/* Next Button */}
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              className="flex items-center gap-1 px-3 sm:px-4 py-2 border border-gray-200 rounded-xl text-black hover:bg-black hover:text-white transition-colors"
-            >
-              <span>Next</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Responsive Pagination Component */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={10}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
 
         </main>
       </div>
