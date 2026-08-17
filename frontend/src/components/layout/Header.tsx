@@ -11,14 +11,13 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      {/* Top Black Announcement Bar with Slide-Down Entrance Animation */}
-      <AnimatePresence initial={true}>
+      {/* Top Black Announcement Bar */}
+      <AnimatePresence initial={false}>
         {showAnnouncement && (
           <motion.div
-            initial={{ y: "-100%", opacity: 0, height: 0 }}
-            animate={{ y: 0, opacity: 1, height: "auto" }}
-            exit={{ y: "-100%", opacity: 0, height: 0 }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden bg-black text-white"
           >
             {/* px-10 added to prevent text from overlapping with the absolute close button on mobile */}
@@ -36,7 +35,7 @@ export const Header: React.FC = () => {
 
               <button
                 onClick={() => setShowAnnouncement(false)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white transition-colors p-1"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white transition-colors p-1 cursor-pointer"
                 aria-label="Close Announcement"
               >
                 <X className="w-4 h-4" />
