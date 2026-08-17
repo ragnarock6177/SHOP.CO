@@ -123,18 +123,20 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedError("Invalid email or password credentials.");
+      throw new UnauthorizedError(
+        "The email address or password you entered is incorrect. Please double-check and try again."
+      );
     }
 
     if (user.status !== UserStatus.ACTIVE) {
       throw new ForbiddenError(
-        "Account is disabled or suspended. Please contact support.",
+        "Your AIRAVÉ account is temporarily suspended. Please contact customer support for assistance."
       );
     }
 
     if (!user.passwordHash) {
       throw new BadRequestError(
-        "This account was created via social sign-in. Please log in using Google or Phone.",
+        "This account was created via social sign-in. Please sign in using your Google account or Phone number."
       );
     }
 
@@ -143,7 +145,9 @@ export class AuthService {
       user.passwordHash,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedError("Invalid email or password credentials.");
+      throw new UnauthorizedError(
+        "The email address or password you entered is incorrect. Please double-check and try again."
+      );
     }
 
     const updatedUser = await prisma.user.update({

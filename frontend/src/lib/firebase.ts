@@ -30,6 +30,71 @@ export const auth: Auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
 /**
+ * Helper to extract clean non-technical user friendly error messages from Firebase SDK errors.
+ */
+/**
+ * Helper to map all Firebase Auth SDK errors into short, clean app-style error messages.
+ */
+function parseFirebaseError(error: any, defaultMsg: string): string {
+  if (!error) return defaultMsg;
+  const code = error.code || "";
+  const message = error.message || "";
+
+  switch (code) {
+    case "auth/popup-closed-by-user":
+      return "Sign-in window closed";
+    case "auth/cancelled-popup-request":
+      return "Sign-in cancelled";
+    case "auth/invalid-phone-number":
+      return "Invalid mobile number";
+    case "auth/missing-phone-number":
+      return "Mobile number required";
+    case "auth/too-many-requests":
+    case "auth/quota-exceeded":
+      return "Too many attempts. Try later";
+    case "auth/invalid-verification-code":
+      return "Incorrect OTP code";
+    case "auth/code-expired":
+      return "OTP code expired. Please resend";
+    case "auth/missing-verification-code":
+      return "Please enter 6-digit OTP";
+    case "auth/credential-already-in-use":
+    case "auth/email-already-in-use":
+    case "auth/account-exists-with-different-credential":
+      return "Account already exists. Please log in";
+    case "auth/user-disabled":
+      return "Account disabled";
+    case "auth/user-not-found":
+      return "Account not found";
+    case "auth/wrong-password":
+    case "auth/invalid-credential":
+      return "Incorrect password";
+    case "auth/invalid-email":
+      return "Invalid email address";
+    case "auth/network-request-failed":
+      return "Network error. Check connection";
+    case "auth/captcha-check-failed":
+      return "Verification check failed. Try again";
+    case "auth/app-not-authorized":
+      return "Domain not authorized for sign-in";
+    default:
+      break;
+  }
+
+  if (message.includes("network") || message.includes("Failed to fetch")) {
+    return "Network error. Check connection";
+  }
+
+  // Strip raw Firebase syntax e.g. "Firebase: Error (auth/invalid-email)."
+  const cleaned = message
+    .replace(/^Firebase:\s*Error\s*\(auth\/[^)]+\)\.?\s*/i, "")
+    .replace(/^Firebase:\s*/i, "")
+    .replace(/\(auth\/[^)]+\)/i, "");
+
+  return cleaned || defaultMsg;
+}
+
+/**
  * Initiates Google Sign-In with Firebase popup and returns the Firebase ID Token.
  */
 export async function signInWithGoogleFirebase(): Promise<string> {
@@ -38,13 +103,7 @@ export async function signInWithGoogleFirebase(): Promise<string> {
     const idToken = await result.user.getIdToken();
     return idToken;
   } catch (error: any) {
-    if (error.code === "auth/popup-closed-by-user") {
-      throw new Error("Google Sign-In popup was closed before completing.");
-    }
-    if (error.code === "auth/cancelled-popup-request") {
-      throw new Error("Google Sign-In request was cancelled.");
-    }
-    throw new Error(error.message || "Google Sign-In failed.");
+    throw new Error(parseFirebaseError(error, "Google sign-in failed. Please try again."));
   }
 }
 
@@ -53,7 +112,7 @@ export async function signInWithGoogleFirebase(): Promise<string> {
  */
 export function initRecaptchaVerifier(containerId: string): RecaptchaVerifier {
   if (typeof window === "undefined") {
-    throw new Error("reCAPTCHA can only be initialized in browser.");
+    throw new Error("Verification can only be performed in browser.");
   }
 
   // Clear existing reCAPTCHA if present
@@ -83,13 +142,7 @@ export async function sendFirebasePhoneOtp(
     const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
     return confirmationResult;
   } catch (error: any) {
-    if (error.code === "auth/invalid-phone-number") {
-      throw new Error("Invalid mobile phone number format.");
-    }
-    if (error.code === "auth/too-many-requests") {
-      throw new Error("Too many SMS attempts. Please wait a few minutes before trying again.");
-    }
-    throw new Error(error.message || "Failed to send SMS OTP.");
+    throw new Error(parseFirebaseError(error, "Failed to send SMS verification code. Please check your mobile number."));
   }
 }
 
@@ -105,12 +158,6 @@ export async function verifyFirebasePhoneOtp(
     const idToken = await userCredential.user.getIdToken();
     return idToken;
   } catch (error: any) {
-    if (error.code === "auth/invalid-verification-code") {
-      throw new Error("Incorrect 6-digit OTP code. Please check and re-enter.");
-    }
-    if (error.code === "auth/code-expired") {
-      throw new Error("OTP code has expired. Please click 'Resend OTP'.");
-    }
-    throw new Error(error.message || "OTP verification failed.");
+    throw new Error(parseFirebaseError(error, "Verification failed. Please check the 6-digit code and try again."));
   }
 }

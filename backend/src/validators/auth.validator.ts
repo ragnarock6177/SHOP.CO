@@ -43,9 +43,9 @@ export const validateRegisterInput = (
   const result = unifiedRegisterSchema.safeParse(req.body);
   if (!result.success) {
     const errorMessages = result.error.issues
-      .map((e: ZodIssue) => `${e.path.join(".")}: ${e.message}`)
-      .join(", ");
-    return next(new BadRequestError(`Validation failed: ${errorMessages}`));
+      .map((e: ZodIssue) => e.message)
+      .join(". ");
+    return next(new BadRequestError(errorMessages));
   }
   req.body = result.data;
   next();
@@ -59,9 +59,9 @@ export const validateLoginInput = (
   const result = emailLoginSchema.safeParse(req.body);
   if (!result.success) {
     const errorMessages = result.error.issues
-      .map((e: ZodIssue) => `${e.path.join(".")}: ${e.message}`)
-      .join(", ");
-    return next(new BadRequestError(`Validation failed: ${errorMessages}`));
+      .map((e: ZodIssue) => e.message)
+      .join(". ");
+    return next(new BadRequestError(errorMessages));
   }
   req.body = result.data;
   next();
@@ -69,14 +69,14 @@ export const validateLoginInput = (
 
 export const checkUserSchema = z
   .object({
-    email: z.string().trim().email("Invalid email address format").optional(),
-    phoneNumber: z.string().trim().min(1, "Phone number cannot be empty").optional(),
-    identifier: z.string().trim().min(1, "Identifier cannot be empty").optional(),
+    email: z.string().trim().email("Please enter a valid email address").optional(),
+    phoneNumber: z.string().trim().min(1, "Please enter a valid mobile number").optional(),
+    identifier: z.string().trim().min(1, "Please enter an email address or mobile number").optional(),
   })
   .refine(
     (data) => Boolean(data.email || data.phoneNumber || data.identifier),
     {
-      message: "At least one of email, phoneNumber, or identifier must be provided",
+      message: "Please enter an email address or mobile number to check",
     }
   );
 
@@ -88,9 +88,9 @@ export const validateCheckUserInput = (
   const result = checkUserSchema.safeParse(req.body);
   if (!result.success) {
     const errorMessages = result.error.issues
-      .map((e: ZodIssue) => `${e.path.join(".")}: ${e.message}`)
-      .join(", ");
-    return next(new BadRequestError(`Validation failed: ${errorMessages}`));
+      .map((e: ZodIssue) => e.message)
+      .join(". ");
+    return next(new BadRequestError(errorMessages));
   }
   req.body = result.data;
   next();

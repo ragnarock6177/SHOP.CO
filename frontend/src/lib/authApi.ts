@@ -42,12 +42,39 @@ export interface ApiResponse<T = any> {
 }
 
 /**
- * Sanitizes and extracts a human-readable error message from backend or network errors.
+ * Sanitizes and converts backend/network error responses into clean, production-grade, human-friendly messages.
  */
 function parseErrorMessage(data: any, fallbackMessage: string): string {
-  if (data?.message) return data.message;
-  if (data?.error) return data.error;
-  return fallbackMessage;
+  const rawMsg = data?.message || data?.error;
+  if (!rawMsg || typeof rawMsg !== "string") return fallbackMessage;
+
+  // Clean up technical validation prefixes
+  let cleanMsg = rawMsg
+    .replace(/^Validation failed:\s*/i, "")
+    .replace(/^(body|query|params)\./i, "")
+    .replace(/^(identifier|email|password|phoneNumber|firebaseToken):\s*/i, "");
+
+  // Map to short, crisp app-style error messages
+  if (/invalid credentials|invalid email or password/i.test(cleanMsg)) {
+    return "Incorrect email or password";
+  }
+  if (/account already exists|email already in use|phone number already registered/i.test(cleanMsg)) {
+    return "Account already exists. Please log in";
+  }
+  if (/user not found|no user found|no account found/i.test(cleanMsg)) {
+    return "Account not found. Please sign up";
+  }
+  if (/account is disabled|suspended|forbidden/i.test(cleanMsg)) {
+    return "Account suspended. Contact support";
+  }
+  if (/too many requests|rate limit/i.test(cleanMsg)) {
+    return "Too many attempts. Try again later";
+  }
+  if (/jwt expired|token expired|unauthorized|session expired/i.test(cleanMsg)) {
+    return "Session expired. Please log in again";
+  }
+
+  return cleanMsg.charAt(0).toUpperCase() + cleanMsg.slice(1);
 }
 
 export async function checkUserApi(payload: CheckUserPayload): Promise<CheckUserResponse> {
