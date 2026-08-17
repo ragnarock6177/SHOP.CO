@@ -16,46 +16,59 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { useCart } from "../../../context/CartContext";
+import { useAuth } from "../../../context/AuthContext";
 import { PRODUCTS } from "../../../data/mockData";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { wishlist, orders, addToCart, toggleWishlist } = useCart();
+  const { user: authUser, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
+
   const [activeTab, setActiveTab] = useState<
     "orders" | "addresses" | "payments" | "wishlist" | "settings"
   >("orders");
 
-  // Mock User Info
-  const user = {
-    name: "Alex Morgan",
-    email: "alex.morgan@example.com",
-    phone: "+1 (555) 234-5678",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300",
-    memberSince: "January 2024",
-    tier: "VIP Gold Member",
-  };
+  // User Profile Display Calculations
+  const displayName = authUser
+    ? [authUser.firstName, authUser.lastName].filter(Boolean).join(" ") ||
+      authUser.email ||
+      authUser.phoneNumber ||
+      "AIRAVÉ Member"
+    : "Guest User";
+
+  const userEmail = authUser?.email || "No email connected";
+  const userPhone = authUser?.phoneNumber || "No mobile number connected";
+  const userInitial = (
+    authUser?.firstName?.[0] ||
+    authUser?.email?.[0] ||
+    authUser?.phoneNumber?.[0] ||
+    "U"
+  ).toUpperCase();
+
+  const memberSince = authUser?.createdAt
+    ? new Date(authUser.createdAt).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : "2026";
+
+  const authProviderLabel = authUser?.authProvider
+    ? `${authUser.authProvider} ACCOUNT`
+    : "VERIFIED ACCOUNT";
 
   // Mock Addresses
   const [addresses, setAddresses] = useState([
     {
       id: "addr-1",
       type: "Home (Default)",
-      name: "Alex Morgan",
+      name: displayName,
       street: "742 Evergreen Terrace",
       city: "Springfield",
       state: "IL",
       zip: "62704",
       isDefault: true,
-    },
-    {
-      id: "addr-2",
-      type: "Office",
-      name: "Alex Morgan",
-      street: "100 Innovation Way, Suite 400",
-      city: "Chicago",
-      state: "IL",
-      zip: "60601",
-      isDefault: false,
     },
   ]);
 
@@ -66,21 +79,45 @@ export default function ProfilePage() {
       brand: "Visa",
       last4: "4242",
       expiry: "08/28",
-      holder: "ALEX MORGAN",
+      holder: displayName.toUpperCase(),
       isDefault: true,
-    },
-    {
-      id: "card-2",
-      brand: "Mastercard",
-      last4: "8819",
-      expiry: "11/27",
-      holder: "ALEX MORGAN",
-      isDefault: false,
     },
   ]);
 
   // Wishlist products
   const wishedProducts = PRODUCTS.filter((p) => wishlist.includes(p.id));
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully.");
+      router.push("/login");
+    } catch {
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
+  if (!isAuthenticated && !isAuthLoading) {
+    return (
+      <div className="max-w-md mx-auto my-16 px-4 py-12 text-center bg-[#F0F0F0] rounded-3xl space-y-4">
+        <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+          ?
+        </div>
+        <h2 className="font-integral text-2xl font-black text-black uppercase">
+          LOG IN TO VIEW PROFILE
+        </h2>
+        <p className="text-xs text-gray-500">
+          Please log in or create an account to access your profile, order history, and saved addresses.
+        </p>
+        <Link
+          href="/login"
+          className="inline-block px-8 py-3.5 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors shadow-md"
+        >
+          Go to Login
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 space-y-8 text-black">
@@ -109,31 +146,37 @@ export default function ProfilePage() {
       <div className="bg-[#F0F0F0] rounded-3xl p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
         {/* Left: User Avatar & Info */}
         <div className="md:col-span-8 flex items-center gap-5">
-          <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-black shrink-0">
-            <Image
-              src={user.avatar}
-              alt={user.name}
-              fill
-              className="object-cover"
-            />
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-black shrink-0 bg-black text-white flex items-center justify-center">
+            {authUser?.profileImage ? (
+              <Image
+                src={authUser.profileImage}
+                alt={displayName}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <span className="font-integral text-2xl sm:text-3xl font-black">
+                {userInitial}
+              </span>
+            )}
           </div>
 
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="font-integral text-xl sm:text-2xl font-black text-black">
-                {user.name}
+                {displayName}
               </h2>
               <span className="bg-black text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">
-                {user.tier}
+                {authProviderLabel}
               </span>
             </div>
 
             <p className="text-xs text-gray-600 font-medium">
-              {user.email} &bull; {user.phone}
+              {userEmail} &bull; {userPhone}
             </p>
 
             <p className="text-[11px] text-gray-400">
-              Member since {user.memberSince}
+              Member since {memberSince}
             </p>
           </div>
         </div>
@@ -249,14 +292,13 @@ export default function ProfilePage() {
           </button>
 
           <div className="pt-2 border-t border-gray-100">
-            <Link
-              href="/"
-              onClick={() => alert("Logged Out")}
-              className="w-full flex items-center gap-3 px-4 py-3.5 text-xs sm:text-sm font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3.5 text-xs sm:text-sm font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span>Log Out</span>
-            </Link>
+            </button>
           </div>
         </aside>
 
@@ -587,7 +629,7 @@ export default function ProfilePage() {
                     </label>
                     <input
                       type="text"
-                      defaultValue={user.name}
+                      defaultValue={displayName}
                       className="w-full bg-[#F0F0F0] rounded-full px-4 py-3 text-xs font-semibold text-black focus:outline-none"
                     />
                   </div>
@@ -598,7 +640,7 @@ export default function ProfilePage() {
                     </label>
                     <input
                       type="text"
-                      defaultValue={user.phone}
+                      defaultValue={userPhone}
                       className="w-full bg-[#F0F0F0] rounded-full px-4 py-3 text-xs font-semibold text-black focus:outline-none"
                     />
                   </div>
@@ -610,7 +652,7 @@ export default function ProfilePage() {
                   </label>
                   <input
                     type="email"
-                    defaultValue={user.email}
+                    defaultValue={userEmail}
                     className="w-full bg-[#F0F0F0] rounded-full px-4 py-3 text-xs font-semibold text-black focus:outline-none"
                   />
                 </div>

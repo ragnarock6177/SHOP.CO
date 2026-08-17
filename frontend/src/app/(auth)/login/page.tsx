@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm, Controller, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,10 +17,19 @@ import {
   EyeOff,
   Edit2,
 } from "lucide-react";
+import { ConfirmationResult } from "firebase/auth";
 import {
   RealPhoneInput,
   isValidPhoneNumber,
 } from "@/components/ui/RealPhoneInput";
+import { checkUserApi, loginApi, registerFirebaseApi } from "@/lib/authApi";
+import {
+  signInWithGoogleFirebase,
+  initRecaptchaVerifier,
+  sendFirebasePhoneOtp,
+  verifyFirebasePhoneOtp,
+} from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 
 // Zod Validation Schemas for Step 1
 const mobileStepSchema = z.object({
@@ -58,6 +68,9 @@ type PasswordFormData = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { saveAuth } = useAuth();
+
   const [inputMode, setInputMode] = useState<"mobile" | "email">("mobile");
   const [step, setStep] = useState<"input" | "otp" | "password" | "success">(
     "input",
@@ -68,10 +81,34 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Firebase Phone Auth ConfirmationResult state
+  const [confirmationResult, setConfirmationResult] =
+    useState<ConfirmationResult | null>(null);
+
   // OTP State
   const [otpValues, setOtpValues] = useState<string[]>(Array(6).fill(""));
   const [resendTimer, setResendTimer] = useState(30);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const firebaseToken = await signInWithGoogleFirebase();
+      const authData = await registerFirebaseApi("google", firebaseToken);
+      saveAuth(authData);
+      setStep("success");
+      toast.success(
+        `Welcome, ${authData.user.email || authData.user.firstName || "User"}!`,
+      );
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Google Sign-In failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Timer effect for OTP resend
   useEffect(() => {
@@ -126,24 +163,67 @@ export default function LoginPage() {
   };
 
   // Step 1 Submission Handlers (Valid & Invalid)
-  const onStep1Submit = (data: Step1FormData) => {
+  const onStep1Submit = async (data: Step1FormData) => {
     setIsLoading(true);
     setSavedIdentifier(data.identifier);
 
-    // Static simulation of checking user existence
-    setTimeout(() => {
-      setIsLoading(false);
-      if (inputMode === "mobile") {
-        setStep("otp");
-        setResendTimer(30);
-        setOtpValues(Array(6).fill(""));
-        toast.success(`OTP sent to ${data.identifier}`);
+    try {
+      const payload =
+        inputMode === "mobile"
+          ? { phoneNumber: data.identifier }
+          : { email: data.identifier };
+
+      const checkResult = await checkUserApi(payload);
+
+      if (checkResult.isRegistered) {
+        if (inputMode === "mobile") {
+          try {
+            const verifier = initRecaptchaVerifier("recaptcha-container-login");
+            const confirmationRes = await sendFirebasePhoneOtp(
+              data.identifier,
+              verifier,
+            );
+            setConfirmationResult(confirmationRes);
+            setStep("otp");
+            setResendTimer(30);
+            setOtpValues(Array(6).fill(""));
+            toast.success(`SMS OTP code sent to ${data.identifier}`);
+          } catch (fbErr: any) {
+            toast.error(
+              fbErr.message ||
+                "Failed to send SMS OTP via Firebase. Please check configuration.",
+            );
+          }
+        } else {
+          if (checkResult.authProvider === "GOOGLE") {
+            toast.info(
+              "This account was created via Google Sign-In. Please click 'Continue with Google'.",
+            );
+          } else {
+            setStep("password");
+            resetPassword({ password: "" });
+            toast.info("Account found! Please enter your account password.");
+          }
+        }
       } else {
-        setStep("password");
-        resetPassword({ password: "" });
-        toast.info("Please enter your account password.");
+        toast.error(
+          `No account found registered with this ${
+            inputMode === "mobile" ? "mobile number" : "email address"
+          }. Redirecting to Sign Up...`,
+        );
+        setTimeout(() => {
+          router.push(
+            `/signup?identifier=${encodeURIComponent(data.identifier)}&mode=${inputMode}`,
+          );
+        }, 1500);
       }
-    }, 600);
+    } catch (err: any) {
+      toast.error(
+        err.message || "Failed to check user existence. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const onStep1Invalid = (errors: FieldErrors<Step1FormData>) => {
@@ -177,7 +257,10 @@ export default function LoginPage() {
 
   const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e
+      .clipboardData.getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     if (!pasted) return;
 
     const newOtp = Array(6).fill("");
@@ -193,7 +276,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const fullOtp = otpValues.join("");
 
@@ -202,27 +285,71 @@ export default function LoginPage() {
       return;
     }
 
+    if (!confirmationResult) {
+      toast.error("OTP session expired. Please resend code.");
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const firebaseToken = await verifyFirebasePhoneOtp(
+        confirmationResult,
+        fullOtp,
+      );
+      const authData = await registerFirebaseApi("phone", firebaseToken);
+      saveAuth(authData);
       setStep("success");
       toast.success("Logged in successfully!");
-    }, 700);
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || "OTP verification failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleResendOtp = () => {
-    setResendTimer(30);
-    toast.success(`A new 6-digit OTP code has been sent to ${savedIdentifier}`);
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return;
+    setIsLoading(true);
+    try {
+      const verifier = initRecaptchaVerifier("recaptcha-container-login");
+      const confirmationRes = await sendFirebasePhoneOtp(
+        savedIdentifier,
+        verifier,
+      );
+      setConfirmationResult(confirmationRes);
+      setResendTimer(30);
+      setOtpValues(Array(6).fill(""));
+      toast.success(
+        `A new 6-digit SMS OTP code has been sent to ${savedIdentifier}`,
+      );
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend SMS OTP code.");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+
 
   // Password Submission Handlers
-  const onPasswordSubmit = (_data: PasswordFormData) => {
+  const onPasswordSubmit = async (data: PasswordFormData) => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const authData = await loginApi(savedIdentifier, data.password);
+      saveAuth(authData);
       setStep("success");
       toast.success("Logged in successfully!");
-    }, 700);
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Invalid email or password credentials.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const onPasswordInvalid = (errors: FieldErrors<PasswordFormData>) => {
@@ -238,6 +365,7 @@ export default function LoginPage() {
 
   return (
     <>
+      <div id="recaptcha-container-login" />
       <div className="max-w-md mx-auto px-4 pt-12 sm:pt-6 space-y-6 text-black">
         {/* Page Header */}
         <div className="text-center space-y-2">
@@ -484,8 +612,9 @@ export default function LoginPage() {
               <div>
                 <button
                   type="button"
-                  onClick={() => toast.info("Google Sign-In clicked")}
-                  className="w-full py-3.5 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs cursor-pointer"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  className="w-full py-3.5 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -505,9 +634,10 @@ export default function LoginPage() {
                       d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"
                     />
                   </svg>
-                  <span>Continue with Google</span>
+                  <span>{isLoading ? "Signing in..." : "Continue with Google"}</span>
                 </button>
               </div>
+
 
               <div className="relative flex items-center justify-center my-3">
                 <div className="border-t border-gray-200 w-full" />

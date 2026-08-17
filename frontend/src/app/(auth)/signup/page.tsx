@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import {
   Mail,
   Lock,
@@ -23,7 +25,20 @@ import {
   RealPhoneInput,
   isValidPhoneNumber,
 } from "@/components/ui/RealPhoneInput";
+import { ConfirmationResult } from "firebase/auth";
 import { FormFieldError } from "@/components/ui/FormFieldError";
+import {
+  checkUserApi,
+  registerEmailApi,
+  registerFirebaseApi,
+} from "@/lib/authApi";
+import {
+  signInWithGoogleFirebase,
+  initRecaptchaVerifier,
+  sendFirebasePhoneOtp,
+  verifyFirebasePhoneOtp,
+} from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 
 // Zod Validation Schema for Registration Form
 const signUpSchema = z
@@ -82,11 +97,19 @@ const signUpSchema = z
 
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
-export default function SignUpPage() {
+function SignUpFormContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { saveAuth } = useAuth();
+
   const [step, setStep] = useState<"details" | "otp" | "success">("details");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Firebase Phone Auth ConfirmationResult state
+  const [confirmationResult, setConfirmationResult] =
+    useState<ConfirmationResult | null>(null);
 
   // OTP State (6 digits)
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
@@ -94,12 +117,35 @@ export default function SignUpPage() {
   const [resendTimer, setResendTimer] = useState(30);
   const [otpError, setOtpError] = useState("");
 
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const firebaseToken = await signInWithGoogleFirebase();
+      const authData = await registerFirebaseApi("google", firebaseToken);
+      saveAuth(authData);
+      setStep("success");
+      toast.success(
+        `Account created with Google! Welcome ${
+          authData.user.firstName || authData.user.email
+        }!`,
+      );
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Google Sign-Up failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const {
     register,
     handleSubmit,
     control,
     watch,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
@@ -115,6 +161,19 @@ export default function SignUpPage() {
     },
   });
 
+  // Prefill identifier from URL query if user was redirected from Login page
+  useEffect(() => {
+    const paramIdentifier = searchParams.get("identifier");
+    const paramMode = searchParams.get("mode");
+    if (paramIdentifier) {
+      if (paramMode === "email") {
+        setValue("email", paramIdentifier);
+      } else if (paramMode === "mobile") {
+        setValue("mobileNumber", paramIdentifier);
+      }
+    }
+  }, [searchParams, setValue]);
+
   const passwordVal = watch("password") || "";
   const confirmPasswordVal = watch("confirmPassword") || "";
 
@@ -129,15 +188,61 @@ export default function SignUpPage() {
     return () => clearInterval(interval);
   }, [step, resendTimer]);
 
-  // Valid Form Submission -> OTP Step
-  const onValidDetailsSubmit = (data: SignUpFormData) => {
+  // Valid Form Submission -> Check user existence then Register
+  const onValidDetailsSubmit = async (data: SignUpFormData) => {
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      // 1. Check if user already exists in backend by email or mobileNumber
+      const checkResult = await checkUserApi({
+        email: data.email,
+        phoneNumber: data.mobileNumber,
+      });
+
+      if (checkResult.isRegistered) {
+        toast.error(
+          "An account with this email or mobile number already exists. Please log in.",
+        );
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
+        return;
+      }
+
+      // 2. Register user with backend
+      const authData = await registerEmailApi({
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
+
+      saveAuth(authData);
+
+      // 3. Send SMS OTP for mobile number verification via Firebase
+      try {
+        const verifier = initRecaptchaVerifier("recaptcha-container-signup");
+        const confirmationRes = await sendFirebasePhoneOtp(
+          data.mobileNumber,
+          verifier,
+        );
+        setConfirmationResult(confirmationRes);
+        setStep("otp");
+        setResendTimer(30);
+        toast.success("Account created! Please verify your SMS OTP code.");
+      } catch (fbErr: any) {
+        setStep("otp");
+        setResendTimer(30);
+        toast.info(
+          "Account created! " +
+            (fbErr.message || "Please complete OTP verification."),
+        );
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Registration failed. Please try again.");
+    } finally {
       setIsLoading(false);
-      setStep("otp");
-      setResendTimer(30);
-    }, 700);
+    }
   };
 
   // OTP Handlers
@@ -174,17 +279,32 @@ export default function SignUpPage() {
     }
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     if (resendTimer > 0) return;
-    setOtp(["", "", "", "", "", ""]);
-    setResendTimer(30);
+    setIsLoading(true);
     setOtpError("");
-    alert(
-      `A new 6-digit verification code has been sent to ${getValues("mobileNumber")}`,
-    );
+    try {
+      const mobileNumber = getValues("mobileNumber");
+      const verifier = initRecaptchaVerifier("recaptcha-container-signup");
+      const confirmationRes = await sendFirebasePhoneOtp(
+        mobileNumber,
+        verifier,
+      );
+      setConfirmationResult(confirmationRes);
+      setOtp(["", "", "", "", "", ""]);
+      setResendTimer(30);
+      toast.success(
+        `A new 6-digit SMS OTP code has been sent to ${mobileNumber}`,
+      );
+    } catch (err: any) {
+      setOtpError(err.message || "Failed to resend OTP.");
+      toast.error(err.message || "Failed to resend OTP.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setOtpError("");
     const enteredOtp = otp.join("");
@@ -195,15 +315,33 @@ export default function SignUpPage() {
     }
 
     setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      if (confirmationResult) {
+        const firebaseToken = await verifyFirebasePhoneOtp(
+          confirmationResult,
+          enteredOtp,
+        );
+        const authData = await registerFirebaseApi("phone", firebaseToken);
+        saveAuth(authData);
+      }
       setStep("success");
-    }, 900);
+      toast.success("Mobile number verified & account activated!");
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
+    } catch (err: any) {
+      setOtpError(err.message || "OTP verification failed.");
+      toast.error(err.message || "OTP verification failed.");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+
 
   return (
     <>
+      <div id="recaptcha-container-signup" />
       <div className="max-w-md mx-auto px-4 pt-12 sm:pt-6 space-y-6 text-black">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -222,8 +360,9 @@ export default function SignUpPage() {
               <div>
                 <button
                   type="button"
-                  onClick={() => alert("Google Sign-Up clicked!")}
-                  className="w-full py-3.5 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  className="w-full py-3.5 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -243,9 +382,10 @@ export default function SignUpPage() {
                       d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"
                     />
                   </svg>
-                  <span>Continue with Google</span>
+                  <span>{isLoading ? "Signing up..." : "Continue with Google"}</span>
                 </button>
               </div>
+
 
               <div className="relative flex items-center justify-center my-3">
                 <div className="border-t border-gray-200 w-full" />
@@ -650,3 +790,12 @@ export default function SignUpPage() {
     </>
   );
 }
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-10 text-xs text-gray-500">Loading...</div>}>
+      <SignUpFormContent />
+    </Suspense>
+  );
+}
+

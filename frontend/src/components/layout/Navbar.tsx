@@ -15,13 +15,22 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 import { CATEGORIES } from "../../data/mockData";
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
   const { cartCount, wishlistCount, setIsCartOpen } = useCart();
+  const { user, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const userInitial = (
+    user?.firstName?.[0] ||
+    user?.email?.[0] ||
+    user?.phoneNumber?.[0] ||
+    "U"
+  ).toUpperCase();
 
   // Lock body scroll & add Escape key listener when mobile drawer is open
   useEffect(() => {
@@ -189,14 +198,35 @@ export const Navbar: React.FC = () => {
             </button>
 
             {/* User Profile / Auth Button */}
-            <Link
-              href="/login"
-              className="p-2 text-black hover:text-gray-600 transition-colors"
-              aria-label="User Account"
-              title="Account Login"
-            >
-              <User className="w-6 h-6" />
-            </Link>
+            {isAuthenticated && user ? (
+              <Link
+                href="/profile"
+                className="p-1 hover:opacity-80 transition-all flex items-center gap-2"
+                aria-label="User Profile"
+                title={`${user.firstName || user.email || "Profile"}`}
+              >
+                {user.profileImage ? (
+                  <img
+                    src={user.profileImage}
+                    alt={user.firstName || "User"}
+                    className="w-8 h-8 rounded-full object-cover border border-black/20 shadow-xs"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shadow-xs">
+                    {userInitial}
+                  </div>
+                )}
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="p-2 text-black hover:text-gray-600 transition-colors"
+                aria-label="User Account"
+                title="Account Login"
+              >
+                <User className="w-6 h-6" />
+              </Link>
+            )}
           </div>
         </div>
       </div>

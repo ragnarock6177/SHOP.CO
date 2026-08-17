@@ -3,6 +3,7 @@ import { Inter, Montserrat, Geist } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { AuthProvider } from "@/context/AuthContext";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -36,8 +37,9 @@ export default function RootLayout({
         className={`${inter.className} font-satoshi bg-white text-black min-h-screen flex flex-col antialiased selection:bg-black selection:text-white`}
       >
         <Toaster position="top-right" richColors />
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
 }
+
