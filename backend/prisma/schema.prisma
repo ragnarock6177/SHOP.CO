@@ -20,18 +20,42 @@ enum OrderStatus {
   CANCELLED
 }
 
-model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String
-  name         String
-  phone        String?
-  role         Role      @default(CUSTOMER)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  orders       Order[]
-  reviews      Review[]
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
 
+enum AuthProvider {
+  EMAIL
+  PHONE
+  GOOGLE
+}
+
+model User {
+  id              String       @id @default(uuid())
+  firebaseUid     String?      @unique
+  email           String?      @unique
+  passwordHash    String?
+  phoneNumber     String?      @unique
+  firstName       String?
+  lastName        String?
+  profileImage    String?
+  authProvider    AuthProvider @default(EMAIL)
+  isEmailVerified Boolean      @default(false)
+  isPhoneVerified Boolean      @default(false)
+  role            Role         @default(CUSTOMER)
+  status          UserStatus   @default(ACTIVE)
+  lastLoginAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  orders          Order[]
+  reviews         Review[]
+
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([firebaseUid])
   @@map("users")
 }
 

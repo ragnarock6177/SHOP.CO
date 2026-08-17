@@ -1,7 +1,11 @@
-import { prisma } from '../config/db.js';
+import { prisma } from "../config/db.js";
 
 export class ProductRepository {
-  async findAll(params: { category?: string; search?: string; limit?: number }) {
+  async findAll(params: {
+    category?: string;
+    search?: string;
+    limit?: number;
+  }) {
     const { category, search, limit } = params;
 
     const whereClause: any = {};
@@ -14,8 +18,8 @@ export class ProductRepository {
 
     if (search) {
       whereClause.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -28,7 +32,7 @@ export class ProductRepository {
         sizes: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }

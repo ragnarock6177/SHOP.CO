@@ -1,26 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from "./database.js";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prismaGlobal: PrismaClient | undefined;
-}
-
-export const prisma =
-  globalThis.prismaGlobal ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
-
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.prismaGlobal = prisma;
-}
-
-export const connectDB = async () => {
+export const connectDB = async (): Promise<void> => {
   try {
     await prisma.$connect();
-    console.log('🐘 PostgreSQL Database Connected via Prisma ORM Pool');
   } catch (error) {
-    console.error('❌ Database Connection Error:', error);
+    console.error("Failed to connect to database via Prisma:", error);
     process.exit(1);
   }
 };
+
+export { prisma };
+export default prisma;

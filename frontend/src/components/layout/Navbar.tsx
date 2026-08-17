@@ -17,11 +17,7 @@ import {
 import { useCart } from "../../context/CartContext";
 import { CATEGORIES } from "../../data/mockData";
 
-interface NavbarProps {
-  onOpenAuth: () => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
+export const Navbar: React.FC = () => {
   const router = useRouter();
   const { cartCount, wishlistCount, setIsCartOpen } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -193,14 +189,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
             </button>
 
             {/* User Profile / Auth Button */}
-            <button
-              onClick={onOpenAuth}
+            <Link
+              href="/login"
               className="p-2 text-black hover:text-gray-600 transition-colors"
               aria-label="User Account"
-              title="Account Login / Sign Up"
+              title="Account Login"
             >
               <User className="w-6 h-6" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
