@@ -200,9 +200,15 @@ function SignUpFormContent() {
       });
 
       if (checkResult.isRegistered) {
-        toast.error(
-          "An account with this email or mobile number already exists. Please log in.",
-        );
+        if (checkResult.authProvider === "GOOGLE") {
+          toast.error(
+            "This account is registered with Google. Please sign in with Google",
+          );
+        } else {
+          toast.error(
+            "An account with this email or mobile number already exists. Please log in.",
+          );
+        }
         setTimeout(() => {
           router.push("/login");
         }, 1500);

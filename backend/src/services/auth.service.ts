@@ -134,9 +134,9 @@ export class AuthService {
       );
     }
 
-    if (!user.passwordHash) {
+    if (!user.passwordHash || user.authProvider === AuthProvider.GOOGLE) {
       throw new BadRequestError(
-        "This account was created via social sign-in. Please sign in using your Google account or Phone number."
+        "This account is registered with Google. Please sign in with Google"
       );
     }
 
@@ -332,6 +332,10 @@ export class AuthService {
       return {
         isRegistered: false,
       };
+    }
+
+    if (user.authProvider === AuthProvider.GOOGLE) {
+      throw new BadRequestError("This account is registered with Google. Please sign in with Google");
     }
 
     return {

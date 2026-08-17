@@ -196,9 +196,10 @@ export default function LoginPage() {
           }
         } else {
           if (checkResult.authProvider === "GOOGLE") {
-            toast.info(
-              "This account was created via Google Sign-In. Please click 'Continue with Google'.",
+            toast.error(
+              "This account is registered with Google. Please sign in with Google"
             );
+            return;
           } else {
             setStep("password");
             resetPassword({ password: "" });
