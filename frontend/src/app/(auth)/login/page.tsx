@@ -26,6 +26,7 @@ import { checkUserApi, loginApi, registerFirebaseApi } from "@/lib/authApi";
 import {
   signInWithGoogleFirebase,
   initRecaptchaVerifier,
+  resetRecaptchaVerifier,
   sendFirebasePhoneOtp,
   verifyFirebasePhoneOtp,
 } from "@/lib/firebase";
@@ -157,6 +158,8 @@ export default function LoginPage() {
 
   // Switch between Mobile & Email input mode
   const handleToggleInputMode = () => {
+    resetRecaptchaVerifier("recaptcha-container-login");
+    setConfirmationResult(null);
     const nextMode = inputMode === "mobile" ? "email" : "mobile";
     setInputMode(nextMode);
     resetStep1({ identifier: "" });
@@ -363,6 +366,8 @@ export default function LoginPage() {
 
   // Go back to input step
   const handleGoBack = () => {
+    resetRecaptchaVerifier("recaptcha-container-login");
+    setConfirmationResult(null);
     setStep("input");
   };
 

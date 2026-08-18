@@ -34,6 +34,7 @@ import {
 } from "@/lib/authApi";
 import {
   initRecaptchaVerifier,
+  resetRecaptchaVerifier,
   sendFirebasePhoneOtp,
   verifyFirebasePhoneOtp,
 } from "@/lib/firebase";
@@ -697,8 +698,12 @@ function SignUpFormContent() {
 
                   <button
                     type="button"
-                    onClick={() => setStep("details")}
-                    className="w-full py-2.5 text-xs font-semibold text-gray-500 hover:text-black flex items-center justify-center gap-1"
+                    onClick={() => {
+                      resetRecaptchaVerifier("recaptcha-container-signup");
+                      setConfirmationResult(null);
+                      setStep("details");
+                    }}
+                    className="w-full py-2.5 text-xs font-semibold text-gray-500 hover:text-black flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Edit Mobile Number
