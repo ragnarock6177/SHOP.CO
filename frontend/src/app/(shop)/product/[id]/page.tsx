@@ -136,7 +136,7 @@ export default function ProductDetailPage() {
         <div className="lg:col-span-5 space-y-6">
           
           <div className="space-y-2 border-b border-gray-200 pb-5">
-            <h1 className="font-integral text-3xl sm:text-4xl font-black text-black leading-tight uppercase">
+            <h1 className="font-be-vietnam-pro-black text-3xl sm:text-4xl font-black text-black leading-tight uppercase">
               {product.title}
             </h1>
 
@@ -153,12 +153,12 @@ export default function ProductDetailPage() {
 
           {/* Pricing Row */}
           <div className="flex items-center gap-3">
-            <span className="font-integral text-3xl font-black text-black">
+            <span className="font-be-vietnam-pro-black text-3xl font-black text-black">
               ${product.price}
             </span>
 
             {product.originalPrice && (
-              <span className="font-integral text-2xl font-bold text-gray-400 line-through">
+              <span className="font-be-vietnam-pro-black text-2xl font-bold text-gray-400 line-through">
                 ${product.originalPrice}
               </span>
             )}
@@ -308,7 +308,7 @@ export default function ProductDetailPage() {
             {/* Reviews Section Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <h3 className="font-integral text-xl sm:text-2xl font-black text-black uppercase">
+                <h3 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black uppercase">
                   All Reviews
                 </h3>
                 <span className="text-sm text-gray-400 font-normal">
@@ -434,7 +434,7 @@ export default function ProductDetailPage() {
 
       {/* YOU MIGHT ALSO LIKE Section */}
       <div className="space-y-8 pt-12 border-t border-gray-200">
-        <h2 className="font-integral text-3xl sm:text-4xl font-black text-black text-center uppercase tracking-tight">
+        <h2 className="font-be-vietnam-pro-black text-3xl sm:text-4xl font-black text-black text-center uppercase tracking-tight">
           YOU MIGHT ALSO LIKE
         </h2>
 

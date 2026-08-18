@@ -67,7 +67,7 @@ export const Navbar: React.FC = () => {
             </button>
 
             <Link href="/" className="flex items-center">
-              <span className="font-integral text-2xl sm:text-3xl font-black tracking-tighter text-black">
+              <span className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black tracking-tighter text-black">
                 AIRAVÉ
               </span>
             </Link>
@@ -236,7 +236,7 @@ export const Navbar: React.FC = () => {
               {/* Drawer Header */}
               <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-                  <span className="font-integral text-2xl font-black text-black">
+                  <span className="font-be-vietnam-pro-black text-2xl font-black text-black">
                     AIRAVÉ
                   </span>
                 </Link>

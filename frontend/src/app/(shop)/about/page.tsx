@@ -15,7 +15,7 @@ export default function AboutPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12 text-black">
       {/* Hero Section */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
-        <h1 className="font-integral text-3xl sm:text-5xl font-black uppercase text-black">
+        <h1 className="font-be-vietnam-pro-black text-3xl sm:text-5xl font-black uppercase text-black">
           ABOUT AIRAVÉ
         </h1>
         <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
@@ -70,7 +70,7 @@ export default function AboutPage() {
           <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
             OUR MISSION
           </span>
-          <h2 className="font-integral text-2xl sm:text-3xl font-black">
+          <h2 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black">
             REDISCOVER YOUR EVERYDAY STYLE
           </h2>
           <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
@@ -83,25 +83,25 @@ export default function AboutPage() {
 
         <div className="grid grid-cols-2 gap-4 text-center">
           <div className="bg-white/10 rounded-2xl p-6">
-            <span className="font-integral text-3xl font-black text-white block">
+            <span className="font-be-vietnam-pro-black text-3xl font-black text-white block">
               200+
             </span>
             <span className="text-xs text-gray-300">International Brands</span>
           </div>
           <div className="bg-white/10 rounded-2xl p-6">
-            <span className="font-integral text-3xl font-black text-white block">
+            <span className="font-be-vietnam-pro-black text-3xl font-black text-white block">
               2,000+
             </span>
             <span className="text-xs text-gray-300">High Quality Products</span>
           </div>
           <div className="bg-white/10 rounded-2xl p-6">
-            <span className="font-integral text-3xl font-black text-white block">
+            <span className="font-be-vietnam-pro-black text-3xl font-black text-white block">
               30,000+
             </span>
             <span className="text-xs text-gray-300">Happy Customers</span>
           </div>
           <div className="bg-white/10 rounded-2xl p-6">
-            <span className="font-integral text-3xl font-black text-white block">
+            <span className="font-be-vietnam-pro-black text-3xl font-black text-white block">
               4.8 / 5
             </span>
             <span className="text-xs text-gray-300">Average Rating</span>
@@ -116,7 +116,7 @@ export default function AboutPage() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h3 className="font-integral text-xl sm:text-2xl font-black text-black">
+            <h3 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black">
               JOIN OUR TEAM
             </h3>
             <p className="text-xs text-gray-600 mt-1">

@@ -87,7 +87,7 @@ export default function ProfilePage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-6">
         <div>
-          <h1 className="font-integral text-2xl sm:text-3xl font-black uppercase text-black">
+          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black uppercase text-black">
             MY ACCOUNT
           </h1>
           <p className="text-xs text-gray-500 mt-1">
@@ -120,7 +120,7 @@ export default function ProfilePage() {
 
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h2 className="font-integral text-xl sm:text-2xl font-black text-black">
+              <h2 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black">
                 {user.name}
               </h2>
               <span className="bg-black text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">
@@ -141,7 +141,7 @@ export default function ProfilePage() {
         {/* Right: Quick Stats */}
         <div className="md:col-span-4 grid grid-cols-3 gap-3 border-t md:border-t-0 md:border-l border-gray-300 pt-4 md:pt-0 md:pl-6 text-center">
           <div>
-            <span className="font-integral text-xl sm:text-2xl font-black text-black block">
+            <span className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black block">
               {orders.length}
             </span>
             <span className="text-[11px] text-gray-500 font-medium">
@@ -150,7 +150,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <span className="font-integral text-xl sm:text-2xl font-black text-black block">
+            <span className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black block">
               {wishlist.length}
             </span>
             <span className="text-[11px] text-gray-500 font-medium">
@@ -159,7 +159,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <span className="font-integral text-xl sm:text-2xl font-black text-black block">
+            <span className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black block">
               {addresses.length}
             </span>
             <span className="text-[11px] text-gray-500 font-medium">
@@ -265,7 +265,7 @@ export default function ProfilePage() {
           {/* TAB 1: MY ORDERS */}
           {activeTab === "orders" && (
             <div className="space-y-6">
-              <h2 className="font-integral text-xl font-black uppercase text-black">
+              <h2 className="font-be-vietnam-pro-black text-xl font-black uppercase text-black">
                 Order History
               </h2>
 
@@ -380,7 +380,7 @@ export default function ProfilePage() {
           {activeTab === "addresses" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="font-integral text-xl font-black uppercase text-black">
+                <h2 className="font-be-vietnam-pro-black text-xl font-black uppercase text-black">
                   Saved Addresses
                 </h2>
                 <button
@@ -444,7 +444,7 @@ export default function ProfilePage() {
           {activeTab === "payments" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="font-integral text-xl font-black uppercase text-black">
+                <h2 className="font-be-vietnam-pro-black text-xl font-black uppercase text-black">
                   Payment Methods
                 </h2>
                 <button
@@ -463,7 +463,7 @@ export default function ProfilePage() {
                     className="bg-black text-white rounded-3xl p-6 space-y-4 shadow-md relative"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-integral text-lg font-black tracking-widest">
+                      <span className="font-be-vietnam-pro-black text-lg font-black tracking-widest">
                         {card.brand}
                       </span>
                       {card.isDefault && (
@@ -504,7 +504,7 @@ export default function ProfilePage() {
           {/* TAB 4: WISHLIST */}
           {activeTab === "wishlist" && (
             <div className="space-y-6">
-              <h2 className="font-integral text-xl font-black uppercase text-black">
+              <h2 className="font-be-vietnam-pro-black text-xl font-black uppercase text-black">
                 My Saved Wishlist ({wishedProducts.length})
               </h2>
 
@@ -569,7 +569,7 @@ export default function ProfilePage() {
           {/* TAB 5: ACCOUNT SETTINGS */}
           {activeTab === "settings" && (
             <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-              <h2 className="font-integral text-xl font-black uppercase text-black border-b border-gray-200 pb-4">
+              <h2 className="font-be-vietnam-pro-black text-xl font-black uppercase text-black border-b border-gray-200 pb-4">
                 Account Settings & Security
               </h2>
 

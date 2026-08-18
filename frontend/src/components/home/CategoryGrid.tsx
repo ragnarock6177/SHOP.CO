@@ -48,7 +48,7 @@ export function CategoryGrid() {
     <section className="w-full bg-[#F0F0F0] py-12 lg:py-17.5 px-4 sm:px-10 lg:px-16 overflow-hidden">
       <div className="max-w-309.75 mx-auto flex flex-col justify-center">
         {/* Title */}
-        <h2 className="font-integral text-[28px] sm:text-[40px] lg:text-[48px] font-bold sm:font-extrabold text-black text-center uppercase tracking-tight leading-none mb-8 lg:mb-16">
+        <h2 className="font-be-vietnam-pro-black text-[28px] sm:text-[40px] lg:text-[48px] font-bold sm:font-extrabold text-black text-center uppercase tracking-tight leading-none mb-8 lg:mb-16">
           BROWSE BY DRESS STYLE
         </h2>
 
@@ -59,7 +59,7 @@ export function CategoryGrid() {
               <Link href={style.href} className="block w-full">
                 <div className="relative bg-white rounded-[20px] h-47.5 lg:h-72.25 overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                   {/* Title inside card */}
-                  <h3 className="font-satoshi font-bold text-2xl sm:text-3xl lg:text-[36px] text-black absolute top-5 left-6 lg:top-9 lg:left-9 z-20">
+                  <h3 className="font-be-vietnam-pro font-bold text-2xl sm:text-3xl lg:text-[36px] text-black absolute top-5 left-6 lg:top-9 lg:left-9 z-20">
                     {style.title}
                   </h3>
 

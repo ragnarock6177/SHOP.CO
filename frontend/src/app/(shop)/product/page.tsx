@@ -101,7 +101,7 @@ function ShopContent() {
           {/* Header Row: Title & Custom Sort Dropdown (Immediate Render) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-baseline gap-2">
-              <h1 className="font-integral text-2xl sm:text-3xl font-black text-black capitalize">
+              <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black capitalize">
                 {activeCategory}
               </h1>
               <span className="text-xs sm:text-sm text-gray-500">

@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Montserrat, Geist } from "next/font/google";
+import { Be_Vietnam_Pro, Geist } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const montserrat = Montserrat({
+const beVietnamPro = Be_Vietnam_Pro({
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
   subsets: ["latin"],
-  variable: "--font-integral-cf",
+  variable: "--font-be-vietnam-pro",
 });
 
 export const metadata: Metadata = {
@@ -26,14 +27,13 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        inter.variable,
-        montserrat.variable,
+        beVietnamPro.variable,
         "font-sans",
         geist.variable,
       )}
     >
       <body
-        className={`${inter.className} font-satoshi bg-white text-black min-h-screen flex flex-col antialiased selection:bg-black selection:text-white`}
+        className={`${beVietnamPro.className} font-be-vietnam-pro bg-white text-black min-h-screen flex flex-col antialiased selection:bg-black selection:text-white`}
       >
         <Toaster position="top-right" richColors />
         {children}

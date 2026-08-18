@@ -80,7 +80,7 @@ export default function WishlistPage() {
       </AnimatePresence>
 
       {/* Breadcrumb Trail */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 font-satoshi">
+      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 font-be-vietnam-pro">
         <Link href="/" className="hover:text-black transition-colors">
           Home
         </Link>
@@ -92,14 +92,14 @@ export default function WishlistPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-6">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <h1 className="font-integral text-2xl sm:text-4xl font-black text-black tracking-tight uppercase">
+            <h1 className="font-be-vietnam-pro-black text-2xl sm:text-4xl font-black text-black tracking-tight uppercase">
               YOUR WISHLIST
             </h1>
             <span className="bg-rose-100 text-rose-600 font-bold text-xs sm:text-sm px-3 py-1 rounded-full">
               {wishlistCount} {wishlistCount === 1 ? 'item' : 'items'}
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-gray-500 font-satoshi">
+          <p className="text-xs sm:text-sm text-gray-500 font-be-vietnam-pro">
             Keep track of items you love and add them to your cart anytime.
           </p>
         </div>
@@ -179,7 +179,7 @@ export default function WishlistPage() {
                 <div className="space-y-2 flex-1 flex flex-col justify-between">
                   <div>
                     <Link href={`/product/${product.id}`}>
-                      <h3 className="font-satoshi font-bold text-base text-black group-hover:text-gray-600 transition-colors line-clamp-1">
+                      <h3 className="font-be-vietnam-pro font-bold text-base text-black group-hover:text-gray-600 transition-colors line-clamp-1">
                         {product.title}
                       </h3>
                     </Link>
@@ -198,7 +198,7 @@ export default function WishlistPage() {
 
                   {/* Pricing Row & Action */}
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 font-satoshi">
+                    <div className="flex items-center gap-2 font-be-vietnam-pro">
                       <span className="font-extrabold text-xl text-black">
                         ${product.price}
                       </span>
@@ -234,7 +234,7 @@ export default function WishlistPage() {
           </div>
 
           <div className="space-y-2">
-            <h2 className="font-integral text-xl sm:text-2xl font-black text-black uppercase">
+            <h2 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black uppercase">
               Your Wishlist is Empty
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
@@ -260,7 +260,7 @@ export default function WishlistPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-500" />
-              <h2 className="font-integral text-xl sm:text-2xl font-black text-black uppercase">
+              <h2 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black uppercase">
                 YOU MIGHT ALSO LIKE
               </h2>
             </div>

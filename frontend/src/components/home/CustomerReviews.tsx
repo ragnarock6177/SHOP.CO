@@ -38,7 +38,7 @@ export const CustomerReviews: React.FC = () => {
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
         >
-          <h2 className="font-integral text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-black text-black tracking-tight leading-tight">
+          <h2 className="font-be-vietnam-pro-black text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-black text-black tracking-tight leading-tight">
             OUR HAPPY CUSTOMERS
           </h2>
         </motion.div>
@@ -79,7 +79,7 @@ export const CustomerReviews: React.FC = () => {
 
                 {/* Customer Name & Verified Badge */}
                 <div className="flex items-center gap-1.5 sm:gap-2 pt-0.5">
-                  <h3 className="font-satoshi font-bold text-base sm:text-lg text-black">
+                  <h3 className="font-be-vietnam-pro font-bold text-base sm:text-lg text-black">
                     {review.userName}
                   </h3>
                   {review.verified && (
@@ -93,14 +93,14 @@ export const CustomerReviews: React.FC = () => {
                 </div>
 
                 {/* Review Comment Text */}
-                <p className="font-satoshi text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-4 sm:line-clamp-none">
+                <p className="font-be-vietnam-pro text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-4 sm:line-clamp-none">
                   "{review.comment}"
                 </p>
               </div>
 
               {/* Review Date */}
               {review.date && (
-                <p className="font-satoshi text-[11px] sm:text-xs text-gray-400 font-medium pt-3 sm:pt-4 border-t border-gray-100 mt-3 sm:mt-4">
+                <p className="font-be-vietnam-pro text-[11px] sm:text-xs text-gray-400 font-medium pt-3 sm:pt-4 border-t border-gray-100 mt-3 sm:mt-4">
                   {review.date}
                 </p>
               )}

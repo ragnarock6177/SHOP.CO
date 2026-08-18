@@ -61,7 +61,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
         }`}
       >
         <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-          <h3 className="font-integral text-xl font-black">Write a Review</h3>
+          <h3 className="font-be-vietnam-pro-black text-xl font-black">Write a Review</h3>
           <button onClick={onClose} className="p-1 text-gray-400 hover:text-black">
             <X className="w-5 h-5" />
           </button>

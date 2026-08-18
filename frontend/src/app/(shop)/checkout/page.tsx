@@ -126,7 +126,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="space-y-2">
-          <h1 className="font-integral text-3xl sm:text-4xl font-black uppercase text-black">
+          <h1 className="font-be-vietnam-pro-black text-3xl sm:text-4xl font-black uppercase text-black">
             ORDER CONFIRMED!
           </h1>
           <p className="text-sm text-gray-600">
@@ -239,7 +239,7 @@ export default function CheckoutPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-6">
         <div>
-          <h1 className="font-integral text-2xl sm:text-3xl font-black uppercase text-black">
+          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black uppercase text-black">
             CHECKOUT
           </h1>
           <p className="text-xs text-gray-500 mt-1">
@@ -259,7 +259,7 @@ export default function CheckoutPage() {
       {cart.length === 0 ? (
         <div className="bg-[#F0F0F0] rounded-3xl p-12 text-center space-y-4 max-w-md mx-auto my-8">
           <ShoppingBag className="w-10 h-10 text-gray-400 mx-auto" />
-          <h2 className="font-integral text-lg font-bold text-black">
+          <h2 className="font-be-vietnam-pro-black text-lg font-bold text-black">
             Your Cart is Empty
           </h2>
           <Link
@@ -278,7 +278,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-7 space-y-6">
             {/* Step 1: Shipping Address */}
             <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
-              <h3 className="font-integral text-lg font-black text-black uppercase border-b border-gray-200 pb-3">
+              <h3 className="font-be-vietnam-pro-black text-lg font-black text-black uppercase border-b border-gray-200 pb-3">
                 1. Delivery Details
               </h3>
 
@@ -411,7 +411,7 @@ export default function CheckoutPage() {
 
             {/* Step 2: Shipping Method Selection */}
             <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
-              <h3 className="font-integral text-lg font-black text-black uppercase border-b border-gray-200 pb-3">
+              <h3 className="font-be-vietnam-pro-black text-lg font-black text-black uppercase border-b border-gray-200 pb-3">
                 2. Shipping Option
               </h3>
 
@@ -462,7 +462,7 @@ export default function CheckoutPage() {
 
             {/* Step 3: Payment Method */}
             <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
-              <h3 className="font-integral text-lg font-black text-black uppercase border-b border-gray-200 pb-3">
+              <h3 className="font-be-vietnam-pro-black text-lg font-black text-black uppercase border-b border-gray-200 pb-3">
                 3. Payment Method
               </h3>
 
@@ -578,7 +578,7 @@ export default function CheckoutPage() {
           {/* Right 5 Columns: Order Summary Breakdown & Dynamic Submission */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-              <h3 className="font-integral text-xl font-black text-black border-b border-gray-200 pb-4 uppercase">
+              <h3 className="font-be-vietnam-pro-black text-xl font-black text-black border-b border-gray-200 pb-4 uppercase">
                 Order Review ({cart.length})
               </h3>
 

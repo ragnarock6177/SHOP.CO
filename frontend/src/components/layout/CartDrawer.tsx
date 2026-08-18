@@ -46,7 +46,7 @@ export const CartDrawer: React.FC = () => {
           <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-white">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-black" />
-              <h2 className="font-integral text-lg font-black tracking-tight">Your Cart</h2>
+              <h2 className="font-be-vietnam-pro-black text-lg font-black tracking-tight">Your Cart</h2>
               <span className="bg-black text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
                 {cart.length} {cart.length === 1 ? 'item' : 'items'}
               </span>
