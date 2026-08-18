@@ -177,17 +177,26 @@ export default function LoginPage() {
 
       if (checkResult.isRegistered) {
         if (inputMode === "mobile") {
+          // Instantly show the OTP screen for maximum UI responsiveness
+          setStep("otp");
+          setResendTimer(30);
+          setOtpValues(Array(6).fill(""));
+          setConfirmationResult(null);
+
+          // Dispatch SMS OTP sending in background
           try {
             const verifier = initRecaptchaVerifier("recaptcha-container-login");
-            const confirmationRes = await sendFirebasePhoneOtp(
-              data.identifier,
-              verifier,
-            );
-            setConfirmationResult(confirmationRes);
-            setStep("otp");
-            setResendTimer(30);
-            setOtpValues(Array(6).fill(""));
-            toast.success(`SMS OTP code sent to ${data.identifier}`);
+            sendFirebasePhoneOtp(data.identifier, verifier)
+              .then((confirmationRes) => {
+                setConfirmationResult(confirmationRes);
+                toast.success(`SMS OTP code sent to ${data.identifier}`);
+              })
+              .catch((fbErr: any) => {
+                toast.error(
+                  fbErr.message ||
+                    "Failed to send SMS OTP via Firebase. Please check configuration.",
+                );
+              });
           } catch (fbErr: any) {
             toast.error(
               fbErr.message ||
@@ -280,7 +289,7 @@ export default function LoginPage() {
     }
 
     if (!confirmationResult) {
-      toast.error("OTP session expired. Please resend code.");
+      toast.info("Sending OTP code... Please wait a moment for the SMS to arrive.");
       return;
     }
 
@@ -608,7 +617,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  className="w-full py-3.5 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -656,7 +665,8 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={handleToggleInputMode}
-                      className="text-[11px] font-semibold text-black hover:text-gray-700 flex items-center gap-1 bg-[#F0F0F0] hover:bg-gray-200 px-2.5 py-1 rounded-full transition-all cursor-pointer"
+                      disabled={isLoading}
+                      className="text-[11px] font-semibold text-black hover:text-gray-700 flex items-center gap-1 bg-[#F0F0F0] hover:bg-gray-200 px-2.5 py-1 rounded-full transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
                     >
                       {inputMode === "mobile" ? (
                         <>
@@ -683,6 +693,7 @@ export default function LoginPage() {
                             onChange={field.onChange}
                             onBlur={field.onBlur}
                             error={!!errorsStep1.identifier}
+                            disabled={isLoading}
                             placeholder="Enter mobile number"
                             defaultCountry="IN"
                           />
@@ -699,9 +710,10 @@ export default function LoginPage() {
                         />
                         <input
                           type="email"
+                          disabled={isLoading}
                           placeholder="enter your email address"
                           {...registerStep1("identifier")}
-                          className={`w-full bg-[#F0F0F0] rounded-full pl-11 pr-4 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all ${
+                          className={`w-full bg-[#F0F0F0] rounded-full pl-11 pr-4 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
                             errorsStep1.identifier
                               ? "border border-red-500 bg-red-50/40 ring-2 ring-red-500/20 shadow-xs shadow-red-500/10"
                               : "focus:ring-2 focus:ring-black/10 focus:bg-white"

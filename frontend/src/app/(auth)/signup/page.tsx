@@ -193,17 +193,25 @@ function SignUpFormContent() {
         return;
       }
 
-      // 2. Send SMS OTP for mobile number verification via Firebase (do NOT register in database yet)
+      // 2. Instantly transition to OTP step for immediate UI feedback
+      setStep("otp");
+      setResendTimer(30);
+      setConfirmationResult(null);
+
+      // 3. Dispatch SMS OTP send via Firebase in background
       try {
         const verifier = initRecaptchaVerifier("recaptcha-container-signup");
-        const confirmationRes = await sendFirebasePhoneOtp(
-          data.mobileNumber,
-          verifier,
-        );
-        setConfirmationResult(confirmationRes);
-        setStep("otp");
-        setResendTimer(30);
-        toast.success(`OTP code sent to ${data.mobileNumber}`);
+        sendFirebasePhoneOtp(data.mobileNumber, verifier)
+          .then((confirmationRes) => {
+            setConfirmationResult(confirmationRes);
+            toast.success(`OTP code sent to ${data.mobileNumber}`);
+          })
+          .catch((fbErr: any) => {
+            toast.error(
+              fbErr.message ||
+                "Failed to send SMS OTP code. Please check mobile number or try again.",
+            );
+          });
       } catch (fbErr: any) {
         toast.error(
           fbErr.message ||

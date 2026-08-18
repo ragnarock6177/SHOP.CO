@@ -38,6 +38,7 @@ interface RealPhoneInputProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   error?: boolean;
+  disabled?: boolean;
   placeholder?: string;
   defaultCountry?: string;
 }
@@ -47,6 +48,7 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
   onChange,
   onBlur,
   error = false,
+  disabled = false,
   placeholder = "98765 43210",
   defaultCountry = "IN",
 }) => {
@@ -88,6 +90,7 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
 
   // Handle typing inside input box
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
     const clean = e.target.value.replace(/[^0-9]/g, "").slice(0, maxDigits);
     setRawDigits(clean);
 
@@ -139,7 +142,7 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
   });
 
   return (
-    <div className="relative w-full">
+    <div className={`relative w-full ${disabled ? "opacity-60 pointer-events-none" : ""}`}>
       <div
         className={`flex items-center rounded-full px-3.5 py-1 transition-all border ${
           error
@@ -151,8 +154,9 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
         <div className="relative shrink-0" ref={dropdownRef}>
           <button
             type="button"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-1.5 py-2 pr-2.5 font-bold text-xs text-black hover:text-gray-700 cursor-pointer border-r border-gray-300/70 mr-2 select-none focus:outline-none"
+            disabled={disabled}
+            onClick={() => !disabled && setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-1.5 py-2 pr-2.5 font-bold text-xs text-black hover:text-gray-700 cursor-pointer border-r border-gray-300/70 mr-2 select-none focus:outline-none disabled:cursor-not-allowed"
           >
             {ActiveFlagComponent && (
               <div className="w-5 h-3.5 rounded-2xs overflow-hidden shadow-2xs shrink-0 flex items-center">
@@ -170,7 +174,7 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
           </button>
 
           {/* Searchable Country Selector Dropdown */}
-          {isDropdownOpen && (
+          {isDropdownOpen && !disabled && (
             <>
               <div
                 className="fixed inset-0 z-40"
@@ -230,12 +234,13 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
         {/* Live Country-Formatted Mobile Input Field */}
         <input
           type="tel"
+          disabled={disabled}
           inputMode="numeric"
           placeholder={placeholder}
           value={formattedDisplay}
           onChange={handleInputChange}
           onBlur={onBlur}
-          className="w-full bg-transparent py-2 pr-3 text-xs text-black placeholder-gray-400 focus:outline-none"
+          className="w-full bg-transparent py-2 pr-3 text-xs text-black placeholder-gray-400 focus:outline-none disabled:cursor-not-allowed"
         />
 
         {/* Live Country Digit Progress Counter (e.g. 10/10) */}
