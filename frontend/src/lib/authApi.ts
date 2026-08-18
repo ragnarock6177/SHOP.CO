@@ -2,6 +2,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 
 export interface CheckUserPayload {
   email?: string;
+  phone?: string;
   phoneNumber?: string;
   identifier?: string;
 }
@@ -15,14 +16,16 @@ export interface SanitizedUser {
   id: string;
   firebaseUid: string | null;
   email: string | null;
-  phoneNumber: string | null;
+  phone: string | null;
+  phoneNumber?: string | null;
   firstName: string | null;
   lastName: string | null;
   profileImage: string | null;
-  authProvider: string;
+  authProvider?: string;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
-  role: string;
+  roles: string[];
+  role?: string;
   status: string;
   lastLoginAt: string | null;
   createdAt: string;
@@ -52,7 +55,7 @@ function parseErrorMessage(data: any, fallbackMessage: string): string {
   let cleanMsg = rawMsg
     .replace(/^Validation failed:\s*/i, "")
     .replace(/^(body|query|params)\./i, "")
-    .replace(/^(identifier|email|password|phoneNumber|firebaseToken):\s*/i, "");
+    .replace(/^(identifier|email|password|phoneNumber|phone|firebaseToken):\s*/i, "");
 
   // Map to short, crisp app-style error messages
   if (/invalid credentials|invalid email or password/i.test(cleanMsg)) {
@@ -79,10 +82,15 @@ function parseErrorMessage(data: any, fallbackMessage: string): string {
 
 export async function checkUserApi(payload: CheckUserPayload): Promise<CheckUserResponse> {
   try {
+    const requestBody: CheckUserPayload = {
+      ...payload,
+      phone: payload.phone || payload.phoneNumber,
+    };
+
     const response = await fetch(`${API_BASE_URL}/auth/check-user`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(requestBody),
     });
 
     const data: ApiResponse<CheckUserResponse> = await response.json();
@@ -93,7 +101,7 @@ export async function checkUserApi(payload: CheckUserPayload): Promise<CheckUser
 
     return data.data || { isRegistered: false };
   } catch (err: any) {
-    if (err.message.includes("Failed to fetch") || err.name === "TypeError") {
+    if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
       throw new Error("Unable to connect to server. Please check your internet connection.");
     }
     throw err;
@@ -116,7 +124,7 @@ export async function loginApi(email: string, password: string): Promise<AuthRes
 
     return data.data!;
   } catch (err: any) {
-    if (err.message.includes("Failed to fetch") || err.name === "TypeError") {
+    if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
       throw new Error("Unable to connect to server. Please try again later.");
     }
     throw err;
@@ -128,12 +136,24 @@ export async function registerEmailApi(input: {
   password: string;
   firstName: string;
   lastName: string;
+  phone?: string;
+  mobileNumber?: string;
+  firebaseToken?: string;
 }): Promise<AuthResponseData> {
   try {
+    const payload = {
+      type: "email",
+      email: input.email,
+      password: input.password,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      phone: input.phone || input.mobileNumber,
+    };
+
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "email", ...input }),
+      body: JSON.stringify(payload),
     });
 
     const data: ApiResponse<AuthResponseData> = await response.json();
@@ -144,7 +164,7 @@ export async function registerEmailApi(input: {
 
     return data.data!;
   } catch (err: any) {
-    if (err.message.includes("Failed to fetch") || err.name === "TypeError") {
+    if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
       throw new Error("Unable to connect to server. Please try again later.");
     }
     throw err;
@@ -170,14 +190,12 @@ export async function registerFirebaseApi(
 
     return data.data!;
   } catch (err: any) {
-    if (err.message.includes("Failed to fetch") || err.name === "TypeError") {
+    if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
       throw new Error("Unable to connect to server. Please try again later.");
     }
     throw err;
   }
 }
-
-
 
 export async function getMeApi(token: string): Promise<{ user: SanitizedUser }> {
   const response = await fetch(`${API_BASE_URL}/auth/me`, {

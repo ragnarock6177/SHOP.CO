@@ -75,6 +75,7 @@ export class AuthService {
     firstName: string;
     lastName: string;
     phone?: string;
+    firebaseToken?: string;
   }): Promise<AuthResponseData> {
     const normalizedEmail = input.email.toLowerCase().trim();
 
@@ -84,6 +85,16 @@ export class AuthService {
 
     if (existingUser) {
       throw new ConflictError("A user with this email address already exists.");
+    }
+
+    let firebaseUid: string | null = null;
+    if (input.firebaseToken) {
+      try {
+        const phoneData = await FirebaseService.verifyPhoneToken(input.firebaseToken);
+        firebaseUid = phoneData.uid;
+      } catch (err) {
+        console.warn("Firebase phone token verification skipped/optional:", err);
+      }
     }
 
     const hashedPassword = await hashPassword(input.password);
@@ -96,6 +107,9 @@ export class AuthService {
         firstName: input.firstName.trim(),
         lastName: input.lastName.trim(),
         phone: input.phone || null,
+        firebaseUid,
+        phoneVerifiedAt: input.phone ? new Date() : null,
+        emailVerifiedAt: new Date(),
         status: UserStatus.ACTIVE,
         lastLoginAt: new Date(),
         ...(customerRole

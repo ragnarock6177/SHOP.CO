@@ -170,7 +170,7 @@ export default function LoginPage() {
     try {
       const payload =
         inputMode === "mobile"
-          ? { phoneNumber: data.identifier }
+          ? { phone: data.identifier, phoneNumber: data.identifier }
           : { email: data.identifier };
 
       const checkResult = await checkUserApi(payload);
@@ -207,16 +207,9 @@ export default function LoginPage() {
           }
         }
       } else {
-        toast.error(
-          `No account found registered with this ${
-            inputMode === "mobile" ? "mobile number" : "email address"
-          }. Redirecting to Sign Up...`,
+        router.push(
+          `/signup?identifier=${encodeURIComponent(data.identifier)}&mode=${inputMode}`,
         );
-        setTimeout(() => {
-          router.push(
-            `/signup?identifier=${encodeURIComponent(data.identifier)}&mode=${inputMode}`,
-          );
-        }, 1500);
       }
     } catch (err: any) {
       toast.error(

@@ -165,7 +165,7 @@ function SignUpFormContent() {
     return () => clearInterval(interval);
   }, [step, resendTimer]);
 
-  // Valid Form Submission -> Check user existence then Register
+  // Valid Form Submission -> Check user existence then Send OTP
   const onValidDetailsSubmit = async (data: SignUpFormData) => {
     setIsLoading(true);
 
@@ -173,6 +173,7 @@ function SignUpFormContent() {
       // 1. Check if user already exists in backend by email or mobileNumber
       const checkResult = await checkUserApi({
         email: data.email,
+        phone: data.mobileNumber,
         phoneNumber: data.mobileNumber,
       });
 
@@ -192,17 +193,7 @@ function SignUpFormContent() {
         return;
       }
 
-      // 2. Register user with backend
-      const authData = await registerEmailApi({
-        email: data.email,
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-      });
-
-      saveAuth(authData);
-
-      // 3. Send SMS OTP for mobile number verification via Firebase
+      // 2. Send SMS OTP for mobile number verification via Firebase (do NOT register in database yet)
       try {
         const verifier = initRecaptchaVerifier("recaptcha-container-signup");
         const confirmationRes = await sendFirebasePhoneOtp(
@@ -212,17 +203,15 @@ function SignUpFormContent() {
         setConfirmationResult(confirmationRes);
         setStep("otp");
         setResendTimer(30);
-        toast.success("Account created! Please verify your SMS OTP code.");
+        toast.success(`OTP code sent to ${data.mobileNumber}`);
       } catch (fbErr: any) {
-        setStep("otp");
-        setResendTimer(30);
-        toast.info(
-          "Account created! " +
-            (fbErr.message || "Please complete OTP verification."),
+        toast.error(
+          fbErr.message ||
+            "Failed to send SMS OTP code. Please check mobile number or try again.",
         );
       }
     } catch (err: any) {
-      toast.error(err.message || "Registration failed. Please try again.");
+      toast.error(err.message || "Failed to initiate sign up. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -287,6 +276,7 @@ function SignUpFormContent() {
     }
   };
 
+  // 3. Verify OTP & Call Register API ONCE
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setOtpError("");
@@ -299,22 +289,34 @@ function SignUpFormContent() {
 
     setIsLoading(true);
     try {
+      let firebaseToken: string | undefined;
       if (confirmationResult) {
-        const firebaseToken = await verifyFirebasePhoneOtp(
+        firebaseToken = await verifyFirebasePhoneOtp(
           confirmationResult,
           enteredOtp,
         );
-        const authData = await registerFirebaseApi("phone", firebaseToken);
-        saveAuth(authData);
       }
+
+      // Single registration call to backend after OTP is verified
+      const formData = getValues();
+      const authData = await registerEmailApi({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.mobileNumber,
+        firebaseToken,
+      });
+
+      saveAuth(authData);
       setStep("success");
-      toast.success("Mobile number verified & account activated!");
+      toast.success("Account created & mobile number verified successfully!");
       setTimeout(() => {
         router.push("/");
       }, 1000);
     } catch (err: any) {
-      setOtpError(err.message || "OTP verification failed.");
-      toast.error(err.message || "OTP verification failed.");
+      setOtpError(err.message || "OTP verification or registration failed.");
+      toast.error(err.message || "OTP verification or registration failed.");
     } finally {
       setIsLoading(false);
     }
