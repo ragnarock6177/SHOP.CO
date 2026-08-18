@@ -21,7 +21,7 @@ export const NewsletterBanner: React.FC = () => {
       <div className="bg-black text-white rounded-3xl p-6 sm:p-10 md:p-12 shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Side Title */}
         <div className="lg:col-span-7">
-          <h2 className="font-integral text-2xl sm:text-3xl lg:text-4xl font-black leading-tight tracking-tight uppercase">
+          <h2 className="font-be-vietnam-pro-black text-2xl sm:text-3xl lg:text-4xl font-black leading-tight tracking-tight uppercase">
             STAY UPTO DATE ABOUT OUR LATEST OFFERS
           </h2>
         </div>
@@ -29,7 +29,7 @@ export const NewsletterBanner: React.FC = () => {
         {/* Right Side Form */}
         <div className="lg:col-span-5 space-y-3">
           {subscribed ? (
-            <div className="bg-white/10 border border-white/20 text-white font-satoshi p-4 rounded-2xl text-center font-medium text-sm">
+            <div className="bg-white/10 border border-white/20 text-white font-be-vietnam-pro p-4 rounded-2xl text-center font-medium text-sm">
               Thank you for subscribing! Check your inbox for exclusive offers.
             </div>
           ) : (

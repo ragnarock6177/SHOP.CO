@@ -527,7 +527,7 @@ export function AnimatedFooter({
             <h2
               key={`${word}-${wi}`}
               aria-label={word}
-              className="overflow-hidden font-integral px-1 font-black leading-none tracking-tighter text-black text-center translate-y-3 sm:translate-y-5 pb-[0.1em]"
+              className="overflow-hidden font-be-vietnam-pro-black px-12 font-black leading-none tracking-tighter text-black text-center translate-y-3 sm:translate-y-5 pt-[0.3em] -mt-[0.3em] pb-[0.1em]"
               style={{ fontSize: "clamp(2.5rem, 12.5vw, 11rem)" }}
             >
               {Array.from(word).map((ch, ci) => (

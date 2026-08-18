@@ -38,7 +38,7 @@ export default function FAQPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10 text-black">
       <div className="text-center space-y-3">
-        <h1 className="font-integral text-3xl sm:text-4xl font-black uppercase text-black">
+        <h1 className="font-be-vietnam-pro-black text-3xl sm:text-4xl font-black uppercase text-black">
           HELP CENTER & FAQS
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 max-w-xl mx-auto">
@@ -70,7 +70,7 @@ export default function FAQPage() {
 
       {/* FAQs Accordion */}
       <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
-        <h3 className="font-integral text-xl font-black text-black border-b border-gray-200 pb-4 uppercase">
+        <h3 className="font-be-vietnam-pro-black text-xl font-black text-black border-b border-gray-200 pb-4 uppercase">
           FREQUENTLY ASKED QUESTIONS
         </h3>
 

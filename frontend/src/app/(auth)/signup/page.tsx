@@ -328,7 +328,7 @@ function SignUpFormContent() {
       <div className="max-w-md mx-auto px-4 pt-12 sm:pt-6 space-y-6 text-black">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="font-integral text-2xl sm:text-3xl font-black text-black uppercase tracking-tight">
+          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black uppercase tracking-tight">
             JOIN AIRAVÉ
           </h1>
           <p className="text-xs text-gray-500">
@@ -614,7 +614,7 @@ function SignUpFormContent() {
                 <div className="w-12 h-12 bg-black/5 text-black rounded-full flex items-center justify-center mx-auto mb-2">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h2 className="font-integral text-xl font-bold text-black uppercase">
+                <h2 className="font-be-vietnam-pro-black text-xl font-bold text-black uppercase">
                   OTP VERIFICATION
                 </h2>
                 <p className="text-xs text-gray-500 leading-relaxed">
@@ -705,7 +705,7 @@ function SignUpFormContent() {
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div className="space-y-1">
-                <h2 className="font-integral text-2xl font-black text-black uppercase">
+                <h2 className="font-be-vietnam-pro-black text-2xl font-black text-black uppercase">
                   WELCOME, {getValues("firstName").toUpperCase()}!
                 </h2>
                 <p className="text-xs text-gray-500 max-w-xs mx-auto">
@@ -724,12 +724,14 @@ function SignUpFormContent() {
           )}
 
           {/* Switch to Login */}
-          <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100 mt-6">
-            Already have an account?{" "}
-            <Link href="/login" className="font-bold text-black underline">
-              Log In
-            </Link>
-          </div>
+          {step === "details" && (
+            <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100 mt-6">
+              Already have an account?{" "}
+              <Link href="/login" className="font-bold text-black underline">
+                Log In
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </>

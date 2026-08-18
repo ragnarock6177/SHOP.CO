@@ -30,12 +30,12 @@ export const HeroBanner: React.FC = () => {
         {/* Left Column: Text Content & Stats */}
         <div className="w-full lg:w-150 flex flex-col items-start z-10 pb-6 lg:pb-0">
           {/* Main Title */}
-          <h1 className="font-integral text-[36px] sm:text-[48px] lg:text-[64px] font-extrabold text-black leading-8.5 sm:leading-12 lg:leading-16 tracking-tight uppercase max-w-xl text-left">
+          <h1 className="font-be-vietnam-pro-black text-[36px] sm:text-[48px] lg:text-[64px] font-extrabold text-black leading-8.5 sm:leading-12 lg:leading-16 tracking-tight uppercase max-w-xl text-left">
             FIND CLOTHES THAT MATCHES YOUR STYLE
           </h1>
 
           {/* Subtitle */}
-          <p className="font-satoshi text-sm sm:text-base text-black/60 font-normal leading-relaxed max-w-136.25 mt-4 sm:mt-5 mb-6 sm:mb-8 text-left">
+          <p className="font-be-vietnam-pro text-sm sm:text-base text-black/60 font-normal leading-relaxed max-w-136.25 mt-4 sm:mt-5 mb-6 sm:mb-8 text-left">
             Browse through our diverse range of meticulously crafted garments,
             designed to bring out your individuality and cater to your sense of style.
           </p>
@@ -43,7 +43,7 @@ export const HeroBanner: React.FC = () => {
           <div className="w-full sm:w-52.5 mb-8 sm:mb-12">
             <Link
               href="/product"
-              className="w-50 sm:w-52.5 bg-black h-13 my-3 flex items-center justify-center rounded-full font-satoshi font-medium text-base text-white hover:text-black cursor-pointer relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg border border-black z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
+              className="w-50 sm:w-52.5 bg-black h-13 my-3 flex items-center justify-center rounded-full font-be-vietnam-pro font-medium text-base text-white hover:text-black cursor-pointer relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg border border-black z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
             >
               Shop Now
             </Link>
@@ -53,10 +53,10 @@ export const HeroBanner: React.FC = () => {
           <div className="w-full flex flex-col sm:flex-row flex-wrap sm:flex-nowrap items-center justify-center sm:justify-start gap-6 lg:gap-8">
             <div className="flex items-center justify-center gap-4 sm:gap-8 w-full sm:w-auto">
               <div className="flex flex-col items-center sm:items-start flex-1 sm:flex-initial">
-                <span className="font-satoshi text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none text-center sm:text-left">
+                <span className="font-be-vietnam-pro text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none text-center sm:text-left">
                   200+
                 </span>
-                <span className="font-satoshi text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap text-center sm:text-left">
+                <span className="font-be-vietnam-pro text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap text-center sm:text-left">
                   International Brands
                 </span>
               </div>
@@ -64,10 +64,10 @@ export const HeroBanner: React.FC = () => {
               <div className="w-px h-11 sm:h-13 bg-black/10 shrink-0" />
 
               <div className="flex flex-col items-center sm:items-start flex-1 sm:flex-initial">
-                <span className="font-satoshi text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none text-center sm:text-left">
+                <span className="font-be-vietnam-pro text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none text-center sm:text-left">
                   2,000+
                 </span>
-                <span className="font-satoshi text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap text-center sm:text-left">
+                <span className="font-be-vietnam-pro text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap text-center sm:text-left">
                   High-Quality Products
                 </span>
               </div>
@@ -76,10 +76,10 @@ export const HeroBanner: React.FC = () => {
             </div>
 
             <div className="flex flex-col items-center sm:items-start w-full sm:w-auto">
-              <span className="font-satoshi text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none">
+              <span className="font-be-vietnam-pro text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none">
                 30,000+
               </span>
-              <span className="font-satoshi text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap">
+              <span className="font-be-vietnam-pro text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap">
                 Happy Customers
               </span>
             </div>

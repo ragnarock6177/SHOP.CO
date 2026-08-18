@@ -14,7 +14,7 @@ export const Footer: React.FC = () => {
           {/* Brand Info & Social Icons */}
           <div className="md:col-span-4 space-y-4 sm:space-y-5 text-center md:text-left">
             <Link href="/" className="inline-block">
-              <span className="font-integral text-2xl sm:text-3xl font-black tracking-tighter text-black">
+              <span className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black tracking-tighter text-black">
                 AIRAVÉ
               </span>
             </Link>
@@ -80,7 +80,7 @@ export const Footer: React.FC = () => {
           <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
             {/* COMPANY */}
             <div className="space-y-3 sm:space-y-4">
-              <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
+              <h4 className="font-be-vietnam-pro-black text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 COMPANY
               </h4>
               <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
@@ -113,7 +113,7 @@ export const Footer: React.FC = () => {
 
             {/* CUSTOMER CARE */}
             <div className="space-y-3 sm:space-y-4">
-              <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
+              <h4 className="font-be-vietnam-pro-black text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 CUSTOMER CARE
               </h4>
               <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
@@ -154,7 +154,7 @@ export const Footer: React.FC = () => {
 
             {/* SHOP CATEGORIES */}
             <div className="space-y-3 sm:space-y-4">
-              <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
+              <h4 className="font-be-vietnam-pro-black text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 CATEGORIES
               </h4>
               <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
@@ -195,7 +195,7 @@ export const Footer: React.FC = () => {
 
             {/* QUICK LINKS */}
             <div className="space-y-3 sm:space-y-4">
-              <h4 className="font-integral text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
+              <h4 className="font-be-vietnam-pro-black text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
                 QUICK LINKS
               </h4>
               <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">

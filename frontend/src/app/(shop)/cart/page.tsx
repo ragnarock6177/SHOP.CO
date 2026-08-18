@@ -46,7 +46,7 @@ export default function CartPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-6">
         <div>
-          <h1 className="font-integral text-2xl sm:text-3xl font-black text-black">
+          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black">
             YOUR CART
           </h1>
           <p className="text-xs text-gray-500 mt-1">
@@ -68,7 +68,7 @@ export default function CartPage() {
           <div className="w-16 h-16 rounded-full bg-white text-gray-400 flex items-center justify-center mx-auto shadow-sm">
             <ShoppingBag className="w-8 h-8" />
           </div>
-          <h2 className="font-integral text-xl font-bold text-black">Your Cart is Empty</h2>
+          <h2 className="font-be-vietnam-pro-black text-xl font-bold text-black">Your Cart is Empty</h2>
           <p className="text-xs text-gray-500 leading-relaxed">
             Explore our curated collections and discover clothes matching your style.
           </p>
@@ -164,7 +164,7 @@ export default function CartPage() {
           {/* Right 5 Columns: Order Summary Card */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-              <h3 className="font-integral text-xl font-black text-black border-b border-gray-200 pb-4">
+              <h3 className="font-be-vietnam-pro-black text-xl font-black text-black border-b border-gray-200 pb-4">
                 Order Summary
               </h3>
 

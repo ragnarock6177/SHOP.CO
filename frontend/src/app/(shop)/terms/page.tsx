@@ -6,7 +6,7 @@ export default function TermsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 text-black">
       <div className="border-b border-gray-200 pb-6 space-y-2">
-        <h1 className="font-integral text-3xl sm:text-4xl font-black uppercase text-black">
+        <h1 className="font-be-vietnam-pro-black text-3xl sm:text-4xl font-black uppercase text-black">
           TERMS & PRIVACY POLICY
         </h1>
         <p className="text-xs text-gray-500">Last updated: August 12, 2026</p>

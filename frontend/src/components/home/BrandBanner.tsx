@@ -25,7 +25,7 @@ export function BrandBanner() {
       >
         {[...USPs, ...USPs].map((item, index) => (
           <div key={index} className="flex items-center gap-12 sm:gap-16">
-            <span className="font-integral text-sm sm:text-base tracking-widest text-white uppercase font-bold">
+            <span className="font-be-vietnam-pro-black text-sm sm:text-base tracking-widest text-white uppercase font-bold">
               {item}
             </span>
             <span className="text-[#CD0000] text-xs">✦</span>

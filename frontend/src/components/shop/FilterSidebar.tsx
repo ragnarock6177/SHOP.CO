@@ -71,7 +71,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-        <h3 className="font-integral text-xl font-bold text-black flex items-center gap-2">
+        <h3 className="font-be-vietnam-pro-black text-xl font-bold text-black flex items-center gap-2">
           <span>Filters</span>
         </h3>
         {onCloseMobile ? (

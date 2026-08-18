@@ -370,7 +370,7 @@ export default function LoginPage() {
       <div className="max-w-md mx-auto px-4 pt-12 sm:pt-6 space-y-6 text-black">
         {/* Page Header */}
         <div className="text-center space-y-2">
-          <h1 className="font-integral text-2xl sm:text-3xl font-black text-black uppercase tracking-tight">
+          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black uppercase tracking-tight">
             {step === "otp"
               ? "VERIFY OTP"
               : step === "password"
@@ -394,7 +394,7 @@ export default function LoginPage() {
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div className="space-y-1">
-                <h2 className="font-integral text-2xl font-black text-black uppercase">
+                <h2 className="font-be-vietnam-pro-black text-2xl font-black text-black uppercase">
                   LOGGED IN SUCCESSFULLY!
                 </h2>
                 <p className="text-xs text-gray-500 max-w-xs mx-auto">
@@ -733,12 +733,14 @@ export default function LoginPage() {
           )}
 
           {/* Switch to SignUp */}
-          <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100 mt-6">
-            Don't have an account yet?{" "}
-            <Link href="/signup" className="font-bold text-black underline">
-              Sign Up
-            </Link>
-          </div>
+          {step === "input" && (
+            <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100 mt-6">
+              Don't have an account yet?{" "}
+              <Link href="/signup" className="font-bold text-black underline">
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </>

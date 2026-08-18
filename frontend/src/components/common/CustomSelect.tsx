@@ -38,7 +38,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   }, []);
 
   return (
-    <div ref={containerRef} className="relative text-xs select-none font-satoshi">
+    <div ref={containerRef} className="relative text-xs select-none font-be-vietnam-pro">
       <div className="flex items-center gap-1.5">
         {labelPrefix && (
           <span className="text-gray-500 hidden sm:inline font-normal">
