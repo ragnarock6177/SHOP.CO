@@ -1,48 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, StarHalf } from "lucide-react";
-
-const TOP_SELLING = [
-  {
-    id: 1,
-    name: "Vertical Striped Shirt",
-    image: "/img1.png",
-    rating: 5.0,
-    price: 212,
-    originalPrice: 232,
-    discount: "-20%",
-  },
-  {
-    id: 2,
-    name: "Courage Graphic T-shirt",
-    image: "/img2.png",
-    rating: 4.0,
-    price: 145,
-    originalPrice: null,
-    discount: null,
-  },
-  {
-    id: 3,
-    name: "Loose Fit Bermuda Shorts",
-    image: "/img3.png",
-    rating: 3.0,
-    price: 80,
-    originalPrice: null,
-    discount: null,
-  },
-  {
-    id: 4,
-    name: "Faded Skinny Jeans",
-    image: "/img4.png",
-    rating: 4.5,
-    price: 210,
-    originalPrice: null,
-    discount: null,
-  },
-];
+import { getProductsApi } from "@/lib/productApi";
+import { Product } from "@/types/ecommerce";
 
 function RatingStars({ rating }: { rating: number }) {
   const fullStars = Math.floor(rating);
@@ -66,6 +29,16 @@ function RatingStars({ rating }: { rating: number }) {
 }
 
 export function TopSelling() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getProductsApi({ limit: 4 })
+      .then(({ products }) => {
+        if (products.length > 0) setProducts(products.slice(0, 4));
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section className="w-full bg-white py-2 sm:py-5 lg:py-5 px-4 sm:px-10 max-w-[1440px] mx-auto overflow-hidden">
       {/* Section Title */}
@@ -75,19 +48,18 @@ export function TopSelling() {
 
       {/* Product Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-        {TOP_SELLING.map((product) => (
-          <div
+        {products.map((product) => (
+          <Link
             key={product.id}
+            href={`/product/${product.id}`}
             className="flex flex-col group cursor-pointer hover:-translate-y-1.5 transition-transform duration-200"
           >
             {/* Image Container */}
             <div className="w-full bg-[#F0EEED] rounded-[20px] aspect-square flex items-center justify-center p-4 overflow-hidden relative">
               <Image
                 src={product.image}
-                alt={product.name}
-                width={300}
-                height={300}
-                loading="lazy"
+                alt={product.title}
+                fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 300px"
                 className="object-cover w-full h-full rounded-xl group-hover:scale-105 transition-transform duration-300"
               />
@@ -95,7 +67,7 @@ export function TopSelling() {
 
             {/* Product Details */}
             <h3 className="font-be-vietnam-pro font-bold text-base sm:text-lg text-black mt-3 sm:mt-4 truncate">
-              {product.name}
+              {product.title}
             </h3>
 
             {/* Rating Stars */}
@@ -113,11 +85,11 @@ export function TopSelling() {
               )}
               {product.discount && (
                 <span className="bg-[#FF3333]/10 text-[#FF3333] font-be-vietnam-pro text-xs font-medium px-3 py-1 rounded-full">
-                  {product.discount}
+                  -{product.discount}%
                 </span>
               )}
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -135,4 +107,3 @@ export function TopSelling() {
 }
 
 export default TopSelling;
-
