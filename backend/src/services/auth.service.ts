@@ -1,5 +1,5 @@
 import { prisma } from "../config/database.js";
-import { AuthProvider, Role, User, UserStatus } from "@prisma/client";
+import { UserStatus } from "@prisma/client";
 import {
   AuthResponseData,
   CheckUserInput,
@@ -23,21 +23,23 @@ export class AuthService {
   /**
    * Sanitizes a User model instance for safe external exposure.
    */
-  public static sanitizeUser(user: User): SanitizedUser {
+  public static sanitizeUser(user: any): SanitizedUser {
+    const roles: string[] =
+      user.userRoles?.map((ur: any) => ur.role?.name).filter(Boolean) || ["CUSTOMER"];
+
     return {
       id: user.id,
-      firebaseUid: user.firebaseUid,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      profileImage: user.profileImage,
-      authProvider: user.authProvider,
-      isEmailVerified: user.isEmailVerified,
-      isPhoneVerified: user.isPhoneVerified,
-      role: user.role,
+      firebaseUid: user.firebaseUid || null,
+      email: user.email || null,
+      phone: user.phone || null,
+      firstName: user.firstName || null,
+      lastName: user.lastName || null,
+      profileImage: user.profileImage || null,
+      isEmailVerified: Boolean(user.emailVerifiedAt),
+      isPhoneVerified: Boolean(user.phoneVerifiedAt),
+      roles,
       status: user.status,
-      lastLoginAt: user.lastLoginAt,
+      lastLoginAt: user.lastLoginAt || null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -72,6 +74,7 @@ export class AuthService {
     password: string;
     firstName: string;
     lastName: string;
+    phone?: string;
   }): Promise<AuthResponseData> {
     const normalizedEmail = input.email.toLowerCase().trim();
 
@@ -84,6 +87,7 @@ export class AuthService {
     }
 
     const hashedPassword = await hashPassword(input.password);
+    const customerRole = await prisma.role.findUnique({ where: { name: "CUSTOMER" } });
 
     const user = await prisma.user.create({
       data: {
@@ -91,19 +95,27 @@ export class AuthService {
         passwordHash: hashedPassword,
         firstName: input.firstName.trim(),
         lastName: input.lastName.trim(),
-        authProvider: AuthProvider.EMAIL,
-        isEmailVerified: false,
-        isPhoneVerified: false,
-        role: Role.CUSTOMER,
+        phone: input.phone || null,
         status: UserStatus.ACTIVE,
         lastLoginAt: new Date(),
+        ...(customerRole
+          ? {
+              userRoles: {
+                create: { roleId: customerRole.id },
+              },
+            }
+          : {}),
+      },
+      include: {
+        userRoles: { include: { role: true } },
       },
     });
 
-    const accessToken = JwtService.generateAccessToken(user);
+    const sanitized = this.sanitizeUser(user);
+    const accessToken = JwtService.generateAccessToken({ id: user.id, roles: sanitized.roles });
 
     return {
-      user: this.sanitizeUser(user),
+      user: sanitized,
       accessToken,
     };
   }
@@ -112,14 +124,13 @@ export class AuthService {
    * Email/Password Login.
    */
   public static async login(input: EmailLoginInput): Promise<AuthResponseData> {
-    if (input.type !== "email") {
-      throw new BadRequestError('Login endpoint requires type: "email"');
-    }
-
     const normalizedEmail = input.email.toLowerCase().trim();
 
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
+      include: {
+        userRoles: { include: { role: true } },
+      },
     });
 
     if (!user) {
@@ -134,9 +145,9 @@ export class AuthService {
       );
     }
 
-    if (!user.passwordHash || user.authProvider === AuthProvider.GOOGLE) {
+    if (!user.passwordHash) {
       throw new BadRequestError(
-        "This account is registered with Google. Please sign in with Google"
+        "This account is registered via Google/Firebase. Please sign in with Google"
       );
     }
 
@@ -153,12 +164,16 @@ export class AuthService {
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
+      include: {
+        userRoles: { include: { role: true } },
+      },
     });
 
-    const accessToken = JwtService.generateAccessToken(updatedUser);
+    const sanitized = this.sanitizeUser(updatedUser);
+    const accessToken = JwtService.generateAccessToken({ id: updatedUser.id, roles: sanitized.roles });
 
     return {
-      user: this.sanitizeUser(updatedUser),
+      user: sanitized,
       accessToken,
     };
   }
@@ -175,7 +190,10 @@ export class AuthService {
 
     let user = await prisma.user.findFirst({
       where: {
-        OR: [{ firebaseUid: uid }, { phoneNumber }],
+        OR: [{ firebaseUid: uid }, { phone: phoneNumber }],
+      },
+      include: {
+        userRoles: { include: { role: true } },
       },
     });
 
@@ -188,30 +206,45 @@ export class AuthService {
         where: { id: user.id },
         data: {
           firebaseUid: user.firebaseUid || uid,
-          phoneNumber: user.phoneNumber || phoneNumber,
-          isPhoneVerified: true,
+          phone: user.phone || phoneNumber,
+          phoneVerifiedAt: user.phoneVerifiedAt || new Date(),
           lastLoginAt: new Date(),
+        },
+        include: {
+          userRoles: { include: { role: true } },
         },
       });
     } else {
+      const customerRole = await prisma.role.findUnique({ where: { name: "CUSTOMER" } });
+      const dummyEmail = `${uid}@phone.firebase`;
+
       user = await prisma.user.create({
         data: {
           firebaseUid: uid,
-          phoneNumber,
-          authProvider: AuthProvider.PHONE,
-          isPhoneVerified: true,
-          isEmailVerified: false,
-          role: Role.CUSTOMER,
+          email: dummyEmail,
+          phone: phoneNumber,
+          phoneVerifiedAt: new Date(),
           status: UserStatus.ACTIVE,
           lastLoginAt: new Date(),
+          ...(customerRole
+            ? {
+                userRoles: {
+                  create: { roleId: customerRole.id },
+                },
+              }
+            : {}),
+        },
+        include: {
+          userRoles: { include: { role: true } },
         },
       });
     }
 
-    const accessToken = JwtService.generateAccessToken(user);
+    const sanitized = this.sanitizeUser(user);
+    const accessToken = JwtService.generateAccessToken({ id: user.id, roles: sanitized.roles });
 
     return {
-      user: this.sanitizeUser(user),
+      user: sanitized,
       accessToken,
     };
   }
@@ -231,6 +264,9 @@ export class AuthService {
       where: {
         OR: [{ firebaseUid: uid }, { email: normalizedEmail }],
       },
+      include: {
+        userRoles: { include: { role: true } },
+      },
     });
 
     if (user) {
@@ -245,11 +281,16 @@ export class AuthService {
           firstName: user.firstName || firstName || null,
           lastName: user.lastName || lastName || null,
           profileImage: user.profileImage || picture || null,
-          isEmailVerified: emailVerified ?? user.isEmailVerified,
+          emailVerifiedAt: emailVerified ? (user.emailVerifiedAt || new Date()) : user.emailVerifiedAt,
           lastLoginAt: new Date(),
+        },
+        include: {
+          userRoles: { include: { role: true } },
         },
       });
     } else {
+      const customerRole = await prisma.role.findUnique({ where: { name: "CUSTOMER" } });
+
       user = await prisma.user.create({
         data: {
           firebaseUid: uid,
@@ -257,20 +298,28 @@ export class AuthService {
           firstName: firstName || null,
           lastName: lastName || null,
           profileImage: picture || null,
-          authProvider: AuthProvider.GOOGLE,
-          isEmailVerified: emailVerified,
-          isPhoneVerified: false,
-          role: Role.CUSTOMER,
+          emailVerifiedAt: emailVerified ? new Date() : null,
           status: UserStatus.ACTIVE,
           lastLoginAt: new Date(),
+          ...(customerRole
+            ? {
+                userRoles: {
+                  create: { roleId: customerRole.id },
+                },
+              }
+            : {}),
+        },
+        include: {
+          userRoles: { include: { role: true } },
         },
       });
     }
 
-    const accessToken = JwtService.generateAccessToken(user);
+    const sanitized = this.sanitizeUser(user);
+    const accessToken = JwtService.generateAccessToken({ id: user.id, roles: sanitized.roles });
 
     return {
-      user: this.sanitizeUser(user),
+      user: sanitized,
       accessToken,
     };
   }
@@ -281,6 +330,9 @@ export class AuthService {
   public static async getUserProfile(userId: string): Promise<SanitizedUser> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      include: {
+        userRoles: { include: { role: true } },
+      },
     });
 
     if (!user) {
@@ -294,27 +346,35 @@ export class AuthService {
     return this.sanitizeUser(user);
   }
 
+  /**
+   * Checks if user exists by email, phone, or identifier.
+   */
   public static async checkUser(
     input: CheckUserInput
   ): Promise<CheckUserResponseData> {
-    const { email, phoneNumber, identifier } = input;
+    const { email, phone, phoneNumber, identifier } = input;
+    const targetPhone = phone || phoneNumber;
 
-    const OR: Array<{ email?: string; phoneNumber?: string }> = [];
+    const OR: Array<{ email?: string; phone?: string }> = [];
 
     if (email) {
-      OR.push({ email });
+      OR.push({ email: email.toLowerCase().trim() });
     }
-    if (phoneNumber) {
-      OR.push({ phoneNumber });
+    if (targetPhone) {
+      OR.push({ phone: targetPhone.trim() });
     }
     if (identifier) {
-      OR.push({ email: identifier });
-      OR.push({ phoneNumber: identifier });
+      const trimmed = identifier.trim();
+      if (trimmed.includes("@")) {
+        OR.push({ email: trimmed.toLowerCase() });
+      } else {
+        OR.push({ phone: trimmed });
+      }
     }
 
     if (OR.length === 0) {
       throw new BadRequestError(
-        "At least one of email, phoneNumber, or identifier must be provided."
+        "At least one of email, phone, phoneNumber, or identifier must be provided."
       );
     }
 
@@ -324,7 +384,8 @@ export class AuthService {
       },
       select: {
         id: true,
-        authProvider: true,
+        passwordHash: true,
+        firebaseUid: true,
       },
     });
 
@@ -334,16 +395,19 @@ export class AuthService {
       };
     }
 
-    if (user.authProvider === AuthProvider.GOOGLE) {
-      throw new BadRequestError("This account is registered with Google. Please sign in with Google");
+    const provider = user.passwordHash ? "EMAIL" : "GOOGLE";
+
+    if (!user.passwordHash && user.firebaseUid) {
+      // User is registered via Google/Firebase
+      return {
+        isRegistered: true,
+        authProvider: "GOOGLE",
+      };
     }
 
     return {
       isRegistered: true,
-      authProvider: user.authProvider,
+      authProvider: provider,
     };
   }
 }
-
-
-

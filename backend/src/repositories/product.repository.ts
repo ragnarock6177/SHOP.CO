@@ -1,4 +1,4 @@
-import { prisma } from "../config/db.js";
+import prisma from "../lib/prisma.js";
 
 export class ProductRepository {
   async findAll(params: {
@@ -8,17 +8,17 @@ export class ProductRepository {
   }) {
     const { category, search, limit } = params;
 
-    const whereClause: any = {};
+    const whereClause: any = { status: "ACTIVE", deletedAt: null };
 
     if (category) {
-      whereClause.category = {
-        slug: category.toLowerCase(),
+      whereClause.productCategories = {
+        some: { category: { slug: category.toLowerCase() } },
       };
     }
 
     if (search) {
       whereClause.OR = [
-        { title: { contains: search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
       ];
     }
@@ -27,9 +27,9 @@ export class ProductRepository {
       where: whereClause,
       take: limit ? Number(limit) : undefined,
       include: {
-        category: true,
-        colors: true,
-        sizes: true,
+        productCategories: { include: { category: true } },
+        images: true,
+        variants: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -41,9 +41,9 @@ export class ProductRepository {
     return prisma.product.findUnique({
       where: { id },
       include: {
-        category: true,
-        colors: true,
-        sizes: true,
+        productCategories: { include: { category: true } },
+        images: true,
+        variants: true,
         reviews: true,
       },
     });

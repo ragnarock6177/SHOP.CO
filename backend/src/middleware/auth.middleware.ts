@@ -12,9 +12,7 @@ export const authenticateJwt = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new UnauthorizedError(
-        "Authorization header missing or malformed. Standard: Bearer <token>",
-      );
+      throw new UnauthorizedError("Authentication token missing.");
     }
 
     const token = authHeader.split(" ")[1];

@@ -48,6 +48,17 @@ router.post(
 );
 
 /**
+ * @route   POST /api/v1/auth/firebase-login
+ * @desc    Direct Firebase Token Login
+ * @access  Public
+ */
+router.post(
+  "/firebase-login",
+  authRateLimiter,
+  AuthController.firebaseLogin,
+);
+
+/**
  * @route   GET /api/v1/auth/me
  * @desc    Get currently logged in user profile
  * @access  Private (Backend JWT required)
@@ -61,6 +72,11 @@ router.get("/me", authenticateJwt, AuthController.me);
  */
 router.post("/logout", authenticateJwt, AuthController.logout);
 
+/**
+ * @route   POST /api/v1/auth/check-user
+ * @desc    Check if user exists by email, phone, or identifier
+ * @access  Public
+ */
 router.post(
   "/check-user",
   authRateLimiter,
@@ -69,6 +85,3 @@ router.post(
 );
 
 export default router;
-
-
-

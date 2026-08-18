@@ -38,6 +38,27 @@ export class AuthController {
   }
 
   /**
+   * POST /api/v1/auth/firebase-login
+   * Firebase Token verification & login/registration flow.
+   */
+  public static async firebaseLogin(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const token = req.body.idToken || req.body.firebaseToken;
+      const result = await AuthService.register({
+        type: "google",
+        firebaseToken: token,
+      });
+      sendResponse(res, 200, "Firebase authentication successful", result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * GET /api/v1/auth/me
    * Retrieves authenticated user details.
    */
@@ -71,6 +92,10 @@ export class AuthController {
     }
   }
 
+  /**
+   * POST /api/v1/auth/check-user
+   * Checks whether a user exists by email, phone, or identifier.
+   */
   public static async checkUser(
     req: Request,
     res: Response,
@@ -84,6 +109,3 @@ export class AuthController {
     }
   }
 }
-
-
-

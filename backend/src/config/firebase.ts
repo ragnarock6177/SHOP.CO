@@ -78,3 +78,6 @@ export const getFirebaseAuth = (): Auth => {
 };
 
 initFirebase();
+
+export { firebaseApp };
+

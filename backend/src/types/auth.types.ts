@@ -1,4 +1,4 @@
-import { Role, UserStatus, AuthProvider } from "@prisma/client";
+import { UserStatus } from "@prisma/client";
 
 export type AuthType = "email" | "phone" | "google";
 
@@ -8,12 +8,7 @@ export interface EmailRegisterInput {
   password: string;
   firstName: string;
   lastName: string;
-}
-
-export interface EmailLoginInput {
-  type: "email";
-  email: string;
-  password: string;
+  phone?: string;
 }
 
 export interface PhoneAuthInput {
@@ -27,11 +22,19 @@ export interface GoogleAuthInput {
 }
 
 export type UnifiedRegisterInput =
-  EmailRegisterInput | PhoneAuthInput | GoogleAuthInput;
+  | EmailRegisterInput
+  | PhoneAuthInput
+  | GoogleAuthInput;
+
+export interface EmailLoginInput {
+  type?: "email";
+  email: string;
+  password: string;
+}
 
 export interface JwtPayload {
   userId: string;
-  role: Role;
+  roles?: string[];
   iat?: number;
   exp?: number;
 }
@@ -40,14 +43,13 @@ export interface SanitizedUser {
   id: string;
   firebaseUid: string | null;
   email: string | null;
-  phoneNumber: string | null;
+  phone: string | null;
   firstName: string | null;
   lastName: string | null;
   profileImage: string | null;
-  authProvider: AuthProvider;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
-  role: Role;
+  roles: string[];
   status: UserStatus;
   lastLoginAt: Date | null;
   createdAt: Date;
@@ -61,13 +63,14 @@ export interface AuthResponseData {
 
 export interface CheckUserInput {
   email?: string;
+  phone?: string;
   phoneNumber?: string;
   identifier?: string;
 }
 
 export interface CheckUserResponseData {
   isRegistered: boolean;
-  authProvider?: AuthProvider;
+  authProvider?: string;
 }
 
 export interface ApiResponse<T = any> {
@@ -76,6 +79,3 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
 }
-
-
-

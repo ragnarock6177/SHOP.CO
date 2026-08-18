@@ -1,12 +1,11 @@
 import { Router } from "express";
-import {
-  getProducts,
-  getProductById,
-} from "../controllers/products.controller.js";
+import { ProductController } from "../controllers/product.controller.js";
+import { validateRequest } from "../middleware/validate.js";
+import { ProductFilterQuerySchema, SlugParamSchema } from "../validators/catalog.validator.js";
 
 const router = Router();
 
-router.get("/", getProducts);
-router.get("/:id", getProductById);
+router.get("/", validateRequest(ProductFilterQuerySchema), ProductController.getProducts);
+router.get("/:slug", validateRequest(SlugParamSchema), ProductController.getProductBySlug);
 
 export default router;

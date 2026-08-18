@@ -1,9 +1,19 @@
 import { SanitizedUser } from "./auth.types.js";
+import { UserStatus } from "@prisma/client";
+
+export interface AuthUser {
+  id: string;
+  email: string | null;
+  firebaseUid?: string | null;
+  status: UserStatus;
+  roles: string[];
+}
 
 declare global {
   namespace Express {
     interface Request {
-      user?: SanitizedUser;
+      user?: SanitizedUser | AuthUser;
+      guestToken?: string;
     }
   }
 }
