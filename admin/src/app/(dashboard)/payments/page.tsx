@@ -1,0 +1,110 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link.js";
+import { useQuery } from "@tanstack/react-query";
+import { ColumnDef } from "@tanstack/react-table";
+import { CreditCard } from "lucide-react";
+import apiClient from "../../../lib/apiClient";
+import { ApiPaginatedResponse } from "../../../types/api";
+import { DataTable } from "../../../components/data-table/DataTable";
+import { Pagination } from "../../../components/data-table/Pagination";
+import { StatusBadge } from "../../../components/ui/StatusBadge";
+
+export interface PaymentItem {
+  id: string;
+  orderId: string;
+  orderNumber?: string;
+  provider: string;
+  providerPaymentId: string | null;
+  amount: number;
+  currency: string;
+  status: "PENDING" | "AUTHORIZED" | "CAPTURED" | "FAILED" | "REFUNDED";
+  createdAt: string;
+}
+
+export default function PaymentsPage() {
+  const [page, setPage] = useState<number>(1);
+  const [statusFilter, setStatusFilter] = useState<string>("");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "payments", { page, limit: 10, status: statusFilter || undefined }],
+    queryFn: async () => {
+      const response = await apiClient.get<ApiPaginatedResponse<PaymentItem>>("/payments", {
+        params: { page, limit: 10, status: statusFilter || undefined },
+      });
+      return response.data;
+    },
+  });
+
+  const columns: ColumnDef<PaymentItem>[] = [
+    {
+      accessorKey: "provider",
+      header: "Provider & Ref",
+      cell: ({ row }) => (
+        <div className="flex items-center space-x-2">
+          <CreditCard className="h-4 w-4 text-zinc-400" />
+          <div>
+            <span className="font-semibold text-zinc-100">{row.original.provider}</span>
+            <p className="text-[10px] text-zinc-500 font-mono">{row.original.providerPaymentId || "COD / Direct"}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "orderId",
+      header: "Order Reference",
+      cell: ({ row }) => (
+        <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-zinc-200 hover:underline">
+          #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => (
+        <span className="font-bold text-zinc-100">
+          ₹{row.original.amount} {row.original.currency}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Payment Status",
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-100">Payment Gateway Transactions</h1>
+          <p className="text-xs text-zinc-400">Read-only oversight of gateway payment attempts and authorization statuses</p>
+        </div>
+        <div className="flex justify-end">
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-300 focus:outline-none"
+          >
+            <option value="">All Payment Statuses</option>
+            <option value="CAPTURED">Captured</option>
+            <option value="AUTHORIZED">Authorized</option>
+            <option value="PENDING">Pending</option>
+            <option value="FAILED">Failed</option>
+            <option value="REFUNDED">Refunded</option>
+          </select>
+        </div>
+      </div>
+
+      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+
+      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+    </div>
+  );
+}

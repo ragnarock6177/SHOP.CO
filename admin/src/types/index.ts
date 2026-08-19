@@ -1,3 +1,5 @@
+export * from "./api";
+
 export interface Product {
   id: string;
   sku: string;
@@ -31,10 +33,4 @@ export interface Customer {
   ordersCount: number;
   totalSpent: number;
   createdAt: string;
-}
-
-export interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  error?: string;
 }

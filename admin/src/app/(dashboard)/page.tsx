@@ -1,138 +1,148 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  ArrowUpRight,
-  ArrowDownRight,
-  DollarSign,
-  Users,
-  ShoppingBag,
-  Activity,
-} from "lucide-react";
+"use client";
 
-export default function Dashboard() {
+import React, { useState } from "react";
+import { IndianRupee, ShoppingBag, AlertTriangle, RotateCcw, Activity } from "lucide-react";
+import { useDashboard } from "@/hooks/queries/useDashboard";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import Link from "next/link";
+
+export default function DashboardPage() {
+  const [dateRange, setDateRange] = useState<string>("7d");
+  const { data: metrics, isLoading, error } = useDashboard();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-48 animate-pulse rounded bg-zinc-800" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-900/50 bg-red-950/30 p-6 text-center text-xs text-red-300">
+        Failed to load executive dashboard analytics. Please verify backend API connectivity.
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-        <div className="flex items-center gap-2">
-          {/* Action buttons could go here */}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-100">Executive Dashboard</h1>
+          <p className="text-xs text-zinc-400">AIRAVÉ Operational Metrics & System Stream</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 focus:outline-none"
+          >
+            <option value="today">Today</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="all">All Time</option>
+          </select>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        <Card className="rounded-xl shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$124,563.00</div>
-            <p className="text-xs text-neutral-500 flex items-center mt-1">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500 font-medium">+12.5%</span>
-              <span className="ml-1">from last month</span>
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
-            <ShoppingBag className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+573</div>
-            <p className="text-xs text-neutral-500 flex items-center mt-1">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500 font-medium">+8.2%</span>
-              <span className="ml-1">from last month</span>
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Customers
-            </CardTitle>
-            <Users className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+2,350</div>
-            <p className="text-xs text-neutral-500 flex items-center mt-1">
-              <ArrowDownRight className="mr-1 h-3 w-3 text-rose-500" />
-              <span className="text-rose-500 font-medium">-1.1%</span>
-              <span className="ml-1">from last month</span>
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Conversion Rate
-            </CardTitle>
-            <Activity className="h-4 w-4 text-neutral-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3.24%</div>
-            <p className="text-xs text-neutral-500 flex items-center mt-1">
-              <ArrowUpRight className="mr-1 h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500 font-medium">+4.3%</span>
-              <span className="ml-1">from last month</span>
-            </p>
-          </CardContent>
-        </Card>
+      {/* KPI Cards Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Gross Revenue"
+          value={`₹${(metrics?.grossRevenue || 0).toLocaleString("en-IN")}`}
+          subtitle="Excludes cancelled & refunded"
+          icon={IndianRupee}
+        />
+        <StatCard
+          title="Total Orders"
+          value={metrics?.totalOrders || 0}
+          subtitle={`Today: ${metrics?.todayOrders || 0} orders`}
+          icon={ShoppingBag}
+        />
+        <StatCard
+          title="Low Stock Alerts"
+          value={metrics?.lowStockCount || 0}
+          subtitle={`Out of stock: ${metrics?.outOfStockCount || 0}`}
+          icon={AlertTriangle}
+          isAlert={(metrics?.lowStockCount || 0) > 0}
+        />
+        <StatCard
+          title="Pending After-Sales"
+          value={(metrics?.pendingReturns || 0) + (metrics?.pendingRefunds || 0)}
+          subtitle={`Returns: ${metrics?.pendingReturns || 0} | Refunds: ${metrics?.pendingRefunds || 0}`}
+          icon={RotateCcw}
+        />
       </div>
 
-      <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <Card className="xl:col-span-2 rounded-xl shadow-none flex flex-col">
-          <CardHeader>
-            <CardTitle>Sales Analytics</CardTitle>
-            <CardDescription>
-              Revenue overview for the current year.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex items-center justify-center min-h-[300px] border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/20 m-6 rounded-lg">
-            <p className="text-sm text-neutral-500">
-              Chart Visualization Placeholder
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-xl shadow-none">
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>
-              Latest transactions from your store.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center dark:bg-neutral-800">
-                    <span className="font-medium text-sm">C{i}</span>
+      {/* Widgets Grid */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Recent Orders Widget */}
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <h2 className="text-sm font-semibold text-zinc-100">Recent Orders</h2>
+            <Link href="/orders" className="text-xs font-semibold text-zinc-400 hover:text-zinc-100">
+              View All →
+            </Link>
+          </div>
+          <div className="mt-3 divide-y divide-zinc-800/60">
+            {metrics?.recentOrders?.length ? (
+              metrics.recentOrders.map((order: any) => (
+                <div key={order.id} className="flex items-center justify-between py-3">
+                  <div>
+                    <Link href={`/orders/${order.id}`} className="text-xs font-semibold text-zinc-200 hover:underline">
+                      #{order.orderNumber}
+                    </Link>
+                    <p className="text-[11px] text-zinc-400">{order.customerName}</p>
                   </div>
-                  <div className="flex flex-1 flex-col">
-                    <p className="text-sm font-medium leading-none">
-                      Customer {i}
-                    </p>
-                    <p className="text-sm text-neutral-500 mt-1">
-                      customer{i}@example.com
-                    </p>
-                  </div>
-                  <div className="font-medium text-sm">
-                    ${(Math.random() * 500).toFixed(2)}
+                  <div className="flex items-center space-x-3">
+                    <span className="text-xs font-semibold text-zinc-100">₹{order.totalAmount}</span>
+                    <StatusBadge status={order.status} />
                   </div>
                 </div>
-              ))}
+              ))
+            ) : (
+              <p className="py-6 text-center text-xs text-zinc-500">No recent orders recorded.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Audit Log Activity Widget */}
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <div className="flex items-center space-x-2">
+              <Activity className="h-4 w-4 text-zinc-400" />
+              <h2 className="text-sm font-semibold text-zinc-100">System Audit Feed</h2>
             </div>
-          </CardContent>
-        </Card>
+            <Link href="/audit-logs" className="text-xs font-semibold text-zinc-400 hover:text-zinc-100">
+              View Audit Logs →
+            </Link>
+          </div>
+          <div className="mt-3 divide-y divide-zinc-800/60">
+            {metrics?.recentAuditLogs?.length ? (
+              metrics.recentAuditLogs.map((log: any) => (
+                <div key={log.id} className="flex items-center justify-between py-3">
+                  <div>
+                    <span className="text-xs font-semibold text-zinc-200">{log.action}</span>
+                    <p className="text-[11px] text-zinc-400">By {log.actorName}</p>
+                  </div>
+                  <span className="text-[10px] text-zinc-500">
+                    {new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="py-6 text-center text-xs text-zinc-500">No recent audit log stream.</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
