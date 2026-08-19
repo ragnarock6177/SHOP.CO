@@ -4,10 +4,10 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus, Layers } from "lucide-react";
-import apiClient from "../../../lib/apiClient";
-import { ApiResponse, ApiPaginatedResponse } from "../../../types/api";
-import { DataTable } from "../../../components/data-table/DataTable";
-import { PermissionGate } from "../../../components/rbac/PermissionGate";
+import apiClient from "@/lib/apiClient";
+import { ApiResponse, ApiPaginatedResponse } from "@/types/api";
+import { DataTable } from "@/components/data-table/DataTable";
+import { PermissionGate } from "@/components/rbac/PermissionGate";
 
 export interface CategoryItem {
   id: string;
@@ -29,14 +29,14 @@ export default function CategoriesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "categories"],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<CategoryItem>>("/categories");
+      const response = await apiClient.get<ApiPaginatedResponse<CategoryItem>>("/admin/categories");
       return response.data;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (payload: { name: string; slug: string }) => {
-      const response = await apiClient.post<ApiResponse<CategoryItem>>("/categories", payload);
+      const response = await apiClient.post<ApiResponse<CategoryItem>>("/admin/categories", payload);
       return response.data.data;
     },
     onSuccess: () => {

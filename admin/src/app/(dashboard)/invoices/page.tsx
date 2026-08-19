@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link.js";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { FileText, Printer } from "lucide-react";
-import apiClient from "../../../lib/apiClient";
-import { ApiPaginatedResponse } from "../../../types/api";
-import { DataTable } from "../../../components/data-table/DataTable";
-import { Pagination } from "../../../components/data-table/Pagination";
+import apiClient from "@/lib/apiClient";
+import { ApiPaginatedResponse } from "@/types/api";
+import { DataTable } from "@/components/data-table/DataTable";
+import { Pagination } from "@/components/data-table/Pagination";
 
 export interface InvoiceItem {
   id: string;
@@ -28,7 +28,7 @@ export default function InvoicesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "invoices", { page, limit: 10 }],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<InvoiceItem>>("/payments/invoices", {
+      const response = await apiClient.get<ApiPaginatedResponse<InvoiceItem>>("/admin/payments/invoices", {
         params: { page, limit: 10 },
       });
       return response.data;

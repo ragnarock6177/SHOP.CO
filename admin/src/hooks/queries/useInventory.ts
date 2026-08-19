@@ -25,7 +25,7 @@ export const useInventory = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "inventory", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<InventoryItem>>("/inventory", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<InventoryItem>>("/admin/inventory", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -36,7 +36,7 @@ export const useAdjustInventory = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: StockAdjustPayload) => {
-      const response = await apiClient.post<ApiResponse<InventoryItem>>("/inventory/adjust", payload);
+      const response = await apiClient.post<ApiResponse<InventoryItem>>("/admin/inventory/adjust", payload);
       return response.data.data;
     },
     onSuccess: () => {
@@ -50,7 +50,7 @@ export const useInventoryMovements = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "inventory", "movements", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<any>>("/inventory/movements", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<any>>("/admin/inventory/movements", { params });
       return response.data;
     },
   });
@@ -60,7 +60,7 @@ export const useInventoryReservations = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "inventory", "reservations", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<any>>("/inventory/reservations", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<any>>("/admin/inventory/reservations", { params });
       return response.data;
     },
   });

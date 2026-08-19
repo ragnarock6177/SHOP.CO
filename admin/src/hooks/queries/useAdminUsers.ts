@@ -27,7 +27,7 @@ export const useStaffUsers = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "staff", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<StaffUserItem>>("/staff", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<StaffUserItem>>("/admin/admin-users", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -38,7 +38,7 @@ export const useCreateStaffUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: any) => {
-      const response = await apiClient.post<ApiResponse<StaffUserItem>>("/staff", payload);
+      const response = await apiClient.post<ApiResponse<StaffUserItem>>("/admin/admin-users", payload);
       return response.data.data;
     },
     onSuccess: () => {
@@ -51,7 +51,7 @@ export const useRoles = () => {
   return useQuery({
     queryKey: ["admin", "roles"],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<RoleItem>>("/roles");
+      const response = await apiClient.get<ApiPaginatedResponse<RoleItem>>("/admin/roles");
       return response.data.data;
     },
   });
@@ -61,7 +61,7 @@ export const useCreateRole = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { name: string; description?: string; permissions: string[] }) => {
-      const response = await apiClient.post<ApiResponse<RoleItem>>("/roles", payload);
+      const response = await apiClient.post<ApiResponse<RoleItem>>("/admin/roles", payload);
       return response.data.data;
     },
     onSuccess: () => {
@@ -74,7 +74,7 @@ export const useUpdateRolePermissions = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ roleId, permissions }: { roleId: string; permissions: string[] }) => {
-      const response = await apiClient.put<ApiResponse<RoleItem>>(`/roles/${roleId}/permissions`, { permissions });
+      const response = await apiClient.put<ApiResponse<RoleItem>>(`/admin/roles/${roleId}/permissions`, { permissions });
       return response.data.data;
     },
     onSuccess: () => {

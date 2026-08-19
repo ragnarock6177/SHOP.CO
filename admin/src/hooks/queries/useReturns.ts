@@ -18,7 +18,7 @@ export const useReturns = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "returns", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<ReturnRequestItem>>("/returns", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<ReturnRequestItem>>("/admin/returns", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -29,7 +29,7 @@ export const useUpdateReturnStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status, notes }: { id: string; status: ReturnRequestItem["status"]; notes?: string }) => {
-      const response = await apiClient.patch<ApiResponse<ReturnRequestItem>>(`/returns/${id}/status`, { status, notes });
+      const response = await apiClient.patch<ApiResponse<ReturnRequestItem>>(`/admin/returns/${id}/status`, { status, notes });
       return response.data.data;
     },
     onSuccess: () => {
@@ -43,7 +43,8 @@ export const useRefunds = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "refunds", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<any>>("/refunds", { params });
+      // Refunds are nested under /admin/returns/refunds
+      const response = await apiClient.get<ApiPaginatedResponse<any>>("/admin/returns/refunds", { params });
       return response.data;
     },
   });
@@ -53,7 +54,7 @@ export const useProcessRefund = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { orderId: string; amount: number; reason: string }) => {
-      const response = await apiClient.post<ApiResponse<any>>("/refunds", payload);
+      const response = await apiClient.post<ApiResponse<any>>("/admin/returns/refunds", payload);
       return response.data.data;
     },
     onSuccess: () => {

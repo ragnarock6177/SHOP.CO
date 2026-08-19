@@ -10,7 +10,7 @@ export const useDashboard = (fromDate?: string, toDate?: string) => {
       if (fromDate) params.fromDate = fromDate;
       if (toDate) params.toDate = toDate;
 
-      const response = await apiClient.get<ApiResponse<DashboardMetrics>>("/dashboard", { params });
+      const response = await apiClient.get<ApiResponse<DashboardMetrics>>("/admin/dashboard", { params });
       return response.data.data;
     },
     staleTime: 60 * 1000,

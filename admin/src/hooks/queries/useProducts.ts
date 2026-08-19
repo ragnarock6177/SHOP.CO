@@ -23,7 +23,7 @@ export const useProducts = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "products", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<ProductItem>>("/products", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<ProductItem>>("/admin/products", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -34,7 +34,7 @@ export const useProductDetails = (id: string) => {
   return useQuery({
     queryKey: ["admin", "products", id],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<ProductItem>>(`/products/${id}`);
+      const response = await apiClient.get<ApiResponse<ProductItem>>(`/admin/products/${id}`);
       return response.data.data;
     },
     enabled: !!id,
@@ -45,7 +45,7 @@ export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: any) => {
-      const response = await apiClient.post<ApiResponse<ProductItem>>("/products", payload);
+      const response = await apiClient.post<ApiResponse<ProductItem>>("/admin/products", payload);
       return response.data.data;
     },
     onSuccess: () => {
@@ -58,7 +58,7 @@ export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await apiClient.put<ApiResponse<ProductItem>>(`/products/${id}`, data);
+      const response = await apiClient.put<ApiResponse<ProductItem>>(`/admin/products/${id}`, data);
       return response.data.data;
     },
     onSuccess: (_, variables) => {
@@ -72,7 +72,7 @@ export const useArchiveProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.delete<ApiResponse<{ archived: boolean }>>(`/products/${id}`);
+      const response = await apiClient.delete<ApiResponse<{ archived: boolean }>>(`/admin/products/${id}`);
       return response.data.data;
     },
     onSuccess: () => {

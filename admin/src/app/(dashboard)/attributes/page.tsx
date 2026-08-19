@@ -4,9 +4,9 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Sliders } from "lucide-react";
-import apiClient from "../../../lib/apiClient";
-import { ApiPaginatedResponse } from "../../../types/api";
-import { DataTable } from "../../../components/data-table/DataTable";
+import apiClient from "@/lib/apiClient";
+import { ApiPaginatedResponse } from "@/types/api";
+import { DataTable } from "@/components/data-table/DataTable";
 
 export interface AttributeItem {
   id: string;
@@ -21,7 +21,7 @@ export default function AttributesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "attributes"],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<AttributeItem>>("/attributes");
+      const response = await apiClient.get<ApiPaginatedResponse<AttributeItem>>("/admin/attributes");
       return response.data;
     },
   });

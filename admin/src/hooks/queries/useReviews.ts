@@ -20,7 +20,7 @@ export const useReviews = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "reviews", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<ReviewItem>>("/reviews", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<ReviewItem>>("/admin/reviews", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -31,7 +31,7 @@ export const useToggleReviewPublish = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, isPublished }: { id: string; isPublished: boolean }) => {
-      const response = await apiClient.patch<ApiResponse<ReviewItem>>(`/reviews/${id}/publish`, { isPublished });
+      const response = await apiClient.patch<ApiResponse<ReviewItem>>(`/admin/reviews/${id}/publish`, { isPublished });
       return response.data.data;
     },
     onSuccess: () => {
@@ -44,7 +44,7 @@ export const useDeleteReview = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiClient.delete<ApiResponse<{ success: boolean }>>(`/reviews/${id}`);
+      const response = await apiClient.delete<ApiResponse<{ success: boolean }>>(`/admin/reviews/${id}`);
       return response.data.data;
     },
     onSuccess: () => {

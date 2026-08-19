@@ -21,7 +21,7 @@ export const useCoupons = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "coupons", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<CouponItem>>("/coupons", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<CouponItem>>("/admin/coupons", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -32,7 +32,7 @@ export const useCreateCoupon = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: any) => {
-      const response = await apiClient.post<ApiResponse<CouponItem>>("/coupons", payload);
+      const response = await apiClient.post<ApiResponse<CouponItem>>("/admin/coupons", payload);
       return response.data.data;
     },
     onSuccess: () => {
@@ -45,7 +45,7 @@ export const useToggleCouponStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const response = await apiClient.patch<ApiResponse<CouponItem>>(`/coupons/${id}/status`, { isActive });
+      const response = await apiClient.patch<ApiResponse<CouponItem>>(`/admin/coupons/${id}/status`, { isActive });
       return response.data.data;
     },
     onSuccess: () => {

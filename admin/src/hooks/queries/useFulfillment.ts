@@ -19,7 +19,7 @@ export const useShipments = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "fulfillment", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<ShipmentItem>>("/fulfillment", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<ShipmentItem>>("/admin/fulfillment", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -30,7 +30,7 @@ export const useCreateShipment = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { orderId: string; carrier: string; trackingNumber: string; trackingUrl?: string; items?: any[] }) => {
-      const response = await apiClient.post<ApiResponse<ShipmentItem>>("/fulfillment", payload);
+      const response = await apiClient.post<ApiResponse<ShipmentItem>>("/admin/fulfillment", payload);
       return response.data.data;
     },
     onSuccess: () => {
@@ -44,7 +44,7 @@ export const useUpdateShipmentStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: ShipmentItem["status"] }) => {
-      const response = await apiClient.patch<ApiResponse<ShipmentItem>>(`/fulfillment/${id}/status`, { status });
+      const response = await apiClient.patch<ApiResponse<ShipmentItem>>(`/admin/fulfillment/${id}/status`, { status });
       return response.data.data;
     },
     onSuccess: () => {

@@ -39,7 +39,7 @@ export const useCustomers = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "customers", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<CustomerItem>>("/customers", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<CustomerItem>>("/admin/customers", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -50,7 +50,7 @@ export const useCustomerDetails = (id: string) => {
   return useQuery({
     queryKey: ["admin", "customers", id],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<CustomerDetail>>(`/customers/${id}`);
+      const response = await apiClient.get<ApiResponse<CustomerDetail>>(`/admin/customers/${id}`);
       return response.data.data;
     },
     enabled: !!id,
@@ -61,7 +61,7 @@ export const useUpdateCustomerStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: CustomerItem["status"] }) => {
-      const response = await apiClient.patch<ApiResponse<CustomerItem>>(`/customers/${id}/status`, { status });
+      const response = await apiClient.patch<ApiResponse<CustomerItem>>(`/admin/customers/${id}/status`, { status });
       return response.data.data;
     },
     onSuccess: (_, variables) => {

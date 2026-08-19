@@ -4,10 +4,10 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus, Tag } from "lucide-react";
-import apiClient from "../../../lib/apiClient";
-import { ApiResponse, ApiPaginatedResponse } from "../../../types/api";
-import { DataTable } from "../../../components/data-table/DataTable";
-import { PermissionGate } from "../../../components/rbac/PermissionGate";
+import apiClient from "@/lib/apiClient";
+import { ApiResponse, ApiPaginatedResponse } from "@/types/api";
+import { DataTable } from "@/components/data-table/DataTable";
+import { PermissionGate } from "@/components/rbac/PermissionGate";
 
 export interface CollectionItem {
   id: string;
@@ -27,14 +27,14 @@ export default function CollectionsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "collections"],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<CollectionItem>>("/collections");
+      const response = await apiClient.get<ApiPaginatedResponse<CollectionItem>>("/admin/collections");
       return response.data;
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (payload: { name: string; slug: string }) => {
-      const response = await apiClient.post<ApiResponse<CollectionItem>>("/collections", payload);
+      const response = await apiClient.post<ApiResponse<CollectionItem>>("/admin/collections", payload);
       return response.data.data;
     },
     onSuccess: () => {

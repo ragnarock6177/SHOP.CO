@@ -52,7 +52,7 @@ export const useOrders = (params?: AdminQueryParams) => {
   return useQuery({
     queryKey: ["admin", "orders", params],
     queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<OrderItem>>("/orders", { params });
+      const response = await apiClient.get<ApiPaginatedResponse<OrderItem>>("/admin/orders", { params });
       return response.data;
     },
     staleTime: 30 * 1000,
@@ -63,7 +63,7 @@ export const useOrderDetails = (id: string) => {
   return useQuery({
     queryKey: ["admin", "orders", id],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<OrderDetail>>(`/orders/${id}`);
+      const response = await apiClient.get<ApiResponse<OrderDetail>>(`/admin/orders/${id}`);
       return response.data.data;
     },
     enabled: !!id,
@@ -74,7 +74,7 @@ export const useUpdateOrderStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status, reason }: { id: string; status: OrderStatus; reason?: string }) => {
-      const response = await apiClient.patch<ApiResponse<OrderDetail>>(`/orders/${id}/status`, { status, reason });
+      const response = await apiClient.patch<ApiResponse<OrderDetail>>(`/admin/orders/${id}/status`, { status, reason });
       return response.data.data;
     },
     onSuccess: (_, variables) => {
