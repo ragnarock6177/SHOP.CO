@@ -51,9 +51,9 @@ export async function authenticate(
     // 2. JWT Verification Fallback
     if (!user) {
       try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
         const dbUser = await prisma.user.findUnique({
-          where: { id: decoded.id },
+          where: { id: decoded.userId },
           include: {
             userRoles: {
               include: { role: true },

@@ -1,8 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import apiClient from "../lib/apiClient";
-import { ApiResponse } from "../types/api";
+import apiClient from "@/lib/apiClient";
 
 export interface AdminUser {
   id: string;
@@ -28,6 +27,33 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Fetch full admin user profile by ID.
+ * Falls back to a minimal object constructed from the basic /auth/me response.
+ */
+async function fetchFullProfile(userId: string): Promise<Partial<AdminUser>> {
+  try {
+    const resp = await apiClient.get<{ success: boolean; data: any }>(`/admin/admin-users/${userId}`);
+    if (resp.data.success && resp.data.data) {
+      const u = resp.data.data;
+      return {
+        id: u.id,
+        email: u.email,
+        firstName: u.firstName ?? null,
+        lastName: u.lastName ?? null,
+        status: u.status,
+        isSuperAdmin: u.roles?.includes("SUPER_ADMIN") ?? false,
+        roles: u.roles ?? [],
+        permissions: u.permissions ?? [],
+        lastLoginAt: u.lastLoginAt ?? null,
+      };
+    }
+  } catch {
+    // Fall through — return empty so caller uses base data
+  }
+  return {};
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
@@ -35,22 +61,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const restoreSession = useCallback(async () => {
     if (typeof window === "undefined") return;
-    const token = localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
+    const token =
+      localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
+
     if (!token) {
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await apiClient.get<ApiResponse<AdminUser>>("/auth/me");
-      if (response.data.success && response.data.data) {
-        const staff = response.data.data;
-        setUser(staff);
-        setPermissions(staff.permissions || []);
-      } else {
-        localStorage.removeItem("airave_admin_token");
-        localStorage.removeItem("token");
+      // 1. Get basic auth context (verifies the token is still valid)
+      const meResp = await apiClient.get<{ success: boolean; message: string; data?: { user?: any } }>(
+        "/auth/me"
+      );
+
+      // The /auth/me response shape is: { success, message, data: { user: { id, email, status, roles } } }
+      const baseUser =
+        meResp.data?.data?.user ?? meResp.data?.data ?? null;
+
+      if (!meResp.data.success || !baseUser?.id) {
+        throw new Error("Invalid session response");
       }
+
+      // 2. Fetch full admin profile to get firstName, lastName, isSuperAdmin, permissions
+      const extraProfile = await fetchFullProfile(baseUser.id);
+
+      const fullUser: AdminUser = {
+        id: baseUser.id,
+        email: baseUser.email,
+        firstName: extraProfile.firstName ?? null,
+        lastName: extraProfile.lastName ?? null,
+        status: baseUser.status ?? "ACTIVE",
+        isSuperAdmin:
+          extraProfile.isSuperAdmin ??
+          baseUser.roles?.includes("SUPER_ADMIN") ??
+          false,
+        roles: extraProfile.roles ?? baseUser.roles ?? [],
+        permissions: extraProfile.permissions ?? [],
+        lastLoginAt: extraProfile.lastLoginAt ?? null,
+      };
+
+      setUser(fullUser);
+      setPermissions(fullUser.permissions);
     } catch (error) {
       console.warn("Failed to restore admin auth session:", error);
       localStorage.removeItem("airave_admin_token");
@@ -65,10 +117,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [restoreSession]);
 
   const login = useCallback((token: string, staffUser: AdminUser) => {
+    
     localStorage.setItem("airave_admin_token", token);
     localStorage.setItem("token", token);
-    setUser(staffUser);
-    setPermissions(staffUser.permissions || []);
+    // Enrich isSuperAdmin from roles array if not explicitly set
+    const enriched: AdminUser = {
+      ...staffUser,
+      isSuperAdmin:
+        staffUser.isSuperAdmin ??
+        staffUser.roles?.includes("SUPER_ADMIN") ??
+        false,
+      permissions: staffUser.permissions ?? [],
+    };
+    setUser(enriched);
+    setPermissions(enriched.permissions);
     setIsLoading(false);
   }, []);
 
@@ -76,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await apiClient.post("/auth/logout");
     } catch {
-      // Ignore network errors during logout call
+      // Ignore errors during logout API call
     } finally {
       localStorage.removeItem("airave_admin_token");
       localStorage.removeItem("token");

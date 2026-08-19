@@ -31,10 +31,12 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginInput) => {
     setErrorMessage(null);
     try {
-      const response = await apiClient.post<ApiResponse<{ token: string; user: any }>>("/auth/login", data);
+      const response = await apiClient.post<ApiResponse<any>>("/auth/login", data);
       if (response.data.success && response.data.data) {
-        const { token, user } = response.data.data;
-        login(token, user);
+        const { accessToken, user } = response.data.data;
+
+        login(accessToken, user);
+
         router.replace(redirectUrl);
       } else {
         setErrorMessage(response.data.message || "Invalid email or password");

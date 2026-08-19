@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/auth.service.js";
 import { sendResponse } from "../utils/response.util.js";
+import prisma from "../lib/prisma.js";
 
 export class AuthController {
   /**
@@ -68,13 +69,71 @@ export class AuthController {
     next: NextFunction,
   ): Promise<void> {
     try {
+      if (!req.user) {
+        sendResponse(res, 401, "Not authenticated");
+        return;
+      }
+
+      // Fetch full user profile from DB with roles and permissions
+      const dbUser = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          status: true,
+          lastLoginAt: true,
+          userRoles: {
+            select: {
+              role: {
+                select: {
+                  name: true,
+                  rolePermissions: {
+                    select: {
+                      permission: { select: { name: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!dbUser) {
+        sendResponse(res, 404, "User not found");
+        return;
+      }
+
+      const roles = dbUser.userRoles.map((ur) => ur.role.name);
+      const isSuperAdmin = roles.includes("SUPER_ADMIN");
+      const permissions = isSuperAdmin
+        ? ["*"] // Super admins get wildcard
+        : [
+            ...new Set(
+              dbUser.userRoles.flatMap((ur) =>
+                ur.role.rolePermissions.map((rp) => rp.permission.name)
+              )
+            ),
+          ];
+
       sendResponse(res, 200, "User profile retrieved successfully", {
-        user: req.user,
+        id: dbUser.id,
+        email: dbUser.email,
+        firstName: dbUser.firstName,
+        lastName: dbUser.lastName,
+        status: dbUser.status,
+        isSuperAdmin,
+        roles,
+        permissions,
+        lastLoginAt: dbUser.lastLoginAt,
       });
     } catch (error) {
       next(error);
     }
   }
+
 
   /**
    * POST /api/v1/auth/logout
