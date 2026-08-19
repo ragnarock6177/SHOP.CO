@@ -26,7 +26,7 @@ export default function CartPage() {
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
     if (promoCode.trim().toUpperCase() === 'SUMMER2026' || promoCode.trim().toUpperCase() === 'LUMINA30') {
-      setPromoDiscount(0.15); // 15% discount
+      setPromoDiscount(0.15);
       setPromoSuccess('Promo code applied! 15% discount added.');
       setPromoError('');
     } else {
@@ -41,59 +41,60 @@ export default function CartPage() {
   const grandTotal = Math.round((cartSubtotal - discountAmount + shippingCost + estimatedTax) * 100) / 100;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 py-6 pb-16">
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 py-4 sm:py-6 pb-16 font-be-vietnam-pro gpu-layer">
       
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-6">
+      <div className="flex items-center justify-between border-b border-gray-200/80 pb-4 sm:pb-6">
         <div>
-          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black">
+          <h1 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black text-black uppercase tracking-tight">
             YOUR CART
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 font-medium mt-0.5">
             Review your selected fashion items and proceed to checkout.
           </p>
         </div>
 
         <Link
           href="/product"
-          className="text-xs text-black hover:text-gray-600 flex items-center gap-1 font-semibold"
+          className="text-xs text-black hover:text-gray-600 flex items-center gap-1 font-bold shrink-0"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Continue Shopping</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Continue Shopping</span>
+          <span className="sm:hidden">Shop</span>
         </Link>
       </div>
 
       {cart.length === 0 ? (
-        <div className="bg-[#F0F0F0] rounded-3xl p-16 text-center space-y-4 max-w-md mx-auto my-12">
-          <div className="w-16 h-16 rounded-full bg-white text-gray-400 flex items-center justify-center mx-auto shadow-sm">
-            <ShoppingBag className="w-8 h-8" />
+        <div className="bg-[#F4F4F4] rounded-3xl p-8 sm:p-14 text-center space-y-4 max-w-md mx-auto my-8 sm:my-12">
+          <div className="w-14 h-14 rounded-full bg-white text-gray-400 flex items-center justify-center mx-auto shadow-2xs">
+            <ShoppingBag className="w-7 h-7" />
           </div>
-          <h2 className="font-be-vietnam-pro-black text-xl font-bold text-black">Your Cart is Empty</h2>
-          <p className="text-xs text-gray-500 leading-relaxed">
+          <h2 className="font-be-vietnam-pro-black text-xl font-bold text-black uppercase">Your Cart is Empty</h2>
+          <p className="text-xs text-gray-500 leading-relaxed font-medium">
             Explore our curated collections and discover clothes matching your style.
           </p>
           <Link
             href="/product"
-            className="inline-block px-8 py-3.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-full transition-all shadow-md"
+            className="inline-block px-7 py-3 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition-all shadow-md uppercase"
           >
             Explore Catalog
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
-          {/* Left 7 Columns: Cart Items Box */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="bg-white border border-gray-200 rounded-3xl p-4 sm:p-6 space-y-4 shadow-sm">
-              <div className="divide-y divide-gray-200">
+          {/* Left Columns: Cart Items */}
+          <div className="lg:col-span-7 space-y-3 sm:space-y-4">
+            <div className="bg-white border border-gray-200/80 rounded-3xl p-3.5 sm:p-6 space-y-3 shadow-2xs">
+              <div className="divide-y divide-gray-100">
                 {cart.map((item, idx) => (
                   <div
                     key={`${item.product.id}-${idx}`}
-                    className="py-4 flex gap-4 items-center justify-between"
+                    className="py-3.5 sm:py-4 flex gap-3 sm:gap-4 items-center justify-between"
                   >
                     {/* Image & Details */}
-                    <div className="flex gap-4 items-center">
-                      <div className="w-24 h-24 bg-[#F0EEED] rounded-2xl overflow-hidden relative shrink-0">
+                    <div className="flex gap-3 sm:gap-4 items-center min-w-0">
+                      <div className="w-18 h-24 sm:w-22 sm:h-28 aspect-[3/4] bg-[#F0EEED] rounded-xl overflow-hidden relative shrink-0 border border-gray-100">
                         <Image
                           src={item.product.image}
                           alt={item.product.title}
@@ -101,47 +102,47 @@ export default function CartPage() {
                           className="object-cover"
                         />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 min-w-0">
                         <Link href={`/product/${item.product.id}`}>
-                          <h4 className="font-bold text-sm text-black hover:text-gray-600 transition-colors line-clamp-1">
+                          <h4 className="font-bold text-xs sm:text-sm text-black hover:text-gray-600 transition-colors truncate">
                             {item.product.title}
                           </h4>
                         </Link>
-                        <div className="text-xs text-gray-500 space-x-2">
-                          {item.selectedColor && <span>Size: {item.selectedSize || 'M'}</span>}
-                          {item.selectedColor && <span>Color: {item.selectedColor}</span>}
+                        <div className="text-[11px] text-gray-500 font-medium space-x-2">
+                          <span>Size: {item.selectedSize || 'M'}</span>
+                          {item.selectedColor && <span>• Color: {item.selectedColor}</span>}
                         </div>
-                        <div className="font-extrabold text-base text-black pt-1">
+                        <div className="font-black text-sm sm:text-base text-black pt-0.5">
                           ${item.product.price}
                         </div>
                       </div>
                     </div>
 
-                    {/* Quantity & Trash */}
-                    <div className="flex flex-col items-end gap-4">
+                    {/* Quantity & Delete Action */}
+                    <div className="flex flex-col items-end gap-3 shrink-0">
                       <button
                         onClick={() => removeFromCart(item.product.id, item.selectedColor, item.selectedSize)}
-                        className="text-red-500 hover:text-red-700 transition-colors p-1"
+                        className="text-gray-400 hover:text-red-600 transition-colors p-1 cursor-pointer"
                         title="Remove item"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
 
-                      <div className="flex items-center bg-[#F0F0F0] rounded-full px-3 py-1">
+                      <div className="flex items-center bg-[#F4F4F4] rounded-full px-2.5 py-1">
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedColor, item.selectedSize)}
-                          className="p-1 text-black hover:text-gray-600"
+                          className="p-1 text-black hover:text-gray-600 cursor-pointer"
                         >
-                          <Minus className="w-3.5 h-3.5" />
+                          <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-8 text-center font-bold text-xs text-black">
+                        <span className="w-6 text-center font-bold text-xs text-black">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedColor, item.selectedSize)}
-                          className="p-1 text-black hover:text-gray-600"
+                          className="p-1 text-black hover:text-gray-600 cursor-pointer"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -151,32 +152,32 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div className="flex justify-between items-center px-2">
+            <div className="flex justify-between items-center px-1">
               <button
                 onClick={clearCart}
-                className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                className="text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer"
               >
                 Clear Cart
               </button>
             </div>
           </div>
 
-          {/* Right 5 Columns: Order Summary Card */}
+          {/* Right Columns: Order Summary Card */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-              <h3 className="font-be-vietnam-pro-black text-xl font-black text-black border-b border-gray-200 pb-4">
+            <div className="bg-white border border-gray-200/80 rounded-3xl p-5 sm:p-7 space-y-5 shadow-2xs">
+              <h3 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black text-black border-b border-gray-100 pb-3.5 uppercase tracking-tight">
                 Order Summary
               </h3>
 
               {/* Breakdown */}
-              <div className="space-y-3 text-sm text-gray-500 border-b border-gray-200 pb-4">
+              <div className="space-y-2.5 text-xs sm:text-sm text-gray-500 font-medium border-b border-gray-100 pb-4">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="font-bold text-black">${cartSubtotal.toFixed(2)}</span>
                 </div>
 
                 {promoDiscount > 0 && (
-                  <div className="flex justify-between text-red-500 font-bold">
+                  <div className="flex justify-between text-red-600 font-bold">
                     <span>Discount (15%)</span>
                     <span>-${discountAmount.toFixed(2)}</span>
                   </div>
@@ -185,7 +186,7 @@ export default function CartPage() {
                 <div className="flex justify-between">
                   <span>Delivery Fee</span>
                   <span className="font-bold text-black">
-                    {shippingCost === 0 ? <span className="text-green-600">FREE</span> : `$${shippingCost.toFixed(2)}`}
+                    {shippingCost === 0 ? <span className="text-green-600 font-extrabold">FREE</span> : `$${shippingCost.toFixed(2)}`}
                   </span>
                 </div>
 
@@ -194,7 +195,7 @@ export default function CartPage() {
                   <span className="font-bold text-black">${estimatedTax.toFixed(2)}</span>
                 </div>
 
-                <div className="flex justify-between text-lg font-black text-black pt-3 border-t border-gray-200">
+                <div className="flex justify-between text-base sm:text-lg font-black text-black pt-2.5 border-t border-gray-100">
                   <span>Total</span>
                   <span>${grandTotal.toFixed(2)}</span>
                 </div>
@@ -204,44 +205,44 @@ export default function CartPage() {
               <form onSubmit={handleApplyPromo} className="space-y-2">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <Tag className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <Tag className="w-3.5 h-3.5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       placeholder="Add promo code"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
-                      className="w-full bg-[#F0F0F0] rounded-full pl-10 pr-4 py-3 text-xs text-black placeholder-gray-400 focus:outline-none uppercase font-semibold"
+                      className="w-full bg-[#F4F4F4] rounded-full pl-9 pr-3 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none uppercase font-bold"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-full text-xs font-bold"
+                    className="px-5 py-2.5 bg-black hover:bg-neutral-800 text-white rounded-full text-xs font-bold cursor-pointer transition-colors"
                   >
                     Apply
                   </button>
                 </div>
                 {promoSuccess && (
-                  <p className="text-xs text-green-600 flex items-center gap-1 font-medium pt-1">
-                    <CheckCircle2 className="w-4 h-4" />
+                  <p className="text-[11px] text-green-600 flex items-center gap-1 font-semibold pt-0.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     {promoSuccess}
                   </p>
                 )}
                 {promoError && (
-                  <p className="text-xs text-red-500 font-medium pt-1">{promoError}</p>
+                  <p className="text-[11px] text-red-500 font-semibold pt-0.5">{promoError}</p>
                 )}
               </form>
 
               {/* Checkout Action Link */}
               <Link
                 href="/checkout"
-                className="w-full py-4 rounded-full bg-black hover:bg-gray-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-md"
+                className="w-full py-3.5 rounded-full bg-black hover:bg-neutral-800 text-white font-extrabold text-xs sm:text-sm uppercase flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
               >
-                Go to Checkout
+                <span>Go to Checkout</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
 
-              <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400 pt-1">
-                <ShieldCheck className="w-4 h-4 text-green-600" />
+              <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 font-medium pt-0.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
                 <span>256-bit SSL Encrypted Checkout</span>
               </div>
             </div>

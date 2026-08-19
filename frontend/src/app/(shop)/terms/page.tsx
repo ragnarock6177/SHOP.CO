@@ -4,17 +4,17 @@ import React from "react";
 
 export default function TermsPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 text-black">
-      <div className="border-b border-gray-200 pb-6 space-y-2">
-        <h1 className="font-be-vietnam-pro-black text-3xl sm:text-4xl font-black uppercase text-black">
+    <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-12 space-y-6 sm:space-y-8 text-black font-be-vietnam-pro gpu-layer">
+      <div className="border-b border-gray-200/80 pb-4 sm:pb-6 space-y-1">
+        <h1 className="font-be-vietnam-pro-black text-2xl sm:text-4xl font-black uppercase text-black tracking-tight">
           TERMS & PRIVACY POLICY
         </h1>
-        <p className="text-xs text-gray-500">Last updated: August 12, 2026</p>
+        <p className="text-xs text-gray-500 font-medium">Last updated: August 12, 2026</p>
       </div>
 
-      <div className="space-y-6 text-xs sm:text-sm text-gray-700 leading-relaxed">
-        <section className="space-y-2">
-          <h2 className="font-bold text-base text-black uppercase">
+      <div className="space-y-5 text-xs sm:text-sm text-gray-700 leading-relaxed font-medium">
+        <section className="space-y-1.5">
+          <h2 className="font-bold text-sm sm:text-base text-black uppercase">
             1. Overview & Agreement
           </h2>
           <p>
@@ -24,8 +24,8 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
-          <h2 className="font-bold text-base text-black uppercase">
+        <section className="space-y-1.5">
+          <h2 className="font-bold text-sm sm:text-base text-black uppercase">
             2. Purchasing & Pricing
           </h2>
           <p>
@@ -37,9 +37,9 @@ export default function TermsPage() {
 
         <section
           id="privacy"
-          className="space-y-2 pt-4 border-t border-gray-200"
+          className="space-y-1.5 pt-3 border-t border-gray-100"
         >
-          <h2 className="font-bold text-base text-black uppercase">
+          <h2 className="font-bold text-sm sm:text-base text-black uppercase">
             3. Privacy Policy & Data Protection
           </h2>
           <p>
@@ -49,8 +49,8 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section className="space-y-2">
-          <h2 className="font-bold text-base text-black uppercase">
+        <section className="space-y-1.5">
+          <h2 className="font-bold text-sm sm:text-base text-black uppercase">
             4. Return & Refund Conditions
           </h2>
           <p>
