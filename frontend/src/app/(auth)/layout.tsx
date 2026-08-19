@@ -2,24 +2,35 @@ import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-[calc(100vh-100px)] py-10 sm:py-14">
-      <div className="absolute top-4 left-8 sm:top-6 sm:left-12 lg:left-50 z-20">
+    <div className="min-h-[100dvh] bg-[#FBFBFB] flex flex-col justify-between items-center py-4 sm:py-6 px-4 font-be-vietnam-pro selection:bg-black selection:text-white">
+      {/* Top Header Bar: Logo & Back to Home */}
+      <header className="w-full max-w-md flex items-center justify-between py-2">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-xs font-bold text-gray-700 hover:text-black transition-all group bg-white border border-gray-200 hover:border-gray-300 rounded-full px-4 py-2.5 shadow-2xs hover:shadow-xs"
+          className="font-be-vietnam-pro-black text-xl font-black text-black tracking-tight uppercase"
         >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+          AIRAVÉ
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-200/80 text-[11px] font-bold text-gray-700 hover:text-black hover:bg-gray-100 transition-all shadow-2xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
         </Link>
-      </div>
+      </header>
 
-      {children}
+      {/* Main Centered Auth Form */}
+      <main className="w-full max-w-md my-auto py-4 flex flex-col justify-center">
+        {children}
+      </main>
+
+      {/* Sleek Minimal Footer */}
+      <footer className="w-full max-w-md text-center py-2 text-[11px] text-gray-400 font-medium">
+        © {new Date().getFullYear()} AIRAVÉ Atelier. All rights reserved.
+      </footer>
     </div>
   );
 }

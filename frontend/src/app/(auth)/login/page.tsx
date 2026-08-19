@@ -180,13 +180,11 @@ export default function LoginPage() {
 
       if (checkResult.isRegistered) {
         if (inputMode === "mobile") {
-          // Instantly show the OTP screen for maximum UI responsiveness
           setStep("otp");
           setResendTimer(30);
           setOtpValues(Array(6).fill(""));
           setConfirmationResult(null);
 
-          // Dispatch SMS OTP sending in background
           try {
             const verifier = initRecaptchaVerifier("recaptcha-container-login");
             sendFirebasePhoneOtp(data.identifier, verifier)
@@ -338,8 +336,6 @@ export default function LoginPage() {
     }
   };
 
-
-
   // Password Submission Handlers
   const onPasswordSubmit = async (data: PasswordFormData) => {
     setIsLoading(true);
@@ -374,17 +370,17 @@ export default function LoginPage() {
   return (
     <>
       <div id="recaptcha-container-login" />
-      <div className="max-w-md mx-auto px-4 pt-12 sm:pt-6 space-y-6 text-black">
+      <div className="space-y-4">
         {/* Page Header */}
-        <div className="text-center space-y-2">
-          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black uppercase tracking-tight">
+        <div className="text-center space-y-1">
+          <h1 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black uppercase tracking-tight">
             {step === "otp"
               ? "VERIFY OTP"
               : step === "password"
                 ? "ENTER PASSWORD"
                 : "WELCOME BACK"}
           </h1>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 font-medium max-w-xs mx-auto">
             {step === "otp"
               ? "We sent a 6-digit OTP code to your mobile number."
               : step === "password"
@@ -393,15 +389,16 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+        {/* Card Container */}
+        <div className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xs">
           {/* STEP: SUCCESS */}
           {step === "success" ? (
-            <div className="text-center py-6 space-y-5">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-10 h-10" />
+            <div className="text-center py-4 space-y-4">
+              <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <h2 className="font-be-vietnam-pro-black text-2xl font-black text-black uppercase">
+                <h2 className="font-be-vietnam-pro-black text-lg font-black text-black uppercase">
                   LOGGED IN SUCCESSFULLY!
                 </h2>
                 <p className="text-xs text-gray-500 max-w-xs mx-auto">
@@ -414,7 +411,7 @@ export default function LoginPage() {
               </div>
               <Link
                 href="/profile"
-                className="inline-flex w-full py-4 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full items-center justify-center gap-2 shadow-md transition-all"
+                className="inline-flex w-full py-3.5 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
               >
                 <span>Go to My Profile</span>
                 <ArrowRight className="w-4 h-4" />
@@ -422,12 +419,12 @@ export default function LoginPage() {
             </div>
           ) : step === "otp" ? (
             /* STEP: OTP VERIFICATION */
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Top Edit Number Header */}
-              <div className="bg-[#F0F0F0] rounded-2xl p-3.5 flex items-center justify-between text-xs">
+              <div className="bg-[#F4F4F4] rounded-2xl p-3 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 truncate">
-                  <Phone className="w-4 h-4 text-gray-600 shrink-0" />
-                  <span className="text-gray-600">Code sent to:</span>
+                  <Phone className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+                  <span className="text-gray-500">Sent to:</span>
                   <span className="font-bold text-black truncate">
                     {savedIdentifier}
                   </span>
@@ -442,12 +439,12 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleVerifyOtp} className="space-y-6">
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold uppercase text-gray-700 block mb-3 text-center">
+                  <label className="text-[10px] font-extrabold uppercase text-gray-700 block mb-2 text-center">
                     Enter 6-Digit OTP Code
                   </label>
-                  <div className="flex items-center justify-center gap-2 sm:gap-2.5">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                     {otpValues.map((digit, idx) => (
                       <input
                         key={idx}
@@ -461,7 +458,7 @@ export default function LoginPage() {
                         onChange={(e) => handleOtpChange(idx, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                         onPaste={idx === 0 ? handleOtpPaste : undefined}
-                        className="w-10 h-12 sm:w-11 sm:h-13 text-center text-base sm:text-lg font-bold text-black bg-[#F0F0F0] border border-transparent rounded-2xl focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none transition-all"
+                        className="w-9 h-11 sm:w-10 sm:h-12 text-center text-base sm:text-lg font-bold text-black bg-[#F4F4F4] border border-transparent rounded-xl focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none transition-all"
                       />
                     ))}
                   </div>
@@ -491,7 +488,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-4 font-bold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black border border-black text-white hover:text-black relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0 cursor-pointer"
+                  className="w-full py-3.5 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
                 >
                   <span>{isLoading ? "Verifying..." : "Verify & Continue"}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -500,12 +497,12 @@ export default function LoginPage() {
             </div>
           ) : step === "password" ? (
             /* STEP: PASSWORD FOR EMAIL */
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Top Edit Email Header */}
-              <div className="bg-[#F0F0F0] rounded-2xl p-3.5 flex items-center justify-between text-xs">
+              <div className="bg-[#F4F4F4] rounded-2xl p-3 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 truncate">
-                  <Mail className="w-4 h-4 text-gray-600 shrink-0" />
-                  <span className="text-gray-600">Email:</span>
+                  <Mail className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+                  <span className="text-gray-500">Email:</span>
                   <span className="font-bold text-black truncate">
                     {savedIdentifier}
                   </span>
@@ -523,48 +520,28 @@ export default function LoginPage() {
               {/* Password Form */}
               <form
                 onSubmit={handleSubmitPassword(onPasswordSubmit, onPasswordInvalid)}
-                className="space-y-4"
+                className="space-y-3.5"
                 noValidate
               >
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold uppercase text-gray-700 block">
+                    <label className="text-[10px] font-extrabold uppercase text-gray-700 block">
                       Password
                     </label>
                     {passwordVal.length > 0 && (
-                      <span
-                        className={`text-[10px] font-bold select-none transition-colors ${
-                          passwordVal.length === 16
-                            ? "text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 animate-pulse"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {passwordVal.length === 16
-                          ? "16/16 (Max limit reached!)"
-                          : `${passwordVal.length}/16`}
+                      <span className="text-[10px] font-bold text-gray-400">
+                        {passwordVal.length}/16
                       </span>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock
-                      className={`w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 ${
-                        errorsPassword.password
-                          ? "text-red-500"
-                          : "text-gray-400"
-                      }`}
-                    />
+                    <Lock className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type={showPassword ? "text" : "password"}
                       maxLength={16}
-                      placeholder="enter your password"
+                      placeholder="Enter your password"
                       {...registerPassword("password")}
-                      className={`w-full bg-[#F0F0F0] rounded-full pl-11 pr-11 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all ${
-                        errorsPassword.password
-                          ? "border border-red-500 bg-red-50/40 ring-2 ring-red-500/20 shadow-xs shadow-red-500/10"
-                          : passwordVal.length === 16
-                            ? "border border-amber-400 ring-2 ring-amber-400/20 bg-amber-50/30"
-                            : "focus:ring-2 focus:ring-black/10 focus:bg-white"
-                      }`}
+                      className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-10 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
                     />
                     <button
                       type="button"
@@ -582,7 +559,7 @@ export default function LoginPage() {
 
                 {/* Remember Me & Forgot Password */}
                 <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={rememberMe}
@@ -606,7 +583,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-4 mt-6 font-bold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black border border-black text-white hover:text-black relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0 cursor-pointer"
+                  className="w-full py-3.5 mt-3 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
                 >
                   <span>{isLoading ? "Signing in..." : "Log In"}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -622,7 +599,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  className="w-full py-3.5 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
+                  className="w-full py-3 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -646,10 +623,9 @@ export default function LoginPage() {
                 </button>
               </div>
 
-
-              <div className="relative flex items-center justify-center my-3">
+              <div className="relative flex items-center justify-center my-2">
                 <div className="border-t border-gray-200 w-full" />
-                <span className="bg-white px-3 text-[11px] font-bold uppercase text-gray-400 absolute">
+                <span className="bg-white px-2.5 text-[10px] font-bold uppercase text-gray-400 absolute">
                   OR
                 </span>
               </div>
@@ -657,12 +633,12 @@ export default function LoginPage() {
               {/* Step 1 Input Form */}
               <form
                 onSubmit={handleSubmitStep1(onStep1Submit, onStep1Invalid)}
-                className="space-y-4"
+                className="space-y-3.5"
                 noValidate
               >
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold uppercase text-gray-700">
+                    <label className="text-[10px] font-extrabold uppercase tracking-wider text-gray-700">
                       {inputMode === "mobile"
                         ? "Mobile Number"
                         : "Email Address"}
@@ -671,7 +647,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={handleToggleInputMode}
                       disabled={isLoading}
-                      className="text-[11px] font-semibold text-black hover:text-gray-700 flex items-center gap-1 bg-[#F0F0F0] hover:bg-gray-200 px-2.5 py-1 rounded-full transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
+                      className="text-[9px] sm:text-[10px] font-extrabold text-black hover:text-gray-700 flex items-center gap-1 bg-[#F4F4F4] hover:bg-gray-200 px-2 py-0.5 rounded-full transition-all cursor-pointer shrink-0"
                     >
                       {inputMode === "mobile" ? (
                         <>
@@ -706,23 +682,13 @@ export default function LoginPage() {
                       />
                     ) : (
                       <>
-                        <Mail
-                          className={`w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 ${
-                            errorsStep1.identifier
-                              ? "text-red-500"
-                              : "text-gray-400"
-                          }`}
-                        />
+                        <Mail className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                           type="email"
                           disabled={isLoading}
-                          placeholder="enter your email address"
+                          placeholder="Enter your email address"
                           {...registerStep1("identifier")}
-                          className={`w-full bg-[#F0F0F0] rounded-full pl-11 pr-4 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-                            errorsStep1.identifier
-                              ? "border border-red-500 bg-red-50/40 ring-2 ring-red-500/20 shadow-xs shadow-red-500/10"
-                              : "focus:ring-2 focus:ring-black/10 focus:bg-white"
-                          }`}
+                          className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-4 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
                         />
                       </>
                     )}
@@ -733,7 +699,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-4 mt-6 font-bold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black border border-black text-white hover:text-black relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0 cursor-pointer"
+                  className="w-full py-3.5 mt-3 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
                 >
                   <span>{isLoading ? "Checking..." : "Continue"}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -744,7 +710,7 @@ export default function LoginPage() {
 
           {/* Switch to SignUp */}
           {step === "input" && (
-            <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100 mt-6">
+            <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
               Don't have an account yet?{" "}
               <Link href="/signup" className="font-bold text-black underline">
                 Sign Up

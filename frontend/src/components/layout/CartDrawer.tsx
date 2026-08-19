@@ -23,7 +23,7 @@ export const CartDrawer: React.FC = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 overflow-hidden transition-all duration-300 ${
+      className={`fixed inset-0 h-[100dvh] z-50 overflow-hidden transition-all duration-300 ${
         isCartOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}
     >
@@ -35,10 +35,10 @@ export const CartDrawer: React.FC = () => {
         onClick={() => setIsCartOpen(false)}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 h-[100dvh]">
         {/* Right drawer panel with smooth spring slide animation */}
         <div
-          className={`w-screen max-w-md bg-white text-black flex flex-col shadow-2xl transition-transform duration-300 ease-in-out transform ${
+          className={`w-screen max-w-md h-[100dvh] bg-white text-black flex flex-col shadow-2xl transition-transform duration-300 ease-in-out transform ${
             isCartOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >

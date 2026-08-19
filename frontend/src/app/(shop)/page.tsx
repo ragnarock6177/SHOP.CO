@@ -3,8 +3,11 @@ import dynamic from 'next/dynamic';
 import { HeroBanner } from '@/components/home/HeroBanner';
 import { BrandBanner } from '@/components/home/BrandBanner';
 import { NewArrivals } from '@/components/home/NewArrivals';
-import { TopSelling } from '@/components/home/TopSelling';
+import { CuratedCollections } from '@/components/home/CuratedCollections';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
+import { EditorialShowcase } from '@/components/home/EditorialShowcase';
+import { TopSelling } from '@/components/home/TopSelling';
+import { PersonalizedRecommendations } from '@/components/home/PersonalizedRecommendations';
 import { NewsletterBanner } from '@/components/home/NewsletterBanner';
 
 // Dynamically import CustomerReviews (GSAP marquee animation) to split heavy JS bundle
@@ -21,25 +24,35 @@ const CustomerReviews = dynamic(
 
 export default function HomePage() {
   return (
-    <div className="space-y-16 pb-12">
-      {/* 1. Hero Banner */}
-      <HeroBanner />
+    <div className="space-y-12 pb-12">
+      {/* 1. Hero Poster Banner & Narrow Brand Marquee (Flush together with 0 gap) */}
+      <div>
+        <HeroBanner />
+        <BrandBanner />
+      </div>
 
-      <BrandBanner />
-
-      {/* 3. NEW ARRIVALS Section */}
+      {/* 2. New Arrivals with Category Filter Tabs */}
       <NewArrivals />
 
-      {/* 4. TOP SELLING Section */}
-      <TopSelling />
+      {/* 3. Curated Product Collections Lineup */}
+      <CuratedCollections />
 
-      {/* 5. BROWSE BY DRESS STYLE Grid */}
+      {/* 4. Browse By Dress Style Bento Grid */}
       <CategoryGrid />
 
-      {/* 6. OUR HAPPY CUSTOMERS Testimonials */}
+      {/* 5. High-Fashion Editorial Campaign Showcase */}
+      <EditorialShowcase />
+
+      {/* 6. Top Selling Bestsellers */}
+      <TopSelling />
+
+      {/* 7. Tailored Product Recommendations Carousel */}
+      <PersonalizedRecommendations />
+
+      {/* 8. Customer Reviews & Testimonials Marquee */}
       <CustomerReviews />
 
-      {/* 7. Newsletter Subscription Banner */}
+      {/* 9. VIP Club Newsletter Banner */}
       <NewsletterBanner />
     </div>
   );

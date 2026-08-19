@@ -1,21 +1,28 @@
 "use client";
 
+import React from "react";
 import { motion } from "framer-motion";
 
-const USPs = [
-  "100% PREMIUM COTTON",
-  "ETHICALLY CRAFTED",
-  "FREE WORLDWIDE SHIPPING",
-  "LUXURY FIT & FINISH",
-  "EASY 30-DAY RETURNS",
-  "LIMITED EDITION DROPS",
+const BRANDS_AND_USPS = [
+  { name: "VERSACE", isBrand: true },
+  { name: "PREMIUM HEAVYWEIGHT COTTON", isBrand: false },
+  { name: "GUCCI", isBrand: true },
+  { name: "FREE WORLDWIDE EXPRESS SHIPPING", isBrand: false },
+  { name: "PRADA", isBrand: true },
+  { name: "ETHICALLY CRAFTED ATELIER", isBrand: false },
+  { name: "NIKE", isBrand: true },
+  { name: "30-DAY COMPLIMENTARY RETURNS", isBrand: false },
+  { name: "ZARA", isBrand: true },
+  { name: "LIMITED EDITION DROPS", isBrand: false },
+  { name: "CALVIN KLEIN", isBrand: true },
+  { name: "LUXURY FIT & SILHOUETTE", isBrand: false },
 ];
 
 export function BrandBanner() {
   return (
-    <div className="relative z-20 -mt-25 sm:-mt-30 lg:-mt-32 w-full bg-black py-8  overflow-hidden flex items-center border-y border-white/10 select-none">
+    <div className="relative z-20 w-full bg-black py-3.5 overflow-hidden flex items-center border-y border-white/10 select-none">
       <motion.div
-        className="flex whitespace-nowrap gap-12 sm:gap-16 items-center"
+        className="flex whitespace-nowrap gap-10 sm:gap-14 items-center"
         animate={{ x: ["0%", "-50%"] }}
         transition={{
           repeat: Infinity,
@@ -23,15 +30,23 @@ export function BrandBanner() {
           duration: 45,
         }}
       >
-        {[...USPs, ...USPs].map((item, index) => (
-          <div key={index} className="flex items-center gap-12 sm:gap-16">
-            <span className="font-be-vietnam-pro-black text-sm sm:text-base tracking-widest text-white uppercase font-bold">
-              {item}
-            </span>
-            <span className="text-[#CD0000] text-xs">✦</span>
+        {[...BRANDS_AND_USPS, ...BRANDS_AND_USPS].map((item, index) => (
+          <div key={index} className="flex items-center gap-10 sm:gap-14">
+            {item.isBrand ? (
+              <span className="font-be-vietnam-pro-black text-sm sm:text-base tracking-widest text-white uppercase font-black opacity-95 hover:opacity-100 transition-opacity">
+                {item.name}
+              </span>
+            ) : (
+              <span className="font-be-vietnam-pro text-[11px] sm:text-xs tracking-widest text-gray-400 uppercase font-bold">
+                {item.name}
+              </span>
+            )}
+            <span className="text-white/20 text-xs">•</span>
           </div>
         ))}
       </motion.div>
     </div>
   );
 }
+
+export default BrandBanner;

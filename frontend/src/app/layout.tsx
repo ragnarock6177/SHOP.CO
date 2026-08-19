@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Geist } from "next/font/google";
+import { Be_Vietnam_Pro } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const beVietnamPro = Be_Vietnam_Pro({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   style: ["normal", "italic"],
@@ -29,12 +28,11 @@ export default function RootLayout({
       lang="en"
       className={cn(
         beVietnamPro.variable,
-        "font-sans",
-        geist.variable,
+        "font-be-vietnam-pro",
       )}
     >
       <body
-        className={`${beVietnamPro.className} font-be-vietnam-pro bg-white text-black min-h-screen flex flex-col antialiased selection:bg-black selection:text-white`}
+        className={`${beVietnamPro.className} font-be-vietnam-pro bg-white text-black min-h-[100dvh] flex flex-col antialiased selection:bg-black selection:text-white`}
       >
         <Toaster position="top-right" richColors />
         <AuthProvider>{children}</AuthProvider>
@@ -42,4 +40,3 @@ export default function RootLayout({
     </html>
   );
 }
-

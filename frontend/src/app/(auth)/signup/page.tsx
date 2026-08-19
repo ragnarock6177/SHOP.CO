@@ -30,7 +30,6 @@ import { FormFieldError } from "@/components/ui/FormFieldError";
 import {
   checkUserApi,
   registerEmailApi,
-  registerFirebaseApi,
 } from "@/lib/authApi";
 import {
   initRecaptchaVerifier,
@@ -171,7 +170,6 @@ function SignUpFormContent() {
     setIsLoading(true);
 
     try {
-      // 1. Check if user already exists in backend by email or mobileNumber
       const checkResult = await checkUserApi({
         email: data.email,
         phone: data.mobileNumber,
@@ -194,12 +192,10 @@ function SignUpFormContent() {
         return;
       }
 
-      // 2. Instantly transition to OTP step for immediate UI feedback
       setStep("otp");
       setResendTimer(30);
       setConfirmationResult(null);
 
-      // 3. Dispatch SMS OTP send via Firebase in background
       try {
         const verifier = initRecaptchaVerifier("recaptcha-container-signup");
         sendFirebasePhoneOtp(data.mobileNumber, verifier)
@@ -285,7 +281,6 @@ function SignUpFormContent() {
     }
   };
 
-  // 3. Verify OTP & Call Register API ONCE
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setOtpError("");
@@ -306,7 +301,6 @@ function SignUpFormContent() {
         );
       }
 
-      // Single registration call to backend after OTP is verified
       const formData = getValues();
       const authData = await registerEmailApi({
         email: formData.email,
@@ -331,85 +325,64 @@ function SignUpFormContent() {
     }
   };
 
-
-
   return (
     <>
       <div id="recaptcha-container-signup" />
-      <div className="max-w-md mx-auto px-4 pt-12 sm:pt-6 space-y-6 text-black">
+      <div className="max-w-md mx-auto px-3.5 py-6 sm:py-10 space-y-5 text-black font-be-vietnam-pro">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black uppercase tracking-tight">
+        <div className="text-center space-y-1.5">
+          <h1 className="font-be-vietnam-pro-black text-xl sm:text-2xl lg:text-3xl font-black text-black uppercase tracking-tight">
             JOIN AIRAVÉ
           </h1>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 font-medium max-w-xs mx-auto">
             Create your account and enjoy 20% off your first fashion order.
           </p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-7 space-y-5 shadow-xs">
           {step === "details" && (
             <>
-              {/* Form Validation Summary Alert */}
               {Object.keys(errors).length > 0 && (
-                <div className="bg-red-50 border border-red-200/80 text-red-700 rounded-2xl p-3.5 text-xs font-medium flex items-center gap-2.5 shadow-2xs animate-fade-in-up">
+                <div className="bg-red-50 border border-red-200/80 text-red-700 rounded-2xl p-3 text-xs font-medium flex items-center gap-2 animate-fade-in-up">
                   <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
-                  <span>
-                    Please correct the highlighted fields below to continue.
-                  </span>
+                  <span>Please correct the highlighted fields below to continue.</span>
                 </div>
               )}
 
               <form
                 onSubmit={handleSubmit(onValidDetailsSubmit)}
-                className="space-y-4"
+                className="space-y-3.5"
                 noValidate
               >
                 {/* First Name & Last Name Grid */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="text-xs font-bold uppercase text-gray-700 block mb-1">
+                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
                       First Name
                     </label>
                     <div className="relative">
-                      <User
-                        className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                          errors.firstName ? "text-red-500" : "text-gray-400"
-                        }`}
-                      />
+                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="enter your first name"
+                        placeholder="First name"
                         {...register("firstName")}
-                        className={`w-full bg-[#F0F0F0] rounded-full pl-10 pr-3 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all ${
-                          errors.firstName
-                            ? "border border-red-500 bg-red-50/40 ring-2 ring-red-500/20 animate-shake shadow-xs shadow-red-500/10"
-                            : "focus:ring-2 focus:ring-black/10 focus:bg-white"
-                        }`}
+                        className="w-full bg-[#F4F4F4] rounded-full pl-9 pr-3 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
                       />
                     </div>
                     <FormFieldError message={errors.firstName?.message} />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold uppercase text-gray-700 block mb-1">
+                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
                       Last Name
                     </label>
                     <div className="relative">
-                      <User
-                        className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 ${
-                          errors.lastName ? "text-red-500" : "text-gray-400"
-                        }`}
-                      />
+                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="enter your last name"
+                        placeholder="Last name"
                         {...register("lastName")}
-                        className={`w-full bg-[#F0F0F0] rounded-full pl-10 pr-3 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all ${
-                          errors.lastName
-                            ? "border border-red-500 bg-red-50/40 ring-2 ring-red-500/20 animate-shake shadow-xs shadow-red-500/10"
-                            : "focus:ring-2 focus:ring-black/10 focus:bg-white"
-                        }`}
+                        className="w-full bg-[#F4F4F4] rounded-full pl-9 pr-3 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
                       />
                     </div>
                     <FormFieldError message={errors.lastName?.message} />
@@ -418,24 +391,16 @@ function SignUpFormContent() {
 
                 {/* Email Address */}
                 <div>
-                  <label className="text-xs font-bold uppercase text-gray-700 block mb-1">
+                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail
-                      className={`w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 ${
-                        errors.email ? "text-red-500" : "text-gray-400"
-                      }`}
-                    />
+                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="email"
-                      placeholder="enter your email address"
+                      placeholder="Enter email address"
                       {...register("email")}
-                      className={`w-full bg-[#F0F0F0] rounded-full pl-11 pr-4 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all ${
-                        errors.email
-                          ? "border border-red-500 bg-red-50/40 ring-2 ring-red-500/20 animate-shake shadow-xs shadow-red-500/10"
-                          : "focus:ring-2 focus:ring-black/10 focus:bg-white"
-                      }`}
+                      className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-3 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
                     />
                   </div>
                   <FormFieldError message={errors.email?.message} />
@@ -443,7 +408,7 @@ function SignUpFormContent() {
 
                 {/* Real Phone Input */}
                 <div>
-                  <label className="text-xs font-bold uppercase text-gray-700 block mb-1">
+                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
                     Mobile Number
                   </label>
                   <Controller
@@ -463,49 +428,31 @@ function SignUpFormContent() {
                   <FormFieldError message={errors.mobileNumber?.message} />
                 </div>
 
-                {/* Password (Max 16 Chars with live limit info) */}
+                {/* Password */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold uppercase text-gray-700">
+                    <label className="text-[11px] font-extrabold uppercase text-gray-700">
                       Password
                     </label>
                     {passwordVal.length > 0 && (
-                      <span
-                        className={`text-[10px] font-mono font-bold select-none transition-colors ${
-                          passwordVal.length === 16
-                            ? "text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 animate-pulse"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {passwordVal.length === 16
-                          ? "16/16 (Max limit reached!)"
-                          : `${passwordVal.length}/16`}
+                      <span className="text-[10px] font-bold text-gray-400">
+                        {passwordVal.length}/16
                       </span>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock
-                      className={`w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 ${
-                        errors.password ? "text-red-500" : "text-gray-400"
-                      }`}
-                    />
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type={showPassword ? "text" : "password"}
                       maxLength={16}
-                      placeholder="enter your password"
+                      placeholder="Create password"
                       {...register("password")}
-                      className={`w-full bg-[#F0F0F0] rounded-full pl-11 pr-11 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all ${
-                        errors.password
-                          ? "border border-red-500 bg-red-50/40 ring-2 ring-red-500/20 animate-shake shadow-xs shadow-red-500/10"
-                          : passwordVal.length === 16
-                            ? "border border-amber-400 ring-2 ring-amber-400/20 bg-amber-50/30"
-                            : "focus:ring-2 focus:ring-black/10 focus:bg-white"
-                      }`}
+                      className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-10 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer"
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -517,52 +464,33 @@ function SignUpFormContent() {
                   <FormFieldError message={errors.password?.message} />
                 </div>
 
+                {/* Confirm Password */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold uppercase text-gray-700">
+                    <label className="text-[11px] font-extrabold uppercase text-gray-700">
                       Confirm Password
                     </label>
                     {confirmPasswordVal.length > 0 && (
-                      <span
-                        className={`text-[10px] font-mono font-bold select-none transition-colors ${
-                          confirmPasswordVal.length === 16
-                            ? "text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 animate-pulse"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {confirmPasswordVal.length === 16
-                          ? "16/16 (Max limit reached!)"
-                          : `${confirmPasswordVal.length}/16`}
+                      <span className="text-[10px] font-bold text-gray-400">
+                        {confirmPasswordVal.length}/16
                       </span>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock
-                      className={`w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 ${
-                        errors.confirmPassword
-                          ? "text-red-500"
-                          : "text-gray-400"
-                      }`}
-                    />
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       maxLength={16}
-                      placeholder="Re-enter your password"
+                      placeholder="Confirm password"
                       {...register("confirmPassword")}
-                      className={`w-full bg-[#F0F0F0] rounded-full pl-11 pr-11 py-3 text-xs text-black placeholder-gray-400 focus:outline-none transition-all ${
-                        errors.confirmPassword
-                          ? "border border-red-500 bg-red-50/40 ring-2 ring-red-500/20 animate-shake shadow-xs shadow-red-500/10"
-                          : confirmPasswordVal.length === 16
-                            ? "border border-amber-400 ring-2 ring-amber-400/20 bg-amber-50/30"
-                            : "focus:ring-2 focus:ring-black/10 focus:bg-white"
-                      }`}
+                      className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-10 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
                     />
                     <button
                       type="button"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer"
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -575,8 +503,8 @@ function SignUpFormContent() {
                 </div>
 
                 {/* Terms Checkbox */}
-                <div className="pt-1">
-                  <label className="flex items-start gap-2 cursor-pointer text-xs text-gray-500">
+                <div className="pt-0.5">
+                  <label className="flex items-start gap-2 cursor-pointer text-[11px] text-gray-500">
                     <input
                       type="checkbox"
                       {...register("agreeTerms")}
@@ -584,17 +512,11 @@ function SignUpFormContent() {
                     />
                     <span>
                       I agree to the{" "}
-                      <Link
-                        href="#"
-                        className="underline text-black font-semibold"
-                      >
+                      <Link href="#" className="underline text-black font-bold">
                         Terms & Conditions
                       </Link>{" "}
                       and{" "}
-                      <Link
-                        href="#"
-                        className="underline text-black font-semibold"
-                      >
+                      <Link href="#" className="underline text-black font-bold">
                         Privacy Policy
                       </Link>
                       .
@@ -607,7 +529,7 @@ function SignUpFormContent() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-4 mt-8 font-bold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black border border-black text-white hover:text-black relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
+                  className="w-full py-3.5 mt-5 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
                 >
                   <span>
                     {isLoading ? "Sending OTP..." : "Get OTP Verification"}
@@ -620,16 +542,16 @@ function SignUpFormContent() {
 
           {/* Step 2: OTP Verification */}
           {step === "otp" && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <div className="w-12 h-12 bg-black/5 text-black rounded-full flex items-center justify-center mx-auto mb-2">
-                  <KeyRound className="w-6 h-6" />
+            <div className="space-y-5">
+              <div className="text-center space-y-1.5">
+                <div className="w-12 h-12 bg-black/5 text-black rounded-full flex items-center justify-center mx-auto mb-1">
+                  <KeyRound className="w-5 h-5" />
                 </div>
-                <h2 className="font-be-vietnam-pro-black text-xl font-bold text-black uppercase">
+                <h2 className="font-be-vietnam-pro-black text-lg font-bold text-black uppercase">
                   OTP VERIFICATION
                 </h2>
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  Enter the 6-digit verification code sent to your mobile number{" "}
+                <p className="text-xs text-gray-500 leading-relaxed max-w-xs mx-auto">
+                  Enter the 6-digit verification code sent to{" "}
                   <span className="font-bold text-black">
                     {getValues("mobileNumber")}
                   </span>
@@ -638,14 +560,14 @@ function SignUpFormContent() {
               </div>
 
               {otpError && (
-                <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-3 text-xs font-medium text-center flex items-center justify-center gap-1.5 animate-shake">
+                <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-2.5 text-xs font-medium text-center flex items-center justify-center gap-1.5 animate-shake">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{otpError}</span>
                 </div>
               )}
 
-              <form onSubmit={handleVerifyOtp} className="space-y-6">
-                <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <form onSubmit={handleVerifyOtp} className="space-y-5">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                   {otp.map((digit, index) => (
                     <input
                       key={index}
@@ -659,7 +581,7 @@ function SignUpFormContent() {
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
                       onPaste={handleOtpPaste}
-                      className="w-10 h-12 sm:w-12 sm:h-14 text-center font-bold text-lg bg-[#F0F0F0] border border-transparent rounded-2xl text-black focus:bg-white focus:border-black focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                      className="w-9 h-11 sm:w-11 sm:h-13 text-center text-base sm:text-lg font-bold text-black bg-[#F4F4F4] border border-transparent rounded-xl focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none transition-all"
                     />
                   ))}
                 </div>
@@ -674,7 +596,7 @@ function SignUpFormContent() {
                     <button
                       type="button"
                       onClick={handleResendOtp}
-                      className="font-bold text-black underline flex items-center gap-1 hover:text-gray-700"
+                      className="font-bold text-black underline flex items-center gap-1 hover:text-gray-700 cursor-pointer"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Resend OTP
@@ -682,11 +604,11 @@ function SignUpFormContent() {
                   )}
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-4 mt-8 font-bold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black border border-black text-white hover:text-black relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
+                    className="w-full py-3.5 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
                   >
                     <span>
                       {isLoading
@@ -703,7 +625,7 @@ function SignUpFormContent() {
                       setConfirmationResult(null);
                       setStep("details");
                     }}
-                    className="w-full py-2.5 text-xs font-semibold text-gray-500 hover:text-black flex items-center justify-center gap-1 cursor-pointer"
+                    className="w-full py-2 text-xs font-semibold text-gray-500 hover:text-black flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Edit Mobile Number
@@ -715,12 +637,12 @@ function SignUpFormContent() {
 
           {/* Step 3: Success */}
           {step === "success" && (
-            <div className="text-center py-6 space-y-5">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-10 h-10" />
+            <div className="text-center py-4 space-y-4">
+              <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <h2 className="font-be-vietnam-pro-black text-2xl font-black text-black uppercase">
+                <h2 className="font-be-vietnam-pro-black text-xl font-black text-black uppercase">
                   WELCOME, {getValues("firstName").toUpperCase()}!
                 </h2>
                 <p className="text-xs text-gray-500 max-w-xs mx-auto">
@@ -730,7 +652,7 @@ function SignUpFormContent() {
               </div>
               <Link
                 href="/product"
-                className="inline-flex w-full py-4 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full items-center justify-center gap-2 shadow-md transition-all"
+                className="inline-flex w-full py-3.5 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
               >
                 <span>Explore Collection</span>
                 <ArrowRight className="w-4 h-4" />
@@ -740,7 +662,7 @@ function SignUpFormContent() {
 
           {/* Switch to Login */}
           {step === "details" && (
-            <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100 mt-6">
+            <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
               Already have an account?{" "}
               <Link href="/login" className="font-bold text-black underline">
                 Log In
@@ -755,9 +677,8 @@ function SignUpFormContent() {
 
 export default function SignUpPage() {
   return (
-    <Suspense fallback={<div className="text-center py-10 text-xs text-gray-500">Loading...</div>}>
+    <Suspense fallback={<div className="text-center py-10 text-xs text-gray-500 font-be-vietnam-pro">Loading...</div>}>
       <SignUpFormContent />
     </Suspense>
   );
 }
-

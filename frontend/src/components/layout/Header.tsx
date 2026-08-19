@@ -10,8 +10,8 @@ export const Header: React.FC = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      {/* Top Black Announcement Bar */}
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 font-be-vietnam-pro">
+      {/* Single Top Black Announcement Bar */}
       <AnimatePresence initial={false}>
         {showAnnouncement && (
           <motion.div
@@ -20,14 +20,12 @@ export const Header: React.FC = () => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden bg-black text-white"
           >
-            {/* px-10 added to prevent text from overlapping with the absolute close button on mobile */}
-            <div className="py-2.5 px-10 sm:px-12 text-center text-xs sm:text-sm font-normal relative flex items-center justify-center min-h-[40px]">
-              {/* flex-wrap added so text gracefully wraps to a new line on very small screens instead of squishing */}
-              <div className="flex flex-wrap items-center justify-center gap-x-1">
-                <span>Sign up and get 20% off to your first order.</span>
+            <div className="py-2 px-7 sm:px-12 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-[36px] sm:min-h-[40px]">
+              <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap">
+                <span className="opacity-90">Sign up and get 20% off your first order.</span>
                 <Link
                   href="/signup"
-                  className="font-medium underline hover:text-gray-300 transition-colors ml-1 whitespace-nowrap"
+                  className="font-extrabold underline hover:text-gray-300 transition-colors whitespace-nowrap"
                 >
                   Sign Up Now
                 </Link>
@@ -35,17 +33,17 @@ export const Header: React.FC = () => {
 
               <button
                 onClick={() => setShowAnnouncement(false)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white transition-colors p-1 cursor-pointer"
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
                 aria-label="Close Announcement"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main Navigation */}
+      {/* Main Navigation Bar */}
       <Navbar />
     </header>
   );

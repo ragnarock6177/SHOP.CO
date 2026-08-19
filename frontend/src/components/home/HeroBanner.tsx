@@ -1,180 +1,290 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, ShoppingBag, Eye, Check } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { PRODUCTS } from "@/data/mockData";
+import { formatShortSize } from "@/components/product/ProductCard";
 
-interface StarIconProps {
-  className?: string;
-  style?: React.CSSProperties;
+interface PosterSlide {
+  id: string;
+  image: string;
+  alt: string;
+  hotspot: {
+    xPercent: number;
+    yPercent: number;
+    productId: string;
+  };
 }
 
-function StarIcon({ className, style }: StarIconProps) {
-  return (
-    <svg
-      viewBox="0 0 56 56"
-      fill="currentColor"
-      className={className}
-      style={style}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M28 0C28 15.464 15.464 28 0 28C15.464 28 28 40.536 28 56C28 40.536 40.536 28 56 28C40.536 28 28 15.464 28 0Z" />
-    </svg>
-  );
-}
+const POSTER_SLIDES: PosterSlide[] = [
+  {
+    id: "poster-1",
+    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1800&q=80",
+    alt: "Spring Summer Campaign Poster",
+    hotspot: {
+      xPercent: 48,
+      yPercent: 42,
+      productId: "1",
+    },
+  },
+  {
+    id: "poster-2",
+    image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1800&q=80",
+    alt: "Minimalist Tailored Outfit Poster",
+    hotspot: {
+      xPercent: 52,
+      yPercent: 38,
+      productId: "2",
+    },
+  },
+  {
+    id: "poster-3",
+    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1800&q=80",
+    alt: "Urban Streetwear Drop Poster",
+    hotspot: {
+      xPercent: 50,
+      yPercent: 45,
+      productId: "3",
+    },
+  },
+  {
+    id: "poster-4",
+    image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1800&q=80",
+    alt: "High Fashion Editorial Poster",
+    hotspot: {
+      xPercent: 46,
+      yPercent: 40,
+      productId: "4",
+    },
+  },
+];
 
 export const HeroBanner: React.FC = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHotspotOpen, setIsHotspotOpen] = useState(false);
+  const [addedProductId, setAddedProductId] = useState<string | null>(null);
+  const { addToCart } = useCart();
+
+  // Prevent background page scrolling when hotspot popover is open
+  useEffect(() => {
+    if (isHotspotOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isHotspotOpen]);
+
+  // Auto carousel slide transition every 6 seconds (unless hotspot is open)
+  useEffect(() => {
+    if (isHotspotOpen) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % POSTER_SLIDES.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [isHotspotOpen]);
+
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % POSTER_SLIDES.length);
+    setIsHotspotOpen(false);
+  };
+
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + POSTER_SLIDES.length) % POSTER_SLIDES.length);
+    setIsHotspotOpen(false);
+  };
+
+  const handleQuickAdd = (product: typeof PRODUCTS[0], size?: string) => {
+    addToCart(product, 1, undefined, size);
+    setAddedProductId(product.id);
+    setTimeout(() => {
+      setAddedProductId(null);
+      setIsHotspotOpen(false);
+    }, 1200);
+  };
+
   return (
-    <section className="relative w-full bg-[#F2F0F1] overflow-hidden pb-0">
-      <div className="max-w-360 mx-auto min-h-165.75 px-4 sm:px-10 lg:pl-25 lg:pr-8 pt-8 sm:pt-10 lg:pt-20 flex flex-col lg:flex-row items-center lg:items-start justify-between relative">
-        {/* Left Column: Text Content & Stats */}
-        <div className="w-full lg:w-150 flex flex-col items-start z-10 pb-6 lg:pb-0">
-          {/* Main Title */}
-          <h1 className="font-be-vietnam-pro-black text-[36px] sm:text-[48px] lg:text-[64px] font-extrabold text-black leading-8.5 sm:leading-12 lg:leading-16 tracking-tight uppercase max-w-xl text-left">
-            FIND CLOTHES THAT MATCHES YOUR STYLE
-          </h1>
+    <section className="relative w-full overflow-hidden bg-[#F2F0F1] select-none">
+      {/* Invisible Click-Outside Backdrop (No blur, no dark background) */}
+      {isHotspotOpen && (
+        <div
+          onClick={() => setIsHotspotOpen(false)}
+          className="fixed inset-0 z-40 cursor-default"
+        />
+      )}
 
-          {/* Subtitle */}
-          <p className="font-be-vietnam-pro text-sm sm:text-base text-black/60 font-normal leading-relaxed max-w-136.25 mt-4 sm:mt-5 mb-6 sm:mb-8 text-left">
-            Browse through our diverse range of meticulously crafted garments,
-            designed to bring out your individuality and cater to your sense of style.
-          </p>
+      {/* Horizontal Full-Width Campaign Poster Container */}
+      <div className="relative w-full h-[480px] sm:h-[560px] lg:h-[650px] overflow-hidden">
+        {POSTER_SLIDES.map((slideItem, index) => {
+          const isActive = currentSlide === index;
+          const targetProduct = PRODUCTS.find((p) => p.id === slideItem.hotspot.productId) || PRODUCTS[0];
 
-          <div className="w-full sm:w-52.5 mb-8 sm:mb-12">
-            <Link
-              href="/product"
-              className="w-50 sm:w-52.5 bg-black h-13 my-3 flex items-center justify-center rounded-full font-be-vietnam-pro font-medium text-base text-white hover:text-black cursor-pointer relative overflow-hidden transition-all duration-500 ease-in-out shadow-md hover:shadow-lg border border-black z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-white before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
+          return (
+            <div
+              key={slideItem.id}
+              className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out ${
+                isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
+              }`}
             >
-              Shop Now
-            </Link>
-          </div>
+              {/* Poster Image */}
+              <Image
+                src={slideItem.image}
+                alt={slideItem.alt}
+                fill
+                priority={index === 0}
+                sizes="100vw"
+                className="object-cover object-center w-full h-full"
+              />
 
-          {/* Stats Counter Row */}
-          <div className="w-full flex flex-col sm:flex-row flex-wrap sm:flex-nowrap items-center justify-center sm:justify-start gap-6 lg:gap-8">
-            <div className="flex items-center justify-center gap-4 sm:gap-8 w-full sm:w-auto">
-              <div className="flex flex-col items-center sm:items-start flex-1 sm:flex-initial">
-                <span className="font-be-vietnam-pro text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none text-center sm:text-left">
-                  200+
-                </span>
-                <span className="font-be-vietnam-pro text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap text-center sm:text-left">
-                  International Brands
-                </span>
+              {/* Gradient Depth Overlay */}
+              <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-black/10 pointer-events-none" />
+
+              {/* Single Interactive Product "+" Hotspot Icon */}
+              <div
+                className="absolute z-30"
+                style={{ left: `${slideItem.hotspot.xPercent}%`, top: `${slideItem.hotspot.yPercent}%` }}
+              >
+                {/* Glowing Pulse Ring & "+" Button */}
+                <button
+                  onClick={() => setIsHotspotOpen((prev) => !prev)}
+                  className="relative group flex items-center justify-center p-2 cursor-pointer"
+                  aria-label={`View product details for ${targetProduct.title}`}
+                >
+                  <span className="absolute w-9 h-9 rounded-full bg-white/40 animate-ping pointer-events-none" />
+                  <span className="relative w-9 h-9 rounded-full bg-black text-white border-2 border-white flex items-center justify-center font-black text-lg shadow-2xl transition-transform transform group-hover:scale-110">
+                    +
+                  </span>
+                </button>
+
+                {/* Normal Inline Interactive Product Popover Card */}
+                <AnimatePresence>
+                  {isActive && isHotspotOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute bottom-12 -left-28 sm:-left-32 w-60 sm:w-64 bg-white text-black rounded-3xl p-3.5 sm:p-4 shadow-2xl border border-gray-100 z-50 pointer-events-auto"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex gap-2.5 items-center mb-2.5">
+                        <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0 border border-gray-200">
+                          <Image
+                            src={targetProduct.image}
+                            alt={targetProduct.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest block">
+                            Featured Garment
+                          </span>
+                          <h4 className="text-xs font-bold text-black truncate">
+                            {targetProduct.title}
+                          </h4>
+                          <p className="text-xs sm:text-sm font-black text-black mt-0.5">
+                            ${targetProduct.price}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Quick Size Swatches (Short Codes S M L XL) */}
+                      {targetProduct.sizes && targetProduct.sizes.length > 0 && (
+                        <div className="space-y-1 mb-2.5">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+                            Select Size:
+                          </span>
+                          <div className="flex items-center gap-1">
+                            {targetProduct.sizes.slice(0, 4).map((sz) => (
+                              <button
+                                key={sz}
+                                onClick={() => handleQuickAdd(targetProduct, sz)}
+                                className="flex-1 py-1 rounded-md bg-gray-100 hover:bg-black hover:text-white text-black text-[11px] font-bold transition-colors"
+                              >
+                                {formatShortSize(sz)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex gap-1.5 pt-0.5">
+                        <button
+                          onClick={() => handleQuickAdd(targetProduct)}
+                          className="flex-1 py-1.5 rounded-xl bg-black text-white font-bold text-[11px] flex items-center justify-center gap-1 hover:bg-neutral-800 transition-colors shadow-md"
+                        >
+                          {addedProductId === targetProduct.id ? (
+                            <>
+                              <Check className="w-3 h-3" /> Added!
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingBag className="w-3 h-3" /> Quick Add
+                            </>
+                          )}
+                        </button>
+
+                        <Link
+                          href={`/product/${targetProduct.id}`}
+                          className="px-2 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-black flex items-center justify-center transition-colors"
+                          title="View Product Page"
+                          onClick={() => setIsHotspotOpen(false)}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-
-              <div className="w-px h-11 sm:h-13 bg-black/10 shrink-0" />
-
-              <div className="flex flex-col items-center sm:items-start flex-1 sm:flex-initial">
-                <span className="font-be-vietnam-pro text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none text-center sm:text-left">
-                  2,000+
-                </span>
-                <span className="font-be-vietnam-pro text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap text-center sm:text-left">
-                  High-Quality Products
-                </span>
-              </div>
-
-              <div className="hidden sm:block w-px h-13 bg-black/10 shrink-0" />
             </div>
+          );
+        })}
 
-            <div className="flex flex-col items-center sm:items-start w-full sm:w-auto">
-              <span className="font-be-vietnam-pro text-[24px] sm:text-[32px] lg:text-[40px] font-bold text-black leading-none">
-                30,000+
-              </span>
-              <span className="font-be-vietnam-pro text-xs lg:text-sm text-black/60 font-normal mt-1.5 whitespace-nowrap">
-                Happy Customers
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop Star Sparkle 1 */}
-        <div
-          className="hidden lg:block absolute z-20 pointer-events-none"
-          style={{
-            width: "56px",
-            height: "56px",
-            top: "297px",
-            left: "750px",
-          }}
+        {/* Carousel Slide Left / Right Navigation Controls */}
+        <button
+          onClick={handlePrevSlide}
+          className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full bg-white/80 text-black backdrop-blur-md hover:bg-black hover:text-white transition-all shadow-xl cursor-pointer"
+          aria-label="Previous Slide Poster"
         >
-          <StarIcon
-            className="text-black opacity-100"
-            style={{
-              width: "56px",
-              height: "56px",
-            }}
-          />
-        </div>
+          <ChevronLeft className="w-5 h-5" />
+        </button>
 
-        {/* Desktop Star Sparkle 2 */}
-        <div
-          className="hidden lg:block absolute z-20 pointer-events-none"
-          style={{
-            width: "104px",
-            height: "104px",
-            top: "86px",
-            left: "1255px",
-          }}
+        <button
+          onClick={handleNextSlide}
+          className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full bg-white/80 text-black backdrop-blur-md hover:bg-black hover:text-white transition-all shadow-xl cursor-pointer"
+          aria-label="Next Slide Poster"
         >
-          <StarIcon
-            className="text-black opacity-100"
-            style={{
-              width: "104px",
-              height: "104px",
-            }}
-          />
-        </div>
+          <ChevronRight className="w-5 h-5" />
+        </button>
 
-        {/* Right Column: Hero Image & Mobile Stars Container */}
-        <div className="relative w-full lg:w-1/2 flex items-end justify-center self-end min-h-100 lg:min-h-165.75 lg:absolute lg:right-0 lg:bottom-0 mt-6 lg:mt-0">
-          {/* Mobile Star Sparkle 1 */}
-          <div
-            className="lg:hidden absolute z-20 pointer-events-none"
-            style={{
-              left: "28px",
-              top: "25%",
-            }}
-          >
-            <StarIcon
-              className="text-black opacity-100"
-              style={{
-                width: "44px",
-                height: "44px",
+        {/* Carousel Slide Progress Dots */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+          {POSTER_SLIDES.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                setCurrentSlide(idx);
+                setIsHotspotOpen(false);
               }}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                currentSlide === idx ? "w-6 bg-white" : "w-2 bg-white/40 hover:bg-white/70"
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
             />
-          </div>
-
-          {/* Mobile Star Sparkle 2 */}
-          <div
-            className="lg:hidden absolute z-20 pointer-events-none"
-            style={{
-              right: "22px",
-              top: "5%",
-            }}
-          >
-            <StarIcon
-              className="text-black opacity-100"
-              style={{
-                width: "76px",
-                height: "76px",
-              }}
-            />
-          </div>
-
-          {/* Banner Image Wrapper */}
-          <div className="relative w-full h-full min-h-100 lg:min-h-165.75 flex items-end justify-center lg:justify-end overflow-hidden">
-            <Image
-              src="/banner.png"
-              alt="Trendy Fashionable Couple Posing"
-              width={700}
-              height={663}
-              priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
-              className="object-contain object-bottom w-full h-auto max-h-110 sm:max-h-137.5 lg:max-h-165.75"
-            />
-          </div>
+          ))}
         </div>
       </div>
     </section>
   );
 };
 
+export default HeroBanner;

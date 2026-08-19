@@ -1,107 +1,106 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Star, StarHalf } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getProductsApi } from "@/lib/productApi";
+import { ProductCard } from "@/components/product/ProductCard";
+import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
 
-function RatingStars({ rating }: { rating: number }) {
-  const fullStars = Math.floor(rating);
-  const hasHalf = rating % 1 !== 0;
-
-  return (
-    <div className="flex items-center gap-1 my-2">
-      <div className="flex items-center text-[#FFC633]">
-        {[...Array(fullStars)].map((_, i) => (
-          <Star key={i} className="w-4 h-4 fill-[#FFC633] text-[#FFC633]" />
-        ))}
-        {hasHalf && (
-          <StarHalf className="w-4 h-4 fill-[#FFC633] text-[#FFC633]" />
-        )}
-      </div>
-      <span className="font-be-vietnam-pro text-xs sm:text-sm text-black/70 font-normal ml-1">
-        {rating}/<span className="text-black/40">5</span>
-      </span>
-    </div>
-  );
-}
+const CATEGORY_TABS = [
+  { id: "all", label: "All New Drops" },
+  { id: "t-shirts", label: "T-Shirts & Tops" },
+  { id: "casual", label: "Casual Wear" },
+  { id: "hoodies", label: "Hoodies & Jackets" },
+];
 
 export function NewArrivals() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    getProductsApi({ limit: 4 })
+    getProductsApi({ limit: 12 })
       .then(({ products }) => {
-        if (products.length > 0) setProducts(products.slice(0, 4));
+        if (products.length > 0) {
+          setAllProducts(products);
+          setFilteredProducts(products.slice(0, 6));
+        }
       })
       .catch(() => {});
   }, []);
 
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    if (tabId === "all") {
+      setFilteredProducts(allProducts.slice(0, 6));
+    } else {
+      const filtered = allProducts.filter((p) =>
+        p.category.toLowerCase().includes(tabId) ||
+        p.title.toLowerCase().includes(tabId)
+      );
+      setFilteredProducts(filtered.length > 0 ? filtered.slice(0, 6) : allProducts.slice(0, 6));
+    }
+  };
+
   return (
-    <section className="w-full bg-white py-12 sm:py-8 lg:py-5 px-4 sm:px-10 max-w-360 mx-auto border-b border-black/10 overflow-hidden">
-      {/* Title */}
-      <h2 className="font-be-vietnam-pro-black text-[32px] sm:text-[40px] lg:text-[48px] font-bold sm:font-extrabold text-black text-center uppercase tracking-normal sm:tracking-tight leading-none mb-8 sm:mb-14">
-        NEW ARRIVALS
-      </h2>
+    <section className="w-full bg-white py-8 sm:py-14 px-3 sm:px-8 max-w-7xl mx-auto border-b border-black/10 overflow-hidden">
+      {/* Header */}
+      <div className="text-center mb-5 sm:mb-7">
+        <span className="text-[9px] sm:text-xs font-bold tracking-widest text-gray-500 uppercase block mb-1 font-be-vietnam-pro">
+          LATEST SEASONAL ARRIVALS
+        </span>
+        <h2 className="font-be-vietnam-pro-black text-xl sm:text-3xl lg:text-4xl font-black text-black uppercase tracking-tight leading-tight">
+          NEW ARRIVALS
+        </h2>
+      </div>
 
-      {/* Product Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-        {products.map((product) => (
-          <Link
-            key={product.id}
-            href={`/product/${product.id}`}
-            className="flex flex-col group cursor-pointer hover:-translate-y-1.5 transition-transform duration-200"
+      {/* Sleek Mobile Horizontal Scroll Category Chips */}
+      <div className="flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2.5 overflow-x-auto whitespace-nowrap scrollbar-none pb-2 sm:pb-0 mb-6 sm:mb-8 px-1">
+        {CATEGORY_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabChange(tab.id)}
+            className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
+              activeTab === tab.id
+                ? "bg-black text-white shadow-xs"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
           >
-            {/* Image Container */}
-            <div className="w-full bg-[#F0EEED] rounded-[20px] aspect-square flex items-center justify-center p-4 overflow-hidden relative">
-              <Image
-                src={product.image}
-                alt={product.title}
-                fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 300px"
-                className="object-cover w-full h-full rounded-xl group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-            {/* Product Details */}
-            <h3 className="font-be-vietnam-pro font-bold text-base sm:text-lg text-black mt-3 sm:mt-4 truncate">
-              {product.title}
-            </h3>
-
-            {/* Rating Stars */}
-            <RatingStars rating={product.rating} />
-
-            {/* Price Row */}
-            <div className="flex items-center gap-2.5 mt-1">
-              <span className="font-be-vietnam-pro font-bold text-xl sm:text-2xl text-black">
-                ${product.price}
-              </span>
-              {product.originalPrice && (
-                <span className="font-be-vietnam-pro font-bold text-xl sm:text-2xl text-black/40 line-through">
-                  ${product.originalPrice}
-                </span>
-              )}
-              {product.discount && (
-                <span className="bg-[#FF3333]/10 text-[#FF3333] font-be-vietnam-pro text-xs font-medium px-3 py-1 rounded-full">
-                  -{product.discount}%
-                </span>
-              )}
-            </div>
-          </Link>
+      {/* 3-Column Mobile / 6-Column Desktop Grid */}
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
+        {filteredProducts.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            onQuickView={setQuickViewProduct}
+          />
         ))}
       </div>
 
       {/* View All Button */}
-      <div className="w-full flex justify-center mt-9 sm:mt-12">
+      <div className="w-full flex justify-center mt-6 sm:mt-10">
         <Link
-          href="/product"
-          className="w-full sm:w-54.5 h-13 bg-white border border-black/10 rounded-full font-be-vietnam-pro font-medium text-black hover:text-white text-base cursor-pointer relative overflow-hidden transition-all duration-500 ease-in-out shadow-sm hover:shadow-md z-10 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-black before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0 flex items-center justify-center"
+          href="/product?sort=newest"
+          className="w-full sm:w-60 h-10 sm:h-12 bg-white border border-black/15 rounded-full font-be-vietnam-pro font-bold text-black hover:bg-black hover:text-white text-xs cursor-pointer transition-all duration-300 shadow-xs hover:shadow-lg flex items-center justify-center gap-2 group"
         >
-          View All
+          <span>View All New Arrivals</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
     </section>
   );
 }
