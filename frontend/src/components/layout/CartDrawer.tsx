@@ -29,7 +29,7 @@ export const CartDrawer: React.FC = () => {
     >
       {/* Backdrop overlay with smooth fade */}
       <div
-        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-black/60 transition-opacity duration-300 ${
           isCartOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={() => setIsCartOpen(false)}
@@ -38,7 +38,7 @@ export const CartDrawer: React.FC = () => {
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 h-[100dvh]">
         {/* Right drawer panel with smooth spring slide animation */}
         <div
-          className={`w-screen max-w-md h-[100dvh] bg-white text-black flex flex-col shadow-2xl transition-transform duration-300 ease-in-out transform ${
+          className={`w-screen max-w-md h-[100dvh] bg-white text-black flex flex-col shadow-2xl transition-transform duration-300 ease-in-out transform gpu-layer ${
             isCartOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >

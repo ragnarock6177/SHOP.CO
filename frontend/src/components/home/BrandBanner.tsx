@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 
 const BRANDS_AND_USPS = [
   { name: "VERSACE", isBrand: true },
@@ -20,18 +19,10 @@ const BRANDS_AND_USPS = [
 
 export function BrandBanner() {
   return (
-    <div className="relative z-20 w-full bg-black py-3.5 overflow-hidden flex items-center border-y border-white/10 select-none">
-      <motion.div
-        className="flex whitespace-nowrap gap-10 sm:gap-14 items-center"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration: 45,
-        }}
-      >
+    <div className="relative z-20 w-full bg-black py-3.5 overflow-hidden flex items-center border-y border-white/10 select-none gpu-layer">
+      <div className="animate-marquee flex items-center">
         {[...BRANDS_AND_USPS, ...BRANDS_AND_USPS].map((item, index) => (
-          <div key={index} className="flex items-center gap-10 sm:gap-14">
+          <div key={index} className="flex items-center gap-10 sm:gap-14 pr-10 sm:pr-14 shrink-0">
             {item.isBrand ? (
               <span className="font-be-vietnam-pro-black text-sm sm:text-base tracking-widest text-white uppercase font-black opacity-95 hover:opacity-100 transition-opacity">
                 {item.name}
@@ -44,7 +35,7 @@ export function BrandBanner() {
             <span className="text-white/20 text-xs">•</span>
           </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

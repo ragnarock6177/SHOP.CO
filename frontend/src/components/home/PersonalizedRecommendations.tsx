@@ -53,7 +53,7 @@ export const PersonalizedRecommendations: React.FC = () => {
       {/* Horizontal Compact Product Scroll Track */}
       <div
         ref={sliderRef}
-        className="flex gap-2 sm:gap-4 overflow-x-auto scrollbar-none scroll-smooth pb-3"
+        className="flex gap-2 sm:gap-4 overflow-x-auto scrollbar-none scroll-smooth pb-3 touch-pan-x gpu-layer"
       >
         {PRODUCTS.map((product) => (
           <div key={product.id} className="w-32 sm:w-44 lg:w-48 shrink-0">

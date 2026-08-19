@@ -19,7 +19,7 @@ export const Footer: React.FC = () => {
               </span>
             </Link>
 
-            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-sm mx-auto md:mx-0">
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-sm mx-auto md:mx-0 font-be-vietnam-pro">
               We have clothes that suit your style and which you're proud to
               wear. From women to men.
             </p>
@@ -77,7 +77,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Links Columns Grid */}
-          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
+          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 font-be-vietnam-pro">
             {/* COMPANY */}
             <div className="space-y-3 sm:space-y-4">
               <h4 className="font-be-vietnam-pro-black text-xs sm:text-sm font-bold text-black tracking-wider uppercase">
@@ -237,7 +237,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar: Copyright & Payment Icons */}
-        <div className="pt-6 sm:pt-8 border-t border-gray-300/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-[11px] sm:text-xs text-gray-500">
+        <div className="pt-6 sm:pt-8 border-t border-gray-300/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-[11px] sm:text-xs text-gray-500 font-be-vietnam-pro">
           <p>AIRAVÉ &copy; 2000-2026. All Rights Reserved.</p>
 
           {/* Payment Card Badges */}
@@ -261,19 +261,19 @@ export const Footer: React.FC = () => {
         </div>
       </div>
 
-      <div className="relative z-0 -mt-12 xs:-mt-16 sm:-mt-22 md:-mt-28 h-[200px] xs:h-[260px] sm:h-[350px] md:h-[380px] lg:h-[450px] w-full overflow-hidden">
+      <div className="relative z-0 -mt-12 xs:-mt-16 sm:-mt-22 md:-mt-28 h-[200px] xs:h-[260px] sm:h-[350px] md:h-[380px] lg:h-[450px] w-full overflow-hidden gpu-layer">
         <AnimatedFooter
           headingLines={["AIRAVÉ"]}
           leftImage="/animated-footer/hand-left.jpg"
           rightImage="/animated-footer/hand-right.jpg"
           background="#F0F0F0"
           textColor="#000000"
-          charColor="#1f2937"
+          charColor="#737373"
           hoverColor="#000000"
           hoverCharColor="#ffffff"
-          columns={125}
-          cellSize={12}
-          fontSize={11}
+          columns={65}
+          cellSize={14}
+          fontSize={12}
           handWidthClass="w-[46%] sm:w-[44%] md:w-[42%] max-w-[650px]"
           handsAlignmentClass="items-center inset-y-0"
         />
@@ -282,3 +282,4 @@ export const Footer: React.FC = () => {
   );
 };
 
+export default Footer;

@@ -1,70 +1,72 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 export const GhostScrollbar: React.FC = () => {
-  const [scrollTop, setScrollTop] = useState(0);
-  const [thumbHeight, setThumbHeight] = useState(0);
-  const [thumbTop, setThumbTop] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
+  const thumbRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let hideTimer: NodeJS.Timeout;
+    // Disable custom scrollbar on mobile & touch viewports for 100% native mobile GPU scroll performance
+    if (typeof window === 'undefined' || window.innerWidth < 768 || 'ontouchstart' in window) {
+      return;
+    }
 
-    const handleScroll = () => {
+    let hideTimer: NodeJS.Timeout;
+    let rAFId: number;
+
+    const updateScrollbar = () => {
+      if (!thumbRef.current || !barRef.current) return;
+
       const windowHeight = window.innerHeight;
       const docHeight = document.documentElement.scrollHeight;
       const currentScroll = window.scrollY || document.documentElement.scrollTop;
 
-      if (docHeight <= windowHeight) {
-        setIsVisible(false);
+      if (docHeight <= windowHeight + 10) {
+        barRef.current.style.opacity = '0';
         return;
       }
 
-      // Calculate thumb height proportionally (min 36px)
       const calculatedThumbHeight = Math.max(36, (windowHeight / docHeight) * windowHeight);
       const maxScroll = docHeight - windowHeight;
-      const maxThumbTop = windowHeight - calculatedThumbHeight - 16; // 8px top/bottom padding
-      const calculatedThumbTop = 8 + (currentScroll / maxScroll) * maxThumbTop;
+      const maxThumbTop = windowHeight - calculatedThumbHeight - 16;
+      const calculatedThumbTop = 8 + (currentScroll / Math.max(1, maxScroll)) * maxThumbTop;
 
-      setThumbHeight(calculatedThumbHeight);
-      setThumbTop(calculatedThumbTop);
-      setScrollTop(currentScroll);
+      thumbRef.current.style.height = `${calculatedThumbHeight}px`;
+      thumbRef.current.style.transform = `translate3d(0, ${calculatedThumbTop}px, 0)`;
+      barRef.current.style.opacity = '1';
 
-      // Show scrollbar while scrolling
-      setIsVisible(true);
-
-      // Reset hide timer
       clearTimeout(hideTimer);
       hideTimer = setTimeout(() => {
-        setIsVisible(false);
+        if (barRef.current) barRef.current.style.opacity = '0';
       }, 900);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
+    const onScroll = () => {
+      cancelAnimationFrame(rAFId);
+      rAFId = requestAnimationFrame(updateScrollbar);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      cancelAnimationFrame(rAFId);
       clearTimeout(hideTimer);
     };
   }, []);
 
-  if (thumbHeight === 0) return null;
-
   return (
     <div
-      className={`fixed right-1 z-50 pointer-events-none transition-opacity duration-500 ease-out ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}
-      style={{
-        top: `${thumbTop}px`,
-        height: `${thumbHeight}px`,
-        width: '5px',
-      }}
+      ref={barRef}
+      className="fixed right-1 top-0 z-50 pointer-events-none transition-opacity duration-300 opacity-0 hidden md:block"
     >
-      <div className="w-full h-full bg-black/80 hover:bg-black rounded-full shadow-sm" />
+      <div
+        ref={thumbRef}
+        className="w-1.5 bg-black/80 rounded-full shadow-xs will-change-transform"
+      />
     </div>
   );
 };

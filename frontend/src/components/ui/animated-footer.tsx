@@ -6,81 +6,32 @@ import gsap from "gsap";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
-/**
- * Animated Footer
- *
- * A cinematic, reveal-on-scroll footer: two source images are re-drawn as
- * live ASCII art on <canvas>, light up in little clusters around the cursor,
- * and drift with a soft parallax. When the footer scrolls into view the
- * display headings unmask character-by-character, the links and copy slide
- * up behind masks, and the ASCII "hands" glide in from the edges.
- *
- * Ported from the vanilla "LukeBaffait Animated Footer" (GSAP + canvas) into a
- * single, self-contained, prop-driven React component. No global smooth-scroll
- * or SplitText plugin required — the reveal is driven by an IntersectionObserver
- * and text is split in JSX.
- */
-
-export interface AnimatedFooterLink {
-  label: string;
-  href: string;
-}
-
 export interface AnimatedFooterProps {
-  /** The large display words along the bottom edge. Defaults to ["VengeanceUI"]. */
   headingLines?: string[];
-  /** Left image URL, sampled into ASCII art. Must be same-origin or CORS-enabled. */
   leftImage?: string;
-  /** Right image URL, sampled into ASCII art. Must be same-origin or CORS-enabled. */
   rightImage?: string;
-
-  /** Footer background color. Defaults to "#0f0f0f". */
   background?: string;
-  /** Text color for links, copy and headings. Defaults to "#ffffff". */
   textColor?: string;
-
-  /** Character ramp, ordered dark → light, used to render the ASCII art. */
   asciiChars?: string;
-  /** Color of the ASCII glyphs. Defaults to "#803500". */
   charColor?: string;
-  /** Fill color of a highlighted (hovered) cell. Defaults to "#ff6a00". */
   hoverColor?: string;
-  /** Glyph color inside a highlighted cell. Defaults to "#0f0f0f". */
   hoverCharColor?: string;
-  /** Number of columns each image is sampled to. Defaults to 80. */
   columns?: number;
-  /** Pixel size of each ASCII cell. Defaults to 20. */
   cellSize?: number;
-  /** Font size (px) of the ASCII glyphs. Defaults to 18. */
   fontSize?: number;
-
-  /** Pointer parallax strength in px; set to 0 to disable. Defaults to 20. */
   parallaxStrength?: number;
-  /** Cursor influence radius, in cells, for the hover highlight. Defaults to 8. */
   hoverRadius?: number;
-
-  /** Play the reveal when the footer scrolls into view (else it shows immediately). Defaults to true. */
   revealOnScroll?: boolean;
-  /**
-   * Controlled reveal. When set, the footer ignores its own scroll observer and
-   * plays in (`true`) / out (`false`) to match this value — drive it from your
-   * own ScrollTrigger, sentinel or state to reveal it from behind other content.
-   */
   revealed?: boolean;
-
-  /** Custom width classes for hands. Defaults to "w-2/5 min-w-[200px]". */
   handWidthClass?: string;
-  /** Custom alignment classes for hands flex container. Defaults to "items-center". */
   handsAlignmentClass?: string;
-  /** Extra class names for the root element. */
   className?: string;
 }
 
 const DEFAULT_ASCII_CHARS = "........:::=+xX#0369";
-
-const HIGHLIGHT_LIFETIME = 300; // ms a hovered cell stays lit
-const CLUSTER_SIZE = 10; // max cells a hover ripple spreads across
-const PARALLAX_EASE = 0.05;
+const HIGHLIGHT_LIFETIME = 250;
+const CLUSTER_SIZE = 6;
+const PARALLAX_EASE = 0.08;
 
 interface Cell {
   col: number;
@@ -98,10 +49,9 @@ interface Hand {
   columns: number;
   cellSize: number;
   baselineOffset: number;
-  direction: 1 | -1; // slide-in direction for the reveal curtain
+  direction: 1 | -1;
 }
 
-/** Build the ASCII cell grid for one image by sampling its brightness. */
 function buildHandCells(
   image: HTMLImageElement,
   columns: number,
@@ -149,7 +99,6 @@ function buildHandCells(
   return { rows, cells };
 }
 
-/** Light up a wandering cluster of cells starting from `startCell`. */
 function highlightCluster(cells: Map<string, Cell>, startCell: Cell) {
   const now = Date.now();
   startCell.highlightEndTime = now + HIGHLIGHT_LIFETIME;
@@ -171,30 +120,14 @@ function highlightCluster(cells: Map<string, Cell>, startCell: Cell) {
     if (neighbours.length === 0) break;
 
     const next = neighbours[Math.floor(Math.random() * neighbours.length)];
-    next.highlightEndTime = now + HIGHLIGHT_LIFETIME + step * 10;
+    next.highlightEndTime = now + HIGHLIGHT_LIFETIME + step * 8;
     litCells.push(next);
     current = next;
   }
 }
 
-/** Nearest scrollable ancestor — used as the reveal's IntersectionObserver root. */
-function getScrollParent(node: HTMLElement | null): HTMLElement | null {
-  let el = node?.parentElement ?? null;
-  while (el) {
-    const overflowY = getComputedStyle(el).overflowY;
-    if (
-      overflowY === "auto" ||
-      overflowY === "scroll" ||
-      overflowY === "overlay"
-    )
-      return el;
-    el = el.parentElement;
-  }
-  return null;
-}
-
 export function AnimatedFooter({
-  headingLines = ["VengeanceUI"],
+  headingLines = ["AIRAVÉ"],
   leftImage = "/animated-footer/hand-left.jpg",
   rightImage = "/animated-footer/hand-right.jpg",
   background,
@@ -203,11 +136,11 @@ export function AnimatedFooter({
   hoverColor,
   hoverCharColor,
   asciiChars = DEFAULT_ASCII_CHARS,
-  columns = 125,
-  cellSize = 12,
-  fontSize = 11,
-  parallaxStrength = 20,
-  hoverRadius = 8,
+  columns = 75,
+  cellSize = 14,
+  fontSize = 12,
+  parallaxStrength = 12,
+  hoverRadius = 6,
   revealOnScroll = true,
   handWidthClass = "w-2/5 min-w-[200px]",
   handsAlignmentClass = "items-center",
@@ -220,20 +153,16 @@ export function AnimatedFooter({
   const leftCanvasRef = useRef<HTMLCanvasElement>(null);
   const rightCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Reveal animations, published by the main effect so the controlled-`revealed`
-  // effect below can play them without rebuilding the ASCII scene.
   const animateInRef = useRef<() => void>(() => {});
   const animateOutRef = useRef<() => void>(() => {});
 
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
-  const cc = charColor ?? (isDark ? "#803500" : "#e6b093");
-  const hc = hoverColor ?? "#ff6a00";
-  const hcc = hoverCharColor ?? (isDark ? "#0f0f0f" : "#ffffff");
+  const cc = charColor ?? (isDark ? "#803500" : "#a3a3a3");
+  const hc = hoverColor ?? "#000000";
+  const hcc = hoverCharColor ?? "#ffffff";
 
-  // Live-tunable values read inside the animation loop, so tweaking a color or
-  // the parallax strength never tears down and rebuilds the ASCII scene.
   const liveRef = useRef({
     charColor: cc,
     hoverColor: hc,
@@ -241,6 +170,7 @@ export function AnimatedFooter({
     parallaxStrength,
     hoverRadius,
   });
+
   useEffect(() => {
     liveRef.current = {
       charColor: cc,
@@ -251,8 +181,6 @@ export function AnimatedFooter({
     };
   }, [cc, hc, hcc, parallaxStrength, hoverRadius]);
 
-  // A signature of the structural inputs — the scene rebuilds only when one of
-  // these changes (images, grid resolution, content, reveal mode).
   const sig = useMemo(
     () =>
       JSON.stringify({
@@ -283,20 +211,24 @@ export function AnimatedFooter({
     const rightWrap = rightWrapRef.current;
     if (!root || !leftWrap || !rightWrap) return;
 
+    const isMobile =
+      typeof window !== "undefined" &&
+      (window.innerWidth < 768 || "ontouchstart" in window);
+
     const hands: Hand[] = [];
     const wrappers = [leftWrap, rightWrap];
 
-    // ── ASCII hands ──────────────────────────────────────────────────────
     const setupHand = (
       image: HTMLImageElement,
       canvas: HTMLCanvasElement,
       direction: 1 | -1,
     ) => {
-      const { rows, cells } = buildHandCells(image, columns, asciiChars);
+      const activeCols = isMobile ? Math.min(columns, 50) : columns;
+      const { rows, cells } = buildHandCells(image, activeCols, asciiChars);
       if (cells.size === 0) return;
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = columns * cellSize * dpr;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = activeCols * cellSize * dpr;
       canvas.height = rows * cellSize * dpr;
 
       const ctx = canvas.getContext("2d");
@@ -312,17 +244,22 @@ export function AnimatedFooter({
       const baselineOffset =
         cellSize / 2 + glyphHeight / 2 - metrics.actualBoundingBoxDescent;
 
-      hands.push({
+      const hand: Hand = {
         canvas,
         ctx,
         cells,
         cellList: [...cells.values()],
         rows,
-        columns,
+        columns: activeCols,
         cellSize,
         baselineOffset,
         direction,
-      });
+      };
+
+      hands.push(hand);
+
+      // Render static frame once immediately on setup
+      renderHand(hand, 0);
     };
 
     const loadHand = (
@@ -343,6 +280,7 @@ export function AnimatedFooter({
       image.src = src;
       if (image.complete && image.naturalWidth) init();
     };
+
     loadHand(leftImage, leftCanvasRef.current!, 1);
     loadHand(rightImage, rightCanvasRef.current!, -1);
 
@@ -360,6 +298,7 @@ export function AnimatedFooter({
         hoverColor: hc,
         hoverCharColor: hcc,
       } = liveRef.current;
+
       ctx.clearRect(0, 0, cols * cs, rows * cs);
 
       for (const cell of cellList) {
@@ -376,11 +315,11 @@ export function AnimatedFooter({
       }
     };
 
-    // ── Pointer: hover highlight + parallax target ───────────────────────
     const pointer = { x: 0, y: 0 };
     const drift = { x: 0, y: 0 };
-    // Reveal "curtain": hands start pushed off the edges and slide to 0.
     const curtain = { offset: revealOnScroll ? 125 : 0 };
+    let isMouseMoving = false;
+    let idleTimer: NodeJS.Timeout;
 
     const hoverHand = (hand: Hand, clientX: number, clientY: number) => {
       const rect = hand.canvas.getBoundingClientRect();
@@ -405,6 +344,13 @@ export function AnimatedFooter({
     };
 
     const onMouseMove = (event: MouseEvent) => {
+      if (isMobile) return;
+      isMouseMoving = true;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        isMouseMoving = false;
+      }, 1000);
+
       const strength = liveRef.current.parallaxStrength;
       const rect = root.getBoundingClientRect();
       const w = rect.width || 1;
@@ -413,33 +359,40 @@ export function AnimatedFooter({
       pointer.y = ((event.clientY - rect.top) / h - 0.5) * strength * 2;
       for (const hand of hands) hoverHand(hand, event.clientX, event.clientY);
     };
-    window.addEventListener("mousemove", onMouseMove);
 
-    // ── Unified render loop: ASCII + parallax + reveal curtain ───────────
+    if (!isMobile) {
+      window.addEventListener("mousemove", onMouseMove, { passive: true });
+    }
+
     let rafId = 0;
     const frame = () => {
       const now = Date.now();
-      for (const hand of hands) renderHand(hand, now);
 
-      drift.x += (pointer.x - drift.x) * PARALLAX_EASE;
-      drift.y += (pointer.y - drift.y) * PARALLAX_EASE;
-      const strength = liveRef.current.parallaxStrength;
-      const scale = 1 + (strength * 2) / 200;
+      // Only re-render canvas when active mouse movement or ongoing highlight exists
+      if (isMouseMoving || hands.some((h) => h.cellList.some((c) => c.highlightEndTime > now))) {
+        for (const hand of hands) renderHand(hand, now);
 
-      wrappers.forEach((wrapper, i) => {
-        const dir = i === 0 ? 1 : -1;
-        const revealX = i === 0 ? -curtain.offset : curtain.offset;
-        const x = drift.x * dir || 0;
-        const y = -drift.y || 0;
-        // Apply reveal via translateX, then apply parallax via translate, avoiding calc() mixed-unit bugs
-        wrapper.style.transform = `translateX(${revealX}%) translate(${x}px, ${y}px) scale(${scale})`;
-      });
+        drift.x += (pointer.x - drift.x) * PARALLAX_EASE;
+        drift.y += (pointer.y - drift.y) * PARALLAX_EASE;
+        const strength = liveRef.current.parallaxStrength;
+        const scale = 1 + (strength * 2) / 200;
+
+        wrappers.forEach((wrapper, i) => {
+          const dir = i === 0 ? 1 : -1;
+          const revealX = i === 0 ? -curtain.offset : curtain.offset;
+          const x = drift.x * dir || 0;
+          const y = -drift.y || 0;
+          wrapper.style.transform = `translateX(${revealX}%) translate(${x}px, ${y}px) scale(${scale})`;
+        });
+      }
 
       rafId = requestAnimationFrame(frame);
     };
-    rafId = requestAnimationFrame(frame);
 
-    // ── Reveal (chars + curtain) ─────────────────────────
+    if (!isMobile) {
+      rafId = requestAnimationFrame(frame);
+    }
+
     const chars = gsap.utils.toArray<HTMLElement>(
       root.querySelectorAll("[data-af-char]"),
     );
@@ -447,15 +400,21 @@ export function AnimatedFooter({
     const animateIn = () => {
       gsap.to(curtain, {
         offset: 0,
-        duration: 1,
+        duration: 0.8,
         ease: "power3.out",
         overwrite: true,
+        onUpdate: () => {
+          wrappers.forEach((wrapper, i) => {
+            const revealX = i === 0 ? -curtain.offset : curtain.offset;
+            wrapper.style.transform = `translateX(${revealX}%)`;
+          });
+        },
       });
       gsap.to(chars, {
         yPercent: 0,
-        duration: 1,
+        duration: 0.8,
         ease: "power3.out",
-        stagger: { each: 0.04, from: "center" },
+        stagger: { each: 0.03, from: "center" },
         overwrite: true,
       });
     };
@@ -466,6 +425,12 @@ export function AnimatedFooter({
         duration: 0.4,
         ease: "power2.in",
         overwrite: true,
+        onUpdate: () => {
+          wrappers.forEach((wrapper, i) => {
+            const revealX = i === 0 ? -curtain.offset : curtain.offset;
+            wrapper.style.transform = `translateX(${revealX}%)`;
+          });
+        },
       });
       gsap.to(chars, {
         yPercent: 125,
@@ -476,7 +441,6 @@ export function AnimatedFooter({
       });
     };
 
-    // Publish for the controlled-`revealed` effect.
     animateInRef.current = animateIn;
     animateOutRef.current = animateOut;
 
@@ -490,19 +454,11 @@ export function AnimatedFooter({
     let observer: IntersectionObserver | null = null;
 
     if (revealed !== undefined) {
-      // Controlled: the `revealed` effect below drives the reveal. Set the
-      // initial state to match, and never attach the scroll observer.
       curtain.offset = revealed ? 0 : 125;
       if (revealed) showAll();
       else maskAll();
     } else if (revealOnScroll) {
-      // Start fully masked — nothing shows until the footer is scrolled into view.
       maskAll();
-
-      // Drive the reveal purely from scroll position, relative to the nearest
-      // scrollable ancestor (the page in real use, or the preview's scroll
-      // container in the docs). Plays in when the footer crosses into view and
-      // reverses when you scroll back up.
       let isRevealed = false;
       observer = new IntersectionObserver(
         (entries) => {
@@ -523,27 +479,21 @@ export function AnimatedFooter({
       showAll();
     }
 
-    // ── Cleanup ──────────────────────────────────────────────────────────
     return () => {
-      cancelAnimationFrame(rafId);
+      if (rafId) cancelAnimationFrame(rafId);
+      clearTimeout(idleTimer);
       window.removeEventListener("mousemove", onMouseMove);
       observer?.disconnect();
       gsap.killTweensOf([curtain, ...chars]);
     };
-    // Rebuild only when a structural input changes; live values flow via liveRef.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sig]);
 
-  // Controlled reveal: play in/out to match the `revealed` prop without
-  // rebuilding the scene. Ignored entirely when `revealed` is undefined.
   useEffect(() => {
     if (revealed === undefined) return;
     if (revealed) animateInRef.current();
     else animateOutRef.current();
   }, [revealed]);
 
-  // Whether the content starts masked on first paint (avoids a flash before the
-  // effect runs): hidden unless it's meant to be shown immediately.
   const startsHidden = revealed !== undefined ? !revealed : revealOnScroll;
   const offEdge = startsHidden ? 125 : 0;
 
@@ -551,7 +501,7 @@ export function AnimatedFooter({
     <footer
       ref={rootRef}
       className={cn(
-        "relative h-full w-full overflow-hidden",
+        "relative h-full w-full overflow-hidden select-none gpu-layer",
         !background && "bg-white dark:bg-black",
         !textColor && "text-black dark:text-white",
         className,
@@ -559,7 +509,6 @@ export function AnimatedFooter({
       style={{
         backgroundColor: background,
         color: textColor,
-        containerType: "inline-size",
       }}
     >
       {/* ASCII hands */}
@@ -571,14 +520,14 @@ export function AnimatedFooter({
       >
         <div
           ref={leftWrapRef}
-          className={cn("relative will-change-transform", handWidthClass)}
+          className={cn("relative gpu-layer", handWidthClass)}
           style={{ transform: `translateX(-${offEdge}%)` }}
         >
           <canvas ref={leftCanvasRef} className="block h-auto w-full" />
         </div>
         <div
           ref={rightWrapRef}
-          className={cn("relative will-change-transform", handWidthClass)}
+          className={cn("relative gpu-layer", handWidthClass)}
           style={{ transform: `translateX(${offEdge}%)` }}
         >
           <canvas ref={rightCanvasRef} className="block h-auto w-full" />
@@ -600,7 +549,7 @@ export function AnimatedFooter({
                   key={ci}
                   data-af-char
                   aria-hidden="true"
-                  className="inline-block"
+                  className="inline-block gpu-layer"
                 >
                   {ch === " " ? " " : ch}
                 </span>

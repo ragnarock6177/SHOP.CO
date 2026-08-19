@@ -50,6 +50,11 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
 body,
 button,
 input,
@@ -70,6 +75,7 @@ div {
 
 body {
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Custom font classes for AIRAVÉ */
@@ -96,24 +102,36 @@ body {
   height: 0;
 }
 
-/* Infinite Marquee Train Animation */
+/* Hardware-Accelerated Infinite Marquee Train Animation */
 @keyframes marquee {
   0% {
-    transform: translateX(0%);
+    transform: translate3d(0%, 0, 0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
 .animate-marquee {
-  animation: marquee 35s linear infinite;
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  transform: translateZ(0);
+  animation: marquee 25s linear infinite;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .animate-marquee:hover {
   animation-play-state: paused;
 }
 
+/* GPU Acceleration utility layer */
+.gpu-layer {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
 
 :root {
   --background: oklch(1 0 0);

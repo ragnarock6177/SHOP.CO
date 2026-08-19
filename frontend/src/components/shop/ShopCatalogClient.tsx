@@ -71,7 +71,7 @@ function ProductGridList({
 
   if (filteredProducts.length === 0) {
     return (
-      <div className="text-center py-16 space-y-3 bg-[#F0F0F0] rounded-3xl p-8">
+      <div className="text-center py-16 space-y-3 bg-[#F0F0F0] rounded-3xl p-8 font-be-vietnam-pro">
         <h3 className="font-be-vietnam-pro-black text-xl font-bold text-black uppercase">No Products Found</h3>
         <p className="text-xs text-gray-500 max-w-sm mx-auto">
           We couldn't find any products matching your current filters. Try resetting filters or searching for another keyword.
@@ -81,7 +81,7 @@ function ProductGridList({
   }
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
+    <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 gpu-layer">
       {filteredProducts.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
@@ -89,11 +89,103 @@ function ProductGridList({
   );
 }
 
-function ShopContent({ initialProducts }: { initialProducts: Product[] }) {
+function ProductGridWithParams({
+  initialProducts,
+  sortBy,
+  activeFilters
+}: {
+  initialProducts: Product[];
+  sortBy: string;
+  activeFilters: any;
+}) {
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get('category') || searchParams.get('filter') || 'Casual';
   const searchQuery = searchParams.get('search') || '';
 
+  return (
+    <ProductGridList
+      initialProducts={initialProducts}
+      category={activeCategory}
+      searchQuery={searchQuery}
+      sortBy={sortBy}
+      activeFilters={activeFilters}
+    />
+  );
+}
+
+function ShopHeaderRow({
+  sortBy,
+  setSortBy,
+  isMobileFilterOpen,
+  setIsMobileFilterOpen,
+  handleApplyFilter
+}: {
+  sortBy: string;
+  setSortBy: (val: string) => void;
+  isMobileFilterOpen: boolean;
+  setIsMobileFilterOpen: (val: boolean) => void;
+  handleApplyFilter: (filters: any) => void;
+}) {
+  const searchParams = useSearchParams();
+  const activeCategory = searchParams.get('category') || searchParams.get('filter') || 'Casual';
+
+  return (
+    <div className="space-y-2 mb-4">
+      {/* Breadcrumb Trail */}
+      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap font-be-vietnam-pro">
+        <Link href="/" className="hover:text-black transition-colors">Home</Link>
+        <span>&gt;</span>
+        <span className="text-black font-semibold capitalize">{activeCategory}</span>
+      </nav>
+
+      {/* Title & Action Controls Row */}
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <h1 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black text-black capitalize truncate">
+          {activeCategory}
+        </h1>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Mobile Filter Trigger using Vaul Drawer */}
+          <Drawer.Root open={isMobileFilterOpen} onOpenChange={setIsMobileFilterOpen}>
+            <Drawer.Trigger asChild>
+              <button
+                className="lg:hidden flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-[#F0F0F0] hover:bg-gray-200 rounded-full text-black text-xs font-bold transition-colors cursor-pointer"
+                title="Filter Products"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
+                <span>Filters</span>
+              </button>
+            </Drawer.Trigger>
+
+            <Drawer.Portal>
+              <Drawer.Overlay className="fixed inset-0 bg-black/60 z-50" />
+              <Drawer.Content className="bg-white flex flex-col rounded-t-4xl max-h-[85vh] fixed bottom-0 left-0 right-0 z-50 outline-none border-t border-gray-200 shadow-2xl">
+                <div className="p-4 bg-white rounded-t-4xl flex-1 overflow-y-auto">
+                  <Drawer.Handle className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4" />
+                  <Drawer.Title className="sr-only">Filter Products</Drawer.Title>
+                  <FilterSidebar
+                    onCloseMobile={() => setIsMobileFilterOpen(false)}
+                    onApplyFilter={handleApplyFilter}
+                  />
+                </div>
+              </Drawer.Content>
+            </Drawer.Portal>
+          </Drawer.Root>
+
+          {/* Custom Styled Sort Dropdown */}
+          <CustomSelect
+            options={SORT_OPTIONS}
+            value={sortBy}
+            onChange={(val) => setSortBy(val)}
+            labelPrefix="Sort by:"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ShopCatalogClient({ initialProducts }: { initialProducts: Product[] }) {
   const [sortBy, setSortBy] = useState('popular');
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -105,82 +197,53 @@ function ShopContent({ initialProducts }: { initialProducts: Product[] }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 py-4 pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 py-4 pb-16 font-be-vietnam-pro gpu-layer">
       
-      {/* Breadcrumb Trail */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap">
-        <Link href="/" className="hover:text-black transition-colors">Home</Link>
-        <span>&gt;</span>
-        <span className="text-black font-semibold capitalize">{activeCategory}</span>
-      </nav>
+      {/* Header Row: Breadcrumbs, Title & Filter/Sort Controls (Appears Immediately, Never Shimmers) */}
+      <Suspense fallback={
+        <div className="space-y-2 mb-4">
+          <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap">
+            <Link href="/" className="hover:text-black transition-colors">Home</Link>
+            <span>&gt;</span>
+            <span className="text-black font-semibold capitalize">Catalog</span>
+          </nav>
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black text-black capitalize">
+              Casual
+            </h1>
+            <div className="flex items-center gap-2">
+              <button className="lg:hidden flex items-center gap-1.5 px-3 py-2 bg-[#F0F0F0] rounded-full text-black text-xs font-bold">
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }>
+        <ShopHeaderRow
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          isMobileFilterOpen={isMobileFilterOpen}
+          setIsMobileFilterOpen={setIsMobileFilterOpen}
+          handleApplyFilter={handleApplyFilter}
+        />
+      </Suspense>
 
       {/* Flex Layout: Left Desktop Sidebar + Right Main Catalog */}
       <div className="flex flex-col lg:flex-row gap-5 lg:gap-7 items-start">
         
-        {/* Left Desktop Filter Sidebar */}
+        {/* Left Desktop Filter Sidebar (Appears Immediately, Never Shimmers) */}
         <aside className="hidden lg:block w-73.75 shrink-0">
           <FilterSidebar onApplyFilter={handleApplyFilter} />
         </aside>
 
         {/* Right Main Catalog Area */}
-        <main className="flex-1 min-w-0 space-y-6 w-full">
+        <main className="flex-1 min-w-0 space-y-5 w-full">
           
-          {/* Header Row: Title & Custom Sort Dropdown */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-baseline gap-2">
-              <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black capitalize">
-                {activeCategory}
-              </h1>
-              <span className="text-xs sm:text-sm text-gray-500">
-                ({initialProducts.length} Products Available)
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-              
-              {/* Mobile Filter Trigger using Vaul Drawer */}
-              <Drawer.Root open={isMobileFilterOpen} onOpenChange={setIsMobileFilterOpen}>
-                <Drawer.Trigger asChild>
-                  <button
-                    className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-[#F0F0F0] hover:bg-gray-200 rounded-full text-black text-xs font-bold transition-colors cursor-pointer"
-                    title="Filter Products"
-                  >
-                    <SlidersHorizontal className="w-4 h-4 text-black" />
-                    <span>Filters</span>
-                  </button>
-                </Drawer.Trigger>
-
-                <Drawer.Portal>
-                  <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
-                  <Drawer.Content className="bg-white flex flex-col rounded-t-4xl max-h-[85vh] fixed bottom-0 left-0 right-0 z-50 outline-none border-t border-gray-200 shadow-2xl">
-                    <div className="p-4 bg-white rounded-t-4xl flex-1 overflow-y-auto">
-                      <Drawer.Handle className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4" />
-                      <Drawer.Title className="sr-only">Filter Products</Drawer.Title>
-                      <FilterSidebar
-                        onCloseMobile={() => setIsMobileFilterOpen(false)}
-                        onApplyFilter={handleApplyFilter}
-                      />
-                    </div>
-                  </Drawer.Content>
-                </Drawer.Portal>
-              </Drawer.Root>
-
-              {/* Custom Styled Sort Dropdown */}
-              <CustomSelect
-                options={SORT_OPTIONS}
-                value={sortBy}
-                onChange={(val) => setSortBy(val)}
-                labelPrefix="Sort by:"
-              />
-            </div>
-          </div>
-
-          {/* Product Grid */}
+          {/* Product Cards Grid: ONLY Place Where Shimmer Skeleton Appears */}
           <Suspense fallback={<ProductSkeleton count={6} />}>
-            <ProductGridList
+            <ProductGridWithParams
               initialProducts={initialProducts}
-              category={activeCategory}
-              searchQuery={searchQuery}
               sortBy={sortBy}
               activeFilters={activeFilters}
             />
@@ -200,22 +263,5 @@ function ShopContent({ initialProducts }: { initialProducts: Product[] }) {
       </div>
 
     </div>
-  );
-}
-
-export function ShopCatalogClient({ initialProducts }: { initialProducts: Product[] }) {
-  return (
-    <Suspense fallback={
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
-        <div className="flex gap-7">
-          <div className="hidden lg:block w-73.75 h-150 bg-gray-100 rounded-3xl animate-pulse" />
-          <div className="flex-1">
-            <ProductSkeleton count={6} />
-          </div>
-        </div>
-      </div>
-    }>
-      <ShopContent initialProducts={initialProducts} />
-    </Suspense>
   );
 }

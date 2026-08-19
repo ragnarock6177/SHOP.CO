@@ -1,73 +1,39 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { Star, Check } from "lucide-react";
-import { motion } from "framer-motion";
-import gsap from "gsap";
 import { REVIEWS } from "../../data/mockData";
 
-// Duplicate reviews to create a seamless infinite train scroll
+// Duplicate reviews to create a seamless infinite marquee train scroll
 const MARQUEE_REVIEWS = [...REVIEWS, ...REVIEWS, ...REVIEWS, ...REVIEWS];
 
 export const CustomerReviews: React.FC = () => {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const tweenRef = useRef<gsap.core.Tween | null>(null);
-
-  useEffect(() => {
-    if (!trackRef.current) return;
-
-    const ctx = gsap.context(() => {
-      tweenRef.current = gsap.to(trackRef.current, {
-        xPercent: -50,
-        ease: "none",
-        duration: 55,
-        repeat: -1,
-      });
-    }, trackRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
     <section className="w-full my-10 sm:my-16 space-y-6 sm:space-y-8 overflow-hidden">
       {/* Header with Title */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
-        >
+        <div>
           <span className="text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1 font-be-vietnam-pro">
             VERIFIED CUSTOMER TESTIMONIALS
           </span>
           <h2 className="font-be-vietnam-pro-black text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-black text-black uppercase tracking-tight leading-tight">
             OUR HAPPY CUSTOMERS
           </h2>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Full-Width Edge-to-Edge Continuous Train Marquee Track */}
-      <div
-        className="relative w-full overflow-hidden py-2 sm:py-4"
-        onMouseEnter={() => tweenRef.current?.pause()}
-        onMouseLeave={() => tweenRef.current?.play()}
-        onTouchStart={() => tweenRef.current?.pause()}
-        onTouchEnd={() => tweenRef.current?.play()}
-      >
+      {/* Full-Width Edge-to-Edge Continuous Pure CSS GPU Marquee Track */}
+      <div className="relative w-full overflow-hidden py-2 sm:py-4 gpu-layer select-none">
         {/* Soft edge fade overlays */}
         <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-24 lg:w-48 bg-linear-to-r from-white via-white/80 to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-24 lg:w-48 bg-linear-to-l from-white via-white/80 to-transparent z-10 pointer-events-none" />
 
-        {/* GSAP Train Animation Track */}
-        <div
-          ref={trackRef}
-          className="flex gap-3.5 sm:gap-5 lg:gap-6 w-max will-change-transform cursor-pointer"
-        >
+        {/* Pure CSS Hardware-Accelerated Train Animation Track */}
+        <div className="animate-marquee flex gap-3.5 sm:gap-5 lg:gap-6 items-center">
           {MARQUEE_REVIEWS.map((review, index) => (
             <div
               key={`${review.id}-${index}`}
-              className="w-[280px] xs:w-[320px] sm:w-[380px] lg:w-[400px] min-h-[190px] sm:min-h-[220px] flex-none border border-gray-200/90 rounded-2xl p-4.5 sm:p-6 lg:p-7 bg-white flex flex-col justify-between shadow-xs hover:shadow-md hover:-translate-y-1.5 hover:border-gray-300 transition-all duration-300 cursor-default select-none"
+              className="w-[280px] xs:w-[320px] sm:w-[380px] lg:w-[400px] min-h-[190px] sm:min-h-[220px] flex-none border border-gray-200/90 rounded-2xl p-4.5 sm:p-6 lg:p-7 bg-white flex flex-col justify-between shadow-xs hover:shadow-md hover:-translate-y-1.5 hover:border-gray-300 transition-all duration-300 cursor-default select-none shrink-0"
             >
               <div className="space-y-2.5 sm:space-y-3">
                 {/* 5 Monochrome Solid Black Stars */}

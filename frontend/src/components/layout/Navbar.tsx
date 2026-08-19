@@ -397,95 +397,92 @@ export const Navbar: React.FC = () => {
       </AnimatePresence>
 
       {/* Mobile Menu Drawer */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 h-[100dvh] z-50 md:hidden flex overflow-hidden">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 h-[100dvh] bg-black/60 backdrop-blur-xs"
+      <div
+        className={`fixed inset-0 h-[100dvh] z-50 md:hidden flex overflow-hidden transition-all duration-300 ${
+          isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div
+          className={`fixed inset-0 h-[100dvh] bg-black/60 transition-opacity duration-300 ${
+            isMobileMenuOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+
+        <div
+          className={`relative w-80 max-w-[85vw] h-[100dvh] bg-white text-black z-10 flex flex-col shadow-2xl p-6 overflow-y-auto gpu-layer transition-transform duration-300 ease-out transform ${
+            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+              <span className="font-be-vietnam-pro-black text-2xl font-black text-black">
+                AIRAVÉ
+              </span>
+            </Link>
+            <button
               onClick={() => setIsMobileMenuOpen(false)}
-            />
-
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-              className="relative w-80 max-w-[85vw] h-[100dvh] bg-white text-black z-10 flex flex-col shadow-2xl p-6 overflow-y-auto"
+              className="p-1 text-gray-400 hover:text-black transition-colors cursor-pointer"
+              aria-label="Close menu"
             >
-              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
-                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-                  <span className="font-be-vietnam-pro-black text-2xl font-black text-black">
-                    AIRAVÉ
-                  </span>
-                </Link>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1 text-gray-400 hover:text-black transition-colors"
-                  aria-label="Close menu"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <nav className="space-y-4 font-bold text-sm text-black flex-1">
-                <Link
-                  href="/product"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>Shop All</span>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </Link>
-
-                <Link
-                  href="/product?filter=on-sale"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>On Sale</span>
-                </Link>
-
-                <Link
-                  href="/product?sort=newest"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>New Arrivals</span>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </Link>
-
-                <Link
-                  href="/wishlist"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>My Wishlist</span>
-                    {wishlistCount > 0 && (
-                      <span className="bg-gray-100 text-black font-bold text-[10px] px-2.5 py-0.5 rounded-full">
-                        {wishlistCount}
-                      </span>
-                    )}
-                  </span>
-                  <Heart className="w-4 h-4 text-black" />
-                </Link>
-
-                <Link
-                  href="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-                >
-                  <span>My Profile & Orders</span>
-                  <User className="w-4 h-4 text-gray-400" />
-                </Link>
-              </nav>
-            </motion.div>
+              <X className="w-6 h-6" />
+            </button>
           </div>
-        )}
-      </AnimatePresence>
+
+          <nav className="space-y-4 font-bold text-sm text-black flex-1">
+            <Link
+              href="/product"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <span>Shop All</span>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </Link>
+
+            <Link
+              href="/product?filter=on-sale"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <span>On Sale</span>
+            </Link>
+
+            <Link
+              href="/product?sort=newest"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <span>New Arrivals</span>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </Link>
+
+            <Link
+              href="/wishlist"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <span>My Wishlist</span>
+                {wishlistCount > 0 && (
+                  <span className="bg-gray-100 text-black font-bold text-[10px] px-2.5 py-0.5 rounded-full">
+                    {wishlistCount}
+                  </span>
+                )}
+              </span>
+              <Heart className="w-4 h-4 text-black" />
+            </Link>
+
+            <Link
+              href="/profile"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <span>My Profile & Orders</span>
+              <User className="w-4 h-4 text-gray-400" />
+            </Link>
+          </nav>
+        </div>
+      </div>
     </div>
   );
 };
