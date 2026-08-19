@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import prisma from "../lib/prisma.js";
 import { ForbiddenError, UnauthorizedError } from "../utils/errors.js";
 
 export function requireRole(allowedRoles: string[]) {
@@ -31,5 +32,69 @@ export function requireOwnershipOrRole(paramIdKey = "id", allowedRoles = ["ADMIN
     }
 
     next();
+  };
+}
+
+/**
+ * Granular RBAC Permission Middleware
+ * 
+ * Verifies that the authenticated user possesses the specified permission capability.
+ * `SUPER_ADMIN` role automatically grants all permission capabilities.
+ */
+export function requirePermission(requiredPermission: string) {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) {
+        return next(new UnauthorizedError("Authentication required"));
+      }
+
+      // SUPER_ADMIN role bypasses granular permission check
+      if (req.user.roles.includes("SUPER_ADMIN")) {
+        return next();
+      }
+
+      // Query user's assigned role permissions from database
+      const dbUser = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          userRoles: {
+            select: {
+              role: {
+                select: {
+                  rolePermissions: {
+                    select: {
+                      permission: {
+                        select: { name: true },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!dbUser) {
+        return next(new UnauthorizedError("User profile not found"));
+      }
+
+      const userPermissions = new Set<string>();
+      for (const ur of dbUser.userRoles) {
+        for (const rp of ur.role.rolePermissions) {
+          userPermissions.add(rp.permission.name);
+        }
+      }
+
+      if (!userPermissions.has(requiredPermission)) {
+        return next(
+          new ForbiddenError(`Access denied. Missing required permission: '${requiredPermission}'`)
+        );
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
   };
 }

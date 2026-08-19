@@ -7,7 +7,7 @@ import cartRoutes from "./cart.routes.js";
 import wishlistRoutes from "./wishlist.routes.js";
 import ordersRoutes from "./orders.routes.js";
 import paymentsRoutes from "./payments.routes.js";
-import adminRoutes from "./admin.routes.js";
+import adminRoutes from "./admin/index.js";
 
 const router = Router();
 
