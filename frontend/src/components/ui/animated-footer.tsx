@@ -164,7 +164,8 @@ function highlightCluster(cells: Map<string, Cell>, startCell: Cell) {
       for (let dx = -1; dx <= 1; dx++) {
         if (dx === 0 && dy === 0) continue;
         const neighbour = cells.get(`${current.col + dx},${current.row + dy}`);
-        if (neighbour && !litCells.includes(neighbour)) neighbours.push(neighbour);
+        if (neighbour && !litCells.includes(neighbour))
+          neighbours.push(neighbour);
       }
     }
     if (neighbours.length === 0) break;
@@ -181,7 +182,12 @@ function getScrollParent(node: HTMLElement | null): HTMLElement | null {
   let el = node?.parentElement ?? null;
   while (el) {
     const overflowY = getComputedStyle(el).overflowY;
-    if (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") return el;
+    if (
+      overflowY === "auto" ||
+      overflowY === "scroll" ||
+      overflowY === "overlay"
+    )
+      return el;
     el = el.parentElement;
   }
   return null;
@@ -228,9 +234,21 @@ export function AnimatedFooter({
 
   // Live-tunable values read inside the animation loop, so tweaking a color or
   // the parallax strength never tears down and rebuilds the ASCII scene.
-  const liveRef = useRef({ charColor: cc, hoverColor: hc, hoverCharColor: hcc, parallaxStrength, hoverRadius });
+  const liveRef = useRef({
+    charColor: cc,
+    hoverColor: hc,
+    hoverCharColor: hcc,
+    parallaxStrength,
+    hoverRadius,
+  });
   useEffect(() => {
-    liveRef.current = { charColor: cc, hoverColor: hc, hoverCharColor: hcc, parallaxStrength, hoverRadius };
+    liveRef.current = {
+      charColor: cc,
+      hoverColor: hc,
+      hoverCharColor: hcc,
+      parallaxStrength,
+      hoverRadius,
+    };
   }, [cc, hc, hcc, parallaxStrength, hoverRadius]);
 
   // A signature of the structural inputs — the scene rebuilds only when one of
@@ -247,7 +265,16 @@ export function AnimatedFooter({
         revealOnScroll,
         headingLines,
       }),
-    [leftImage, rightImage, columns, cellSize, fontSize, asciiChars, revealOnScroll, headingLines],
+    [
+      leftImage,
+      rightImage,
+      columns,
+      cellSize,
+      fontSize,
+      asciiChars,
+      revealOnScroll,
+      headingLines,
+    ],
   );
 
   useEffect(() => {
@@ -280,8 +307,10 @@ export function AnimatedFooter({
       ctx.textBaseline = "alphabetic";
 
       const metrics = ctx.measureText("X");
-      const glyphHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-      const baselineOffset = cellSize / 2 + glyphHeight / 2 - metrics.actualBoundingBoxDescent;
+      const glyphHeight =
+        metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+      const baselineOffset =
+        cellSize / 2 + glyphHeight / 2 - metrics.actualBoundingBoxDescent;
 
       hands.push({
         canvas,
@@ -296,7 +325,11 @@ export function AnimatedFooter({
       });
     };
 
-    const loadHand = (src: string, canvas: HTMLCanvasElement, direction: 1 | -1) => {
+    const loadHand = (
+      src: string,
+      canvas: HTMLCanvasElement,
+      direction: 1 | -1,
+    ) => {
       if (!src) return;
       const image = new Image();
       image.crossOrigin = "anonymous";
@@ -314,8 +347,19 @@ export function AnimatedFooter({
     loadHand(rightImage, rightCanvasRef.current!, -1);
 
     const renderHand = (hand: Hand, now: number) => {
-      const { ctx, cellList, cellSize: cs, baselineOffset, columns: cols, rows } = hand;
-      const { charColor: cc, hoverColor: hc, hoverCharColor: hcc } = liveRef.current;
+      const {
+        ctx,
+        cellList,
+        cellSize: cs,
+        baselineOffset,
+        columns: cols,
+        rows,
+      } = hand;
+      const {
+        charColor: cc,
+        hoverColor: hc,
+        hoverCharColor: hcc,
+      } = liveRef.current;
       ctx.clearRect(0, 0, cols * cs, rows * cs);
 
       for (const cell of cellList) {
@@ -396,10 +440,17 @@ export function AnimatedFooter({
     rafId = requestAnimationFrame(frame);
 
     // ── Reveal (chars + curtain) ─────────────────────────
-    const chars = gsap.utils.toArray<HTMLElement>(root.querySelectorAll("[data-af-char]"));
+    const chars = gsap.utils.toArray<HTMLElement>(
+      root.querySelectorAll("[data-af-char]"),
+    );
 
     const animateIn = () => {
-      gsap.to(curtain, { offset: 0, duration: 1, ease: "power3.out", overwrite: true });
+      gsap.to(curtain, {
+        offset: 0,
+        duration: 1,
+        ease: "power3.out",
+        overwrite: true,
+      });
       gsap.to(chars, {
         yPercent: 0,
         duration: 1,
@@ -410,7 +461,12 @@ export function AnimatedFooter({
     };
 
     const animateOut = () => {
-      gsap.to(curtain, { offset: 125, duration: 0.4, ease: "power2.in", overwrite: true });
+      gsap.to(curtain, {
+        offset: 125,
+        duration: 0.4,
+        ease: "power2.in",
+        overwrite: true,
+      });
       gsap.to(chars, {
         yPercent: 125,
         duration: 0.4,
@@ -498,12 +554,21 @@ export function AnimatedFooter({
         "relative h-full w-full overflow-hidden",
         !background && "bg-white dark:bg-black",
         !textColor && "text-black dark:text-white",
-        className
+        className,
       )}
-      style={{ backgroundColor: background, color: textColor, containerType: "inline-size" }}
+      style={{
+        backgroundColor: background,
+        color: textColor,
+        containerType: "inline-size",
+      }}
     >
       {/* ASCII hands */}
-      <div className={cn("pointer-events-none absolute inset-0 flex justify-between", handsAlignmentClass)}>
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 flex justify-between",
+          handsAlignmentClass,
+        )}
+      >
         <div
           ref={leftWrapRef}
           className={cn("relative will-change-transform", handWidthClass)}
@@ -527,7 +592,7 @@ export function AnimatedFooter({
             <h2
               key={`${word}-${wi}`}
               aria-label={word}
-              className="overflow-hidden font-be-vietnam-pro-black px-12 font-black leading-none tracking-tighter text-black text-center translate-y-3 sm:translate-y-5 pt-[0.3em] -mt-[0.3em] pb-[0.1em]"
+              className="overflow-hidden font-be-vietnam-pro-black px-12 font-black leading-none tracking-widest text-black text-center translate-y-3 sm:translate-y-5 pt-[0.3em] mt-[-0.3em] pb-[0.1em]"
               style={{ fontSize: "clamp(2.5rem, 12.5vw, 11rem)" }}
             >
               {Array.from(word).map((ch, ci) => (
@@ -538,7 +603,7 @@ export function AnimatedFooter({
                   className="inline-block"
                 >
                   {ch === " " ? " " : ch}
-                </span> 
+                </span>
               ))}
             </h2>
           ))}
