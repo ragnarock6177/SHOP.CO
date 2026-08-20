@@ -12,6 +12,7 @@ import { ProductFormInput } from "@/validators/product.validator";
 interface CategoryItem {
   id: string;
   name: string;
+  status: "ACTIVE" | "INACTIVE";
 }
 
 export interface CreateProductModalProps {
@@ -29,15 +30,15 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
   // Fetch active categories for the dropdown
   const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
-    queryKey: ["admin", "categories"],
+    queryKey: ["admin", "categories", "active"],
     queryFn: async () => {
-      const res = await apiClient.get<ApiPaginatedResponse<CategoryItem>>("/admin/categories?limit=100");
+      const res = await apiClient.get<ApiPaginatedResponse<CategoryItem>>("/admin/categories?limit=100&status=ACTIVE");
       return res.data;
     },
     enabled: isOpen,
   });
 
-  const categories = categoriesData?.data || [];
+  const categories = (categoriesData?.data || []).filter((c) => c.status === "ACTIVE");
 
   // Close on Escape key press
   useEffect(() => {

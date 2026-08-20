@@ -16,7 +16,7 @@ export interface CategoryItem {
   description: string | null;
   parentId: string | null;
   sortOrder: number;
-  isActive: boolean;
+  status: "ACTIVE" | "INACTIVE";
   createdAt: string;
 }
 
@@ -64,11 +64,11 @@ export default function CategoriesPage() {
       cell: ({ row }) => <code className="text-[11px] text-slate-500">{row.original.slug}</code>,
     },
     {
-      accessorKey: "isActive",
+      accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
-          {row.original.isActive ? "ACTIVE" : "INACTIVE"}
+        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.status === "ACTIVE" ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80" : "bg-slate-100 text-slate-500"}`}>
+          {row.original.status}
         </span>
       ),
     },
