@@ -37,35 +37,68 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ""
       case "IN_STOCK":
       case "PUBLISHED":
       case "COMPLETED":
-        return "border-emerald-800/60 bg-emerald-950/40 text-emerald-300";
+        return "border-emerald-200/80 bg-emerald-50 text-emerald-700 dot-emerald";
       case "PROCESSING":
       case "CONFIRMED":
       case "SHIPPED":
-        return "border-zinc-700 bg-zinc-800 text-zinc-200";
+        return "border-blue-200/80 bg-blue-50 text-blue-700 dot-blue";
       case "LOW_STOCK":
       case "PENDING":
       case "SUSPENDED":
       case "DRAFT":
-        return "border-zinc-700 bg-zinc-900 text-zinc-400";
+        return "border-amber-200/80 bg-amber-50 text-amber-700 dot-amber";
       case "OUT_OF_STOCK":
       case "CANCELLED":
       case "BLOCKED":
       case "ARCHIVED":
       case "FAILED":
       case "REJECTED":
-        return "border-red-900/60 bg-red-950/40 text-red-300";
+        return "border-rose-200/80 bg-rose-50 text-rose-700 dot-rose";
       case "REFUNDED":
       case "PARTIALLY_REFUNDED":
-        return "border-zinc-800 bg-zinc-900 text-zinc-300";
+        return "border-purple-200/80 bg-purple-50 text-purple-700 dot-purple";
       default:
-        return "border-zinc-800 bg-zinc-900 text-zinc-400";
+        return "border-slate-200 bg-slate-100 text-slate-700 dot-slate";
+    }
+  };
+
+  const getDotColor = () => {
+    switch (normalized) {
+      case "DELIVERED":
+      case "ACTIVE":
+      case "IN_STOCK":
+      case "PUBLISHED":
+      case "COMPLETED":
+        return "bg-emerald-500";
+      case "PROCESSING":
+      case "CONFIRMED":
+      case "SHIPPED":
+        return "bg-blue-500";
+      case "LOW_STOCK":
+      case "PENDING":
+      case "SUSPENDED":
+      case "DRAFT":
+        return "bg-amber-500";
+      case "OUT_OF_STOCK":
+      case "CANCELLED":
+      case "BLOCKED":
+      case "ARCHIVED":
+      case "FAILED":
+      case "REJECTED":
+        return "bg-rose-500";
+      case "REFUNDED":
+      case "PARTIALLY_REFUNDED":
+        return "bg-purple-500";
+      default:
+        return "bg-slate-400";
     }
   };
 
   return (
     <span
-      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${getStyle()} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${getStyle()} ${className}`}
     >
+      <span className={`h-1.5 w-1.5 rounded-full ${getDotColor()}`} />
       {normalized.replace(/_/g, " ")}
     </span>
   );

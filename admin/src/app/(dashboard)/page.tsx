@@ -5,6 +5,7 @@ import { IndianRupee, ShoppingBag, AlertTriangle, RotateCcw, Activity } from "lu
 import { useDashboard } from "@/hooks/queries/useDashboard";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { DashboardSkeleton } from "@/components/ui/Skeleton";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -12,21 +13,12 @@ export default function DashboardPage() {
   const { data: metrics, isLoading, error } = useDashboard();
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded bg-zinc-800" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900" />
-          ))}
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="rounded-xl border border-red-900/50 bg-red-950/30 p-6 text-center text-xs text-red-300">
+      <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs">
         Failed to load executive dashboard analytics. Please verify backend API connectivity.
       </div>
     );
@@ -34,16 +26,17 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">Executive Dashboard</h1>
-          <p className="text-xs text-zinc-400">AIRAVÉ Operational Metrics & System Stream</p>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">Executive Dashboard</h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">AIRAVÉ Operational Metrics & System Stream</p>
         </div>
         <div className="flex items-center space-x-2">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 focus:outline-none"
+            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
           >
             <option value="today">Today</option>
             <option value="7d">Last 7 Days</option>
@@ -60,6 +53,7 @@ export default function DashboardPage() {
           value={`₹${(metrics?.grossRevenue || 0).toLocaleString("en-IN")}`}
           subtitle="Excludes cancelled & refunded"
           icon={IndianRupee}
+          trend="+12.4% vs last period"
         />
         <StatCard
           title="Total Orders"
@@ -85,61 +79,78 @@ export default function DashboardPage() {
       {/* Widgets Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Orders Widget */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-            <h2 className="text-sm font-semibold text-zinc-100">Recent Orders</h2>
-            <Link href="/orders" className="text-xs font-semibold text-zinc-400 hover:text-zinc-100">
-              View All →
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+                <ShoppingBag className="h-3.5 w-3.5" />
+              </div>
+              <h2 className="text-sm font-bold text-slate-900">Recent Orders</h2>
+            </div>
+            <Link href="/orders" className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1 group">
+              <span>View All</span>
+              <span className="transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
           </div>
-          <div className="mt-3 divide-y divide-zinc-800/60">
+          <div className="mt-2 divide-y divide-slate-100">
             {metrics?.recentOrders?.length ? (
               metrics.recentOrders.map((order: any) => (
-                <div key={order.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <Link href={`/orders/${order.id}`} className="text-xs font-semibold text-zinc-200 hover:underline">
-                      #{order.orderNumber}
-                    </Link>
-                    <p className="text-[11px] text-zinc-400">{order.customerName}</p>
+                <div key={order.id} className="flex items-center justify-between py-3.5 hover:bg-slate-50/60 px-2 rounded-xl transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-700">
+                      {order.customerName ? order.customerName[0].toUpperCase() : "#"}
+                    </div>
+                    <div>
+                      <Link href={`/orders/${order.id}`} className="text-xs font-bold text-slate-900 hover:underline">
+                        #{order.orderNumber}
+                      </Link>
+                      <p className="text-[11px] text-slate-500">{order.customerName}</p>
+                    </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <span className="text-xs font-semibold text-zinc-100">₹{order.totalAmount}</span>
+                    <span className="text-xs font-bold text-slate-900">₹{order.totalAmount}</span>
                     <StatusBadge status={order.status} />
                   </div>
                 </div>
               ))
             ) : (
-              <p className="py-6 text-center text-xs text-zinc-500">No recent orders recorded.</p>
+              <p className="py-8 text-center text-xs text-slate-400 font-medium">No recent orders recorded.</p>
             )}
           </div>
         </div>
 
         {/* Recent Audit Log Activity Widget */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-4 w-4 text-zinc-400" />
-              <h2 className="text-sm font-semibold text-zinc-100">System Audit Feed</h2>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+                <Activity className="h-3.5 w-3.5" />
+              </div>
+              <h2 className="text-sm font-bold text-slate-900">System Audit Feed</h2>
             </div>
-            <Link href="/audit-logs" className="text-xs font-semibold text-zinc-400 hover:text-zinc-100">
-              View Audit Logs →
+            <Link href="/audit-logs" className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1 group">
+              <span>View Logs</span>
+              <span className="transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
           </div>
-          <div className="mt-3 divide-y divide-zinc-800/60">
+          <div className="mt-2 divide-y divide-slate-100">
             {metrics?.recentAuditLogs?.length ? (
               metrics.recentAuditLogs.map((log: any) => (
-                <div key={log.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <span className="text-xs font-semibold text-zinc-200">{log.action}</span>
-                    <p className="text-[11px] text-zinc-400">By {log.actorName}</p>
+                <div key={log.id} className="flex items-center justify-between py-3.5 hover:bg-slate-50/60 px-2 rounded-xl transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 rounded-full bg-slate-400" />
+                    <div>
+                      <span className="text-xs font-bold text-slate-900">{log.action}</span>
+                      <p className="text-[11px] text-slate-500">By {log.actorName}</p>
+                    </div>
                   </div>
-                  <span className="text-[10px] text-zinc-500">
+                  <span className="text-[10px] font-semibold text-slate-400">
                     {new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="py-6 text-center text-xs text-zinc-500">No recent audit log stream.</p>
+              <p className="py-8 text-center text-xs text-slate-400 font-medium">No recent audit log stream.</p>
             )}
           </div>
         </div>

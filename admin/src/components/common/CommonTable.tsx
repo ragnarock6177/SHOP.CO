@@ -71,16 +71,16 @@ export function CommonTable<TData, TValue>({
   });
 
   return (
-    <div className={cn('w-full flex flex-col bg-white dark:bg-black rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden', className)}>
+    <div className={cn('w-full flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden', className)}>
       {/* Toolbar / Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 border-b border-slate-200/80 bg-slate-50/50">
         <div className="relative max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             placeholder={searchPlaceholder}
             value={globalFilter ?? ''}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-9 h-9 bg-white shadow-none dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 text-sm focus-visible:ring-1 focus-visible:ring-black dark:focus-visible:ring-white rounded-lg"
+            className="pl-9 h-9 bg-white shadow-2xs border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-900/10 focus-visible:border-slate-400 rounded-xl"
           />
         </div>
         {toolbarExtra && <div className="flex items-center gap-2">{toolbarExtra}</div>}
@@ -89,11 +89,11 @@ export function CommonTable<TData, TValue>({
       {/* Table Container */}
       <div className="relative w-full overflow-x-auto">
         <Table>
-          <TableHeader className="bg-neutral-100/70 dark:bg-neutral-900/70">
+          <TableHeader className="bg-slate-50/80 border-b border-slate-200/80">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-neutral-200 hover:bg-transparent dark:border-neutral-800">
+              <TableRow key={headerGroup.id} className="border-slate-200/80 hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="text-neutral-600 dark:text-neutral-400 font-semibold text-xs uppercase tracking-wider py-3">
+                  <TableHead key={header.id} className="text-slate-500 font-bold text-[11px] uppercase tracking-wider py-3.5 px-4">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -107,23 +107,82 @@ export function CommonTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-36 text-center">
-                  <div className="flex flex-col items-center justify-center gap-2 text-neutral-500">
-                    <Loader2 className="h-6 w-6 animate-spin text-black dark:text-white" />
-                    <span className="text-sm font-medium">Loading data...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 6 }).map((_, idx) => (
+                <TableRow key={idx} className="border-slate-100">
+                  {columns.map((col: any, colIdx) => {
+                    const isFirst = colIdx === 0;
+                    const isLast = colIdx === columns.length - 1;
+                    const headerStr = typeof col.header === 'string' ? col.header.toLowerCase() : '';
+                    const isBadge = headerStr.includes('status') || col.accessorKey === 'status';
+                    const isPrice = headerStr.includes('price') || headerStr.includes('inventory') || headerStr.includes('stock');
+
+                    if (isFirst) {
+                      return (
+                        <TableCell key={colIdx} className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-xl animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
+                            <div className="space-y-1.5 flex-1 min-w-0">
+                              <div
+                                className="h-3.5 rounded-md animate-shimmer bg-slate-100"
+                                style={{ width: `${Math.min(150, 90 + ((idx * 17) % 60))}px` }}
+                              />
+                              <div
+                                className="h-2.5 rounded-md animate-shimmer bg-slate-100"
+                                style={{ width: `${Math.min(100, 55 + ((idx * 13) % 40))}px` }}
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                      );
+                    }
+
+                    if (isBadge) {
+                      return (
+                        <TableCell key={colIdx} className="py-3.5 px-4">
+                          <div className="h-5 w-20 rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
+                        </TableCell>
+                      );
+                    }
+
+                    if (isLast) {
+                      return (
+                        <TableCell key={colIdx} className="py-3.5 px-4">
+                          <div className="h-7 w-7 rounded-lg animate-shimmer bg-slate-100 border border-slate-200/60" />
+                        </TableCell>
+                      );
+                    }
+
+                    if (isPrice) {
+                      return (
+                        <TableCell key={colIdx} className="py-3.5 px-4 text-right">
+                          <div
+                            className="h-3.5 rounded-md animate-shimmer bg-slate-100 ml-auto"
+                            style={{ width: `${Math.min(75, 45 + ((idx * 11) % 30))}px` }}
+                          />
+                        </TableCell>
+                      );
+                    }
+
+                    return (
+                      <TableCell key={colIdx} className="py-3.5 px-4">
+                        <div
+                          className="h-3.5 rounded-md animate-shimmer bg-slate-100"
+                          style={{ width: `${Math.min(120, 65 + (((idx + colIdx) * 19) % 55))}px` }}
+                        />
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50/80 dark:hover:bg-neutral-900/50 transition-colors"
+                  className="border-slate-100 hover:bg-slate-50/70 transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3 text-sm text-neutral-800 dark:text-neutral-200">
+                    <TableCell key={cell.id} className="py-3.5 px-4 text-xs text-slate-700 font-medium">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -132,9 +191,9 @@ export function CommonTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-36 text-center">
-                  <div className="flex flex-col items-center justify-center gap-2 text-neutral-400 dark:text-neutral-500">
+                  <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
                     <Inbox className="h-8 w-8 stroke-[1.5]" />
-                    <span className="text-sm font-medium">{emptyText}</span>
+                    <span className="text-xs font-medium">{emptyText}</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -143,41 +202,60 @@ export function CommonTable<TData, TValue>({
         </Table>
       </div>
 
-      {/* Pagination Footer */}
-      <div className="flex items-center justify-between px-4 py-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50/30 dark:bg-neutral-900/20 text-xs text-neutral-500">
-        <div>
-          Showing {table.getRowModel().rows.length > 0 ? table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1 : 0} to{' '}
-          {Math.min(
-            (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-            table.getFilteredRowModel().rows.length
-          )}{' '}
-          of {table.getFilteredRowModel().rows.length} entries
-        </div>
+      {/* Pagination Footer - Only shown when more than 10 rows */}
+      {table.getFilteredRowModel().rows.length > 10 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200/80 bg-slate-50/40 text-xs text-slate-500">
+          <div>
+            Showing <span className="font-bold text-slate-900">{table.getRowModel().rows.length > 0 ? table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1 : 0}</span> to{' '}
+            <span className="font-bold text-slate-900">
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                table.getFilteredRowModel().rows.length
+              )}
+            </span>{' '}
+            of <span className="font-bold text-slate-900">{table.getFilteredRowModel().rows.length}</span> entries
+          </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="h-8 px-2.5 border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 disabled:opacity-40"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-          </Button>
-          <span className="font-medium text-neutral-700 dark:text-neutral-300">
-            {table.getState().pagination.pageIndex + 1} / {table.getPageCount() || 1}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="h-8 px-2.5 border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 disabled:opacity-40"
-          >
-            Next <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Previous Button */}
+            <button
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.previousPage()}
+              className="group flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-900 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+              aria-label="Previous Page"
+            >
+              <div className="p-1.5 rounded-full border border-slate-200 bg-white group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-2xs">
+                <ChevronLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
+              </div>
+              <span className="hidden sm:inline">Prev</span>
+            </button>
+
+            {/* Page Indicator */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 shadow-2xs">
+              <span className="px-2.5 py-1 text-xs font-bold text-slate-900 bg-white rounded-lg shadow-2xs">
+                {table.getState().pagination.pageIndex + 1}
+              </span>
+              <span className="px-1 text-xs font-bold text-slate-400">/</span>
+              <span className="px-2 py-1 text-xs font-bold text-slate-600">
+                {table.getPageCount() || 1}
+              </span>
+            </div>
+
+            {/* Next Button */}
+            <button
+              disabled={!table.getCanNextPage()}
+              onClick={() => table.nextPage()}
+              className="group flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-900 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+              aria-label="Next Page"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <div className="p-1.5 rounded-full border border-slate-200 bg-white group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-2xs">
+                <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

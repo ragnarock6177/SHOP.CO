@@ -41,8 +41,8 @@ export default function InvoicesPage() {
       header: "Invoice #",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
-          <FileText className="h-4 w-4 text-zinc-400" />
-          <span className="font-mono text-xs font-semibold text-zinc-100">{row.original.invoiceNumber}</span>
+          <FileText className="h-4 w-4 text-slate-500" />
+          <span className="font-mono text-xs font-semibold text-slate-900">{row.original.invoiceNumber}</span>
         </div>
       ),
     },
@@ -50,7 +50,7 @@ export default function InvoicesPage() {
       accessorKey: "orderId",
       header: "Order Link",
       cell: ({ row }) => (
-        <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-zinc-200 hover:underline">
+        <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-slate-800 hover:underline">
           #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
         </Link>
       ),
@@ -58,12 +58,12 @@ export default function InvoicesPage() {
     {
       accessorKey: "customerEmail",
       header: "Customer",
-      cell: ({ row }) => <span className="text-xs text-zinc-400">{row.original.customerEmail}</span>,
+      cell: ({ row }) => <span className="text-xs text-slate-500">{row.original.customerEmail}</span>,
     },
     {
       accessorKey: "totalAmount",
       header: "Total Amount",
-      cell: ({ row }) => <span className="font-bold text-zinc-100">₹{row.original.totalAmount}</span>,
+      cell: ({ row }) => <span className="font-bold text-slate-900">₹{row.original.totalAmount}</span>,
     },
     {
       id: "actions",
@@ -71,7 +71,7 @@ export default function InvoicesPage() {
       cell: () => (
         <button
           onClick={() => typeof window !== "undefined" && window.print()}
-          className="flex items-center space-x-1 rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] font-semibold text-zinc-300 transition hover:bg-zinc-800"
+          className="flex items-center space-x-1 rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100"
         >
           <Printer className="h-3 w-3" />
           <span>Print</span>
@@ -83,13 +83,13 @@ export default function InvoicesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-zinc-100">Billing Invoices Directory</h1>
-        <p className="text-xs text-zinc-400">View and print customer tax invoices and order receipts</p>
+        <h1 className="text-xl font-bold text-slate-900">Billing Invoices Directory</h1>
+        <p className="text-xs text-slate-500">View and print customer tax invoices and order receipts</p>
       </div>
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
     </div>
   );
 }

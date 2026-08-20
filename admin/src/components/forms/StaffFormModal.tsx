@@ -40,62 +40,62 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md space-y-4 rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
-        <h3 className="text-base font-semibold text-zinc-100">Provision Staff Account</h3>
+      <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+        <h3 className="text-base font-semibold text-slate-900">Provision Staff Account</h3>
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-zinc-300 font-semibold mb-1">First Name</label>
+              <label className="block text-slate-700 font-semibold mb-1">First Name</label>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="Jane"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-zinc-300 font-semibold mb-1">Last Name</label>
+              <label className="block text-slate-700 font-semibold mb-1">Last Name</label>
               <input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Doe"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-zinc-300 font-semibold mb-1">Work Email</label>
+            <label className="block text-slate-700 font-semibold mb-1">Work Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="jane.doe@airave.com"
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-zinc-300 font-semibold mb-1">Temporary Password</label>
+            <label className="block text-slate-700 font-semibold mb-1">Temporary Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-zinc-300 font-semibold mb-1">Assigned Role</label>
+            <label className="block text-slate-700 font-semibold mb-1">Assigned Role</label>
             <select
               onChange={(e) => setRoleIds(e.target.value ? [e.target.value] : [])}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
             >
               <option value="">Select Role</option>
               {roles.map((r) => (
@@ -112,26 +112,26 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
               id="superAdmin"
               checked={isSuperAdmin}
               onChange={(e) => setIsSuperAdmin(e.target.checked)}
-              className="rounded border-zinc-800 bg-zinc-950 text-zinc-100"
+              className="rounded border-slate-200 bg-white text-slate-900"
             />
-            <label htmlFor="superAdmin" className="text-xs text-zinc-300 font-semibold">
+            <label htmlFor="superAdmin" className="text-xs text-slate-700 font-semibold">
               Grant Full Super Admin Access
             </label>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-3 border-t border-zinc-800">
+          <div className="flex justify-end space-x-3 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800"
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !email || !password}
-              className="rounded-lg bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-zinc-200 disabled:opacity-50"
+              className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
             >
               {isLoading ? "Provisioning..." : "Provision Staff"}
             </button>

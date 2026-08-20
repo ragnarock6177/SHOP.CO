@@ -37,15 +37,15 @@ export default function ShipmentsPage() {
       header: "Carrier & Tracking",
       cell: ({ row }) => (
         <div>
-          <span className="font-semibold text-zinc-100">{row.original.carrier}</span>
+          <span className="font-semibold text-slate-900">{row.original.carrier}</span>
           <div className="flex items-center space-x-1">
-            <code className="text-[11px] text-zinc-400 font-mono">{row.original.trackingNumber}</code>
+            <code className="text-[11px] text-slate-500 font-mono">{row.original.trackingNumber}</code>
             {row.original.trackingUrl && (
               <a
                 href={row.original.trackingUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-zinc-400 hover:text-zinc-100"
+                className="text-slate-500 hover:text-slate-900"
               >
                 <ExternalLink className="h-3 w-3" />
               </a>
@@ -58,7 +58,7 @@ export default function ShipmentsPage() {
       accessorKey: "orderId",
       header: "Order Reference",
       cell: ({ row }) => (
-        <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-zinc-200 hover:underline">
+        <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-slate-800 hover:underline">
           #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
         </Link>
       ),
@@ -78,7 +78,7 @@ export default function ShipmentsPage() {
               value=""
               onChange={(e) => updateStatusMutation.mutate({ id: row.original.id, status: e.target.value as any })}
               disabled={updateStatusMutation.isPending}
-              className="rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] text-zinc-300 focus:outline-none"
+              className="rounded border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-700 focus:outline-none"
             >
               <option value="" disabled>
                 Shift Status...
@@ -96,13 +96,13 @@ export default function ShipmentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">Package Shipments & Fulfillment</h1>
-          <p className="text-xs text-zinc-400">Track logistics carrier status, tracking numbers, and package delivery</p>
+          <h1 className="text-xl font-bold text-slate-900">Package Shipments & Fulfillment</h1>
+          <p className="text-xs text-slate-500">Track logistics carrier status, tracking numbers, and package delivery</p>
         </div>
         <PermissionGate permission="fulfillment:create">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-lg bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-zinc-200"
+            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             <span>Create Shipment</span>
@@ -117,7 +117,7 @@ export default function ShipmentsPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-300 focus:outline-none"
+          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
         >
           <option value="">All Shipment Statuses</option>
           <option value="PENDING">Pending</option>
@@ -128,7 +128,7 @@ export default function ShipmentsPage() {
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
 
       <CreateShipmentModal
         isOpen={isModalOpen}

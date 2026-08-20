@@ -35,7 +35,7 @@ export default function ReviewsPage() {
             <Star
               key={i}
               className={`h-3.5 w-3.5 ${
-                i < row.original.rating ? "fill-zinc-100 text-zinc-100" : "text-zinc-700"
+                i < row.original.rating ? "fill-amber-400 text-amber-400" : "text-slate-700"
               }`}
             />
           ))}
@@ -47,9 +47,9 @@ export default function ReviewsPage() {
       header: "Review Details",
       cell: ({ row }) => (
         <div>
-          <span className="font-semibold text-zinc-200">{row.original.title || "Review"}</span>
-          <p className="text-[11px] text-zinc-400 line-clamp-2">{row.original.comment}</p>
-          <span className="text-[10px] text-zinc-500">By {row.original.customerName} ({row.original.customerEmail})</span>
+          <span className="font-semibold text-slate-800">{row.original.title || "Review"}</span>
+          <p className="text-[11px] text-slate-500 line-clamp-2">{row.original.comment}</p>
+          <span className="text-[10px] text-slate-500">By {row.original.customerName} ({row.original.customerEmail})</span>
         </div>
       ),
     },
@@ -57,7 +57,7 @@ export default function ReviewsPage() {
       accessorKey: "isVerifiedPurchase",
       header: "Verified",
       cell: ({ row }) => (
-        <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold ${row.original.isVerifiedPurchase ? "bg-emerald-950 text-emerald-300" : "bg-zinc-800 text-zinc-400"}`}>
+        <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold ${row.original.isVerifiedPurchase ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isVerifiedPurchase ? "VERIFIED" : "UNVERIFIED"}
         </span>
       ),
@@ -66,7 +66,7 @@ export default function ReviewsPage() {
       accessorKey: "isPublished",
       header: "Publication",
       cell: ({ row }) => (
-        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isPublished ? "bg-emerald-950 text-emerald-300" : "bg-zinc-800 text-zinc-400"}`}>
+        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isPublished ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isPublished ? "PUBLISHED" : "HIDDEN"}
         </span>
       ),
@@ -80,7 +80,7 @@ export default function ReviewsPage() {
             <button
               onClick={() => toggleMutation.mutate({ id: row.original.id, isPublished: !row.original.isPublished })}
               disabled={toggleMutation.isPending}
-              className="rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] font-semibold text-zinc-300 transition hover:bg-zinc-800"
+              className="rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100"
             >
               {row.original.isPublished ? "Unpublish" : "Publish"}
             </button>
@@ -88,7 +88,7 @@ export default function ReviewsPage() {
           <PermissionGate permission="reviews:delete">
             <button
               onClick={() => setDeleteId(row.original.id)}
-              className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-red-400"
+              className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-rose-600"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -101,13 +101,13 @@ export default function ReviewsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-zinc-100">Customer Product Reviews</h1>
-        <p className="text-xs text-zinc-400">Moderate customer feedback, ratings, and public visibility</p>
+        <h1 className="text-xl font-bold text-slate-900">Customer Product Reviews</h1>
+        <p className="text-xs text-slate-500">Moderate customer feedback, ratings, and public visibility</p>
       </div>
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
 
       <ConfirmDialog
         isOpen={!!deleteId}

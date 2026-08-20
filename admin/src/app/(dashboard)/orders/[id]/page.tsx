@@ -20,16 +20,68 @@ export default function OrderDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded bg-zinc-800" />
-        <div className="h-96 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900" />
+      <div className="space-y-6 animate-fade-in-up">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="h-9 w-9 rounded-xl animate-shimmer bg-slate-100 border border-slate-200/60" />
+            <div className="space-y-1.5">
+              <div className="h-6 w-48 rounded-md animate-shimmer bg-slate-100" />
+              <div className="h-3 w-36 rounded-md animate-shimmer bg-slate-100" />
+            </div>
+          </div>
+          <div className="h-6 w-24 rounded-full animate-shimmer bg-slate-100" />
+        </div>
+
+        {/* 3 Column Grid Skeleton */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+              <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                <div className="h-4 w-4 rounded animate-shimmer bg-slate-100" />
+                <div className="h-4 w-32 rounded-md animate-shimmer bg-slate-100" />
+              </div>
+              <div className="divide-y divide-slate-100">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between py-3.5">
+                    <div className="space-y-1.5">
+                      <div className="h-4 w-40 rounded-md animate-shimmer bg-slate-100" />
+                      <div className="h-3 w-20 rounded-md animate-shimmer bg-slate-100" />
+                    </div>
+                    <div className="space-y-1.5 text-right">
+                      <div className="h-3.5 w-16 rounded-md animate-shimmer bg-slate-100 ml-auto" />
+                      <div className="h-4 w-12 rounded-md animate-shimmer bg-slate-100 ml-auto" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-3">
+              <div className="h-4 w-32 rounded-md animate-shimmer bg-slate-100 border-b border-slate-100 pb-3" />
+              <div className="space-y-2 pt-1">
+                <div className="h-4 w-28 rounded-md animate-shimmer bg-slate-100" />
+                <div className="h-3 w-40 rounded-md animate-shimmer bg-slate-100" />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-3">
+              <div className="h-4 w-32 rounded-md animate-shimmer bg-slate-100 border-b border-slate-100 pb-3" />
+              <div className="space-y-2 pt-1">
+                <div className="h-3.5 w-full rounded-md animate-shimmer bg-slate-100" />
+                <div className="h-3.5 w-3/4 rounded-md animate-shimmer bg-slate-100" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error || !order) {
     return (
-      <div className="rounded-xl border border-red-900/50 bg-red-950/30 p-6 text-center text-xs text-red-300">
+      <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs">
         Order not found or error loading order details.
       </div>
     );
@@ -80,13 +132,13 @@ export default function OrderDetailsPage() {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.push("/orders")}
-            className="rounded-lg border border-zinc-800 p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+            className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-zinc-100">Order #{order.orderNumber}</h1>
-            <p className="text-xs text-zinc-400">Placed on {new Date(order.createdAt).toLocaleString()}</p>
+            <h1 className="text-xl font-bold text-slate-900">Order #{order.orderNumber}</h1>
+            <p className="text-xs text-slate-500">Placed on {new Date(order.createdAt).toLocaleString()}</p>
           </div>
         </div>
 
@@ -99,7 +151,7 @@ export default function OrderDetailsPage() {
                 onChange={(e) => handleStatusChange(e.target.value as OrderStatus)}
                 defaultValue=""
                 disabled={updateStatusMutation.isPending}
-                className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-100 focus:outline-none disabled:opacity-50"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
               >
                 <option value="" disabled>
                   Advance Order Status...
@@ -119,23 +171,23 @@ export default function OrderDetailsPage() {
         {/* Main Line Items Section */}
         <div className="space-y-6 lg:col-span-2">
           {/* Order Items Table */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl space-y-4">
-            <div className="flex items-center space-x-2 border-b border-zinc-800 pb-3">
-              <PackageCheck className="h-4 w-4 text-zinc-400" />
-              <h2 className="text-sm font-semibold text-zinc-100">Order Line Items</h2>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
+            <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
+              <PackageCheck className="h-4 w-4 text-slate-500" />
+              <h2 className="text-sm font-semibold text-slate-900">Order Line Items</h2>
             </div>
-            <div className="divide-y divide-zinc-800/60 text-xs">
+            <div className="divide-y divide-slate-100 text-xs">
               {order.items?.map((item) => (
                 <div key={item.id} className="flex items-center justify-between py-3">
                   <div>
-                    <span className="font-semibold text-zinc-200">{item.productName}</span>
-                    <p className="text-[10px] text-zinc-500 font-mono">SKU: {item.sku}</p>
+                    <span className="font-semibold text-slate-800">{item.productName}</span>
+                    <p className="text-[10px] text-slate-500 font-mono">SKU: {item.sku}</p>
                   </div>
                   <div className="text-right">
-                    <span className="block text-zinc-300">
+                    <span className="block text-slate-700">
                       ₹{item.unitPrice} × {item.quantity}
                     </span>
-                    <span className="font-bold text-zinc-100">₹{item.totalAmount}</span>
+                    <span className="font-bold text-slate-900">₹{item.totalAmount}</span>
                   </div>
                 </div>
               ))}
@@ -143,29 +195,29 @@ export default function OrderDetailsPage() {
           </div>
 
           {/* Status Timeline History */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl space-y-4">
-            <div className="flex items-center space-x-2 border-b border-zinc-800 pb-3">
-              <Clock className="h-4 w-4 text-zinc-400" />
-              <h2 className="text-sm font-semibold text-zinc-100">Status History Audit Trail</h2>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
+            <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
+              <Clock className="h-4 w-4 text-slate-500" />
+              <h2 className="text-sm font-semibold text-slate-900">Status History Audit Trail</h2>
             </div>
-            <div className="divide-y divide-zinc-800/60 text-xs">
+            <div className="divide-y divide-slate-100 text-xs">
               {order.statusHistory?.length ? (
                 order.statusHistory.map((hist) => (
                   <div key={hist.id} className="flex items-center justify-between py-2.5">
                     <div>
                       <div className="flex items-center space-x-2">
                         <StatusBadge status={hist.newStatus} />
-                        {hist.reason && <span className="text-[11px] text-zinc-400">({hist.reason})</span>}
+                        {hist.reason && <span className="text-[11px] text-slate-500">({hist.reason})</span>}
                       </div>
-                      <p className="text-[10px] text-zinc-500 mt-1">Changed by: {hist.changedBy || "System"}</p>
+                      <p className="text-[10px] text-slate-500 mt-1">Changed by: {hist.changedBy || "System"}</p>
                     </div>
-                    <span className="text-[10px] text-zinc-500">
+                    <span className="text-[10px] text-slate-500">
                       {new Date(hist.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
                 ))
               ) : (
-                <p className="py-4 text-center text-xs text-zinc-500">No status transitions recorded.</p>
+                <p className="py-4 text-center text-xs text-slate-500">No status transitions recorded.</p>
               )}
             </div>
           </div>
@@ -174,36 +226,36 @@ export default function OrderDetailsPage() {
         {/* Sidebar Summary Section */}
         <div className="space-y-6">
           {/* Customer Profile Card */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl space-y-3">
-            <div className="flex items-center space-x-2 border-b border-zinc-800 pb-3">
-              <User className="h-4 w-4 text-zinc-400" />
-              <h2 className="text-sm font-semibold text-zinc-100">Customer Details</h2>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
+            <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
+              <User className="h-4 w-4 text-slate-500" />
+              <h2 className="text-sm font-semibold text-slate-900">Customer Details</h2>
             </div>
-            <div className="text-xs space-y-1 text-zinc-300">
-              <p className="font-semibold text-zinc-100">{order.customerName}</p>
-              <p className="text-zinc-400">{order.customerEmail}</p>
+            <div className="text-xs space-y-1 text-slate-700">
+              <p className="font-semibold text-slate-900">{order.customerName}</p>
+              <p className="text-slate-500">{order.customerEmail}</p>
             </div>
           </div>
 
           {/* Shipping Address Card */}
           {order.shippingAddress && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl space-y-3">
-              <div className="flex items-center space-x-2 border-b border-zinc-800 pb-3">
-                <MapPin className="h-4 w-4 text-zinc-400" />
-                <h2 className="text-sm font-semibold text-zinc-100">Shipping Address</h2>
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
+              <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                <MapPin className="h-4 w-4 text-slate-500" />
+                <h2 className="text-sm font-semibold text-slate-900">Shipping Address</h2>
               </div>
-              <div className="text-xs space-y-1 text-zinc-300">
+              <div className="text-xs space-y-1 text-slate-700">
                 <p>{order.shippingAddress.street}</p>
                 <p>{order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.postalCode}</p>
-                <p className="text-zinc-500">{order.shippingAddress.country}</p>
+                <p className="text-slate-500">{order.shippingAddress.country}</p>
               </div>
             </div>
           )}
 
           {/* Financial Breakdown Card */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl space-y-3">
-            <h2 className="text-sm font-semibold text-zinc-100 border-b border-zinc-800 pb-3">Financial Summary</h2>
-            <div className="text-xs space-y-2 text-zinc-300">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
+            <h2 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-3">Financial Summary</h2>
+            <div className="text-xs space-y-2 text-slate-700">
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>₹{order.subtotal}</span>
@@ -220,7 +272,7 @@ export default function OrderDetailsPage() {
                 <span>Tax Amount</span>
                 <span>₹{order.taxAmount}</span>
               </div>
-              <div className="flex justify-between border-t border-zinc-800 pt-2 text-sm font-bold text-zinc-100">
+              <div className="flex justify-between border-t border-slate-200 pt-2 text-sm font-bold text-slate-900">
                 <span>Grand Total</span>
                 <span>₹{order.totalAmount}</span>
               </div>

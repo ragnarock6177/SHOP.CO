@@ -30,14 +30,14 @@ export default function StaffUsersPage() {
       header: "Staff Member",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
-          <UserCheck className="h-4 w-4 text-zinc-400" />
+          <UserCheck className="h-4 w-4 text-slate-500" />
           <div>
-            <span className="font-semibold text-zinc-100">
+            <span className="font-semibold text-slate-900">
               {row.original.firstName || row.original.lastName
                 ? `${row.original.firstName || ""} ${row.original.lastName || ""}`.trim()
                 : row.original.email}
             </span>
-            <p className="text-[11px] text-zinc-400">{row.original.email}</p>
+            <p className="text-[11px] text-slate-500">{row.original.email}</p>
           </div>
         </div>
       ),
@@ -48,12 +48,12 @@ export default function StaffUsersPage() {
       cell: ({ row }) => (
         <div>
           {row.original.isSuperAdmin ? (
-            <span className="inline-flex items-center space-x-1 rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-bold text-zinc-100">
-              <ShieldAlert className="h-3 w-3 text-zinc-300" />
+            <span className="inline-flex items-center space-x-1 rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-900">
+              <ShieldAlert className="h-3 w-3 text-slate-700" />
               <span>SUPER ADMIN</span>
             </span>
           ) : (
-            <span className="text-xs text-zinc-400">
+            <span className="text-xs text-slate-500">
               {row.original.roles?.map((r) => r.name).join(", ") || "Standard Staff"}
             </span>
           )}
@@ -69,7 +69,7 @@ export default function StaffUsersPage() {
       accessorKey: "lastLoginAt",
       header: "Last Login",
       cell: ({ row }) => (
-        <span className="text-[11px] text-zinc-400">
+        <span className="text-[11px] text-slate-500">
           {row.original.lastLoginAt ? new Date(row.original.lastLoginAt).toLocaleString() : "Never"}
         </span>
       ),
@@ -80,13 +80,13 @@ export default function StaffUsersPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">Staff Accounts Management</h1>
-          <p className="text-xs text-zinc-400">Provision admin panel staff accounts, assign roles, and revoke access</p>
+          <h1 className="text-xl font-bold text-slate-900">Staff Accounts Management</h1>
+          <p className="text-xs text-slate-500">Provision admin panel staff accounts, assign roles, and revoke access</p>
         </div>
         <PermissionGate permission="staff:create">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-lg bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-zinc-200"
+            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             <span>Provision Staff</span>
@@ -96,7 +96,7 @@ export default function StaffUsersPage() {
 
       <DataTable columns={columns} data={staffData?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={staffData?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={staffData?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
 
       <StaffFormModal
         isOpen={isModalOpen}

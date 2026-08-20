@@ -19,29 +19,43 @@ export function createAdminQuerySchema(
 ) {
   return z.object({
     page: z
-      .string()
+      .union([z.string(), z.number()])
       .optional()
-      .transform((val) => (val ? parseInt(val, 10) : 1))
+      .transform((val) => {
+        if (typeof val === "number") return Math.max(1, Math.floor(val));
+        if (typeof val === "string") {
+          const parsed = parseInt(val, 10);
+          return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+        }
+        return 1;
+      })
       .pipe(z.number().int().min(1))
       .catch(1),
     limit: z
-      .string()
+      .union([z.string(), z.number()])
       .optional()
-      .transform((val) => (val ? parseInt(val, 10) : 20))
+      .transform((val) => {
+        if (typeof val === "number") return Math.min(100, Math.max(1, Math.floor(val)));
+        if (typeof val === "string") {
+          const parsed = parseInt(val, 10);
+          return isNaN(parsed) || parsed < 1 ? 10 : Math.min(100, parsed);
+        }
+        return 10;
+      })
       .pipe(z.number().int().min(1).max(100))
-      .catch(20),
+      .catch(10),
     sortBy: z
-      .string()
+      .any()
       .optional()
-      .transform((val) => (val && allowedSortColumns.includes(val) ? val : defaultSortColumn)),
+      .transform((val) => (typeof val === "string" && allowedSortColumns.includes(val) ? val : defaultSortColumn)),
     sortOrder: z
-      .enum(["asc", "desc"])
+      .any()
       .optional()
       .transform((val) => (val === "asc" ? "asc" : "desc")),
     search: z
-      .string()
+      .any()
       .optional()
-      .transform((val) => (val ? val.trim() : undefined)),
+      .transform((val) => (typeof val === "string" && val.trim() ? val.trim() : undefined)),
   });
 }
 

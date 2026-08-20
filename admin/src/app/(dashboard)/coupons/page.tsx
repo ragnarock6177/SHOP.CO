@@ -36,8 +36,8 @@ export default function CouponsPage() {
       header: "Coupon Code",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
-          <Ticket className="h-4 w-4 text-zinc-400" />
-          <code className="font-mono text-xs font-bold text-zinc-100 uppercase">{row.original.code}</code>
+          <Ticket className="h-4 w-4 text-slate-500" />
+          <code className="font-mono text-xs font-bold text-slate-900 uppercase">{row.original.code}</code>
         </div>
       ),
     },
@@ -54,7 +54,7 @@ export default function CouponsPage() {
       accessorKey: "usedCount",
       header: "Redemptions / Limit",
       cell: ({ row }) => (
-        <span className="text-xs text-zinc-300">
+        <span className="text-xs text-slate-700">
           {row.original.usedCount} / {row.original.usageLimit ? row.original.usageLimit : "∞"}
         </span>
       ),
@@ -63,7 +63,7 @@ export default function CouponsPage() {
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
-        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isActive ? "bg-emerald-950 text-emerald-300" : "bg-zinc-800 text-zinc-400"}`}>
+        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isActive ? "ACTIVE" : "INACTIVE"}
         </span>
       ),
@@ -76,7 +76,7 @@ export default function CouponsPage() {
           <button
             onClick={() => toggleMutation.mutate({ id: row.original.id, isActive: !row.original.isActive })}
             disabled={toggleMutation.isPending}
-            className="rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] font-semibold text-zinc-300 transition hover:bg-zinc-800"
+            className="rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100"
           >
             {row.original.isActive ? "Deactivate" : "Activate"}
           </button>
@@ -89,13 +89,13 @@ export default function CouponsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">Promotional Coupons & Discounts</h1>
-          <p className="text-xs text-zinc-400">Configure promotional voucher codes, discount rules, and redemption limits</p>
+          <h1 className="text-xl font-bold text-slate-900">Promotional Coupons & Discounts</h1>
+          <p className="text-xs text-slate-500">Configure promotional voucher codes, discount rules, and redemption limits</p>
         </div>
         <PermissionGate permission="coupons:create">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-lg bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-zinc-200"
+            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             <span>Create Coupon</span>
@@ -115,7 +115,7 @@ export default function CouponsPage() {
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
 
       <CouponFormModal
         isOpen={isModalOpen}

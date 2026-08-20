@@ -32,21 +32,21 @@ export default function AttributesPage() {
       header: "Attribute Name",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
-          <Sliders className="h-4 w-4 text-zinc-400" />
-          <span className="font-semibold text-zinc-100">{row.original.name}</span>
+          <Sliders className="h-4 w-4 text-slate-500" />
+          <span className="font-semibold text-slate-900">{row.original.name}</span>
         </div>
       ),
     },
     {
       accessorKey: "slug",
       header: "Slug",
-      cell: ({ row }) => <code className="text-[11px] text-zinc-400">{row.original.slug}</code>,
+      cell: ({ row }) => <code className="text-[11px] text-slate-500">{row.original.slug}</code>,
     },
     {
       accessorKey: "isVariantAttribute",
       header: "Variant Attribute",
       cell: ({ row }) => (
-        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isVariantAttribute ? "bg-emerald-950 text-emerald-300" : "bg-zinc-800 text-zinc-400"}`}>
+        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isVariantAttribute ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isVariantAttribute ? "YES" : "NO"}
         </span>
       ),
@@ -56,8 +56,8 @@ export default function AttributesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-zinc-100">Product Attributes & Swatches</h1>
-        <p className="text-xs text-zinc-400">Configure size, color, material, and variant swatches</p>
+        <h1 className="text-xl font-bold text-slate-900">Product Attributes & Swatches</h1>
+        <p className="text-xs text-slate-500">Configure size, color, material, and variant swatches</p>
       </div>
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />

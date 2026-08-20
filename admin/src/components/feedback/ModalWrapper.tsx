@@ -41,9 +41,9 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
     <div
       tabIndex={-1}
       ref={modalRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-in fade-in"
     >
-      <div className={`relative w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl ${className}`}>
+      <div className={`relative w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs animate-in zoom-in-95 duration-150 ${className}`}>
         {children}
       </div>
     </div>

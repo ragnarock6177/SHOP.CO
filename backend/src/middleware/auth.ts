@@ -2,10 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
 import { firebaseApp, getFirebaseAuth } from "../config/firebase.js";
+import { env } from "../config/env.js";
 import { UnauthorizedError, ForbiddenError } from "../utils/errors.js";
 import { AuthUser } from "../types/express.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "airave@123454321@airave";
+const JWT_SECRET = env.JWT_SECRET || "airave@123454321@airave";
 
 export async function authenticate(
   req: Request,

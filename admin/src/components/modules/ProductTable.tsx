@@ -80,8 +80,8 @@ export function ProductTable() {
       },
       cell: ({ row }) => (
         <div className="flex flex-col">
-          <span className="font-medium text-black dark:text-white">{row.getValue('title')}</span>
-          <span className="text-xs text-neutral-500">{row.original.sku}</span>
+          <span className="font-semibold text-slate-900">{row.getValue('title')}</span>
+          <span className="text-xs text-slate-500">{row.original.sku}</span>
         </div>
       ),
     },
@@ -108,7 +108,7 @@ export function ProductTable() {
       header: () => <div className="text-right">Inventory</div>,
       cell: ({ row }) => {
         const stock = parseInt(row.getValue('stock'));
-        return <div className="text-right font-medium">{stock}</div>;
+        return <div className="text-right font-semibold text-slate-800">{stock}</div>;
       },
     },
     {
@@ -117,7 +117,7 @@ export function ProductTable() {
       cell: ({ row }) => {
         const amount = parseFloat(row.getValue('price'));
         const formatted = formatCurrency(amount);
-        return <div className="text-right font-medium">{formatted}</div>;
+        return <div className="text-right font-bold text-slate-900">{formatted}</div>;
       },
     },
     {
@@ -126,17 +126,17 @@ export function ProductTable() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 text-neutral-500 hover:text-black dark:hover:text-white">
+              <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px] rounded-xl border-neutral-200 dark:border-neutral-800">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem className="cursor-pointer">Edit Product</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">Duplicate</DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-neutral-200 dark:bg-neutral-800" />
-              <DropdownMenuItem className="cursor-pointer text-rose-600 focus:bg-rose-50 focus:text-rose-600 dark:text-rose-500 dark:focus:bg-rose-950/50">Delete Product</DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-[160px] rounded-xl border-slate-200 bg-white p-1 shadow-lg text-slate-900">
+              <DropdownMenuLabel className="text-xs font-bold text-slate-500 px-2 py-1.5">Actions</DropdownMenuLabel>
+              <DropdownMenuItem className="cursor-pointer text-xs font-medium rounded-lg px-2 py-1.5 hover:bg-slate-50">Edit Product</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-xs font-medium rounded-lg px-2 py-1.5 hover:bg-slate-50">Duplicate</DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-slate-100 my-1" />
+              <DropdownMenuItem className="cursor-pointer text-xs font-semibold text-rose-600 rounded-lg px-2 py-1.5 hover:bg-rose-50 hover:text-rose-700">Delete Product</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -150,9 +150,9 @@ export function ProductTable() {
       data={data}
       searchPlaceholder="Search products by name or SKU..."
       toolbarExtra={
-        <Button asChild size="sm" className="bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200">
+        <Button asChild size="sm" className="bg-slate-900 text-white hover:bg-slate-800 shadow-xs active:scale-[0.98] rounded-xl font-semibold px-3.5">
           <Link href="/products/new">
-            <Plus className="mr-2 h-4 w-4" /> Add Product
+            <Plus className="mr-1.5 h-4 w-4" /> Add Product
           </Link>
         </Button>
       }

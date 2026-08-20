@@ -37,6 +37,7 @@ apiClient.interceptors.response.use(
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
         localStorage.removeItem("airave_admin_token");
         localStorage.removeItem("token");
+        localStorage.removeItem("airave_admin_user");
         window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
       }
     }

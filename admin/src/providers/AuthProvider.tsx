@@ -27,37 +27,41 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * Fetch full admin user profile by ID.
- * Falls back to a minimal object constructed from the basic /auth/me response.
- */
-async function fetchFullProfile(userId: string): Promise<Partial<AdminUser>> {
-  try {
-    const resp = await apiClient.get<{ success: boolean; data: any }>(`/admin/admin-users/${userId}`);
-    if (resp.data.success && resp.data.data) {
-      const u = resp.data.data;
-      return {
-        id: u.id,
-        email: u.email,
-        firstName: u.firstName ?? null,
-        lastName: u.lastName ?? null,
-        status: u.status,
-        isSuperAdmin: u.roles?.includes("SUPER_ADMIN") ?? false,
-        roles: u.roles ?? [],
-        permissions: u.permissions ?? [],
-        lastLoginAt: u.lastLoginAt ?? null,
-      };
-    }
-  } catch {
-    // Fall through — return empty so caller uses base data
-  }
-  return {};
-}
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [permissions, setPermissions] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<AdminUser | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("airave_admin_user");
+        if (cached) return JSON.parse(cached);
+      } catch {
+        // Ignore parse error
+      }
+    }
+    return null;
+  });
+
+  const [permissions, setPermissions] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("airave_admin_user");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          return parsed.permissions || [];
+        }
+      } catch {
+        // Ignore parse error
+      }
+    }
+    return [];
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
+      return Boolean(token);
+    }
+    return true;
+  });
 
   const restoreSession = useCallback(async () => {
     if (typeof window === "undefined") return;
@@ -65,48 +69,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
 
     if (!token) {
+      setUser(null);
+      setPermissions([]);
       setIsLoading(false);
       return;
     }
 
     try {
-      // 1. Get basic auth context (verifies the token is still valid)
-      const meResp = await apiClient.get<{ success: boolean; message: string; data?: { user?: any } }>(
+      // Get authenticated user details directly from /auth/me
+      const meResp = await apiClient.get<{ success: boolean; message: string; data?: any }>(
         "/auth/me"
       );
 
-      // The /auth/me response shape is: { success, message, data: { user: { id, email, status, roles } } }
-      const baseUser =
-        meResp.data?.data?.user ?? meResp.data?.data ?? null;
+      const baseUser = meResp.data?.data?.user ?? meResp.data?.data ?? null;
 
-      if (!meResp.data.success || !baseUser?.id) {
-        throw new Error("Invalid session response");
+      if (!meResp.data?.success || !baseUser?.id) {
+        throw new Error("Invalid session response from server");
       }
 
-      // 2. Fetch full admin profile to get firstName, lastName, isSuperAdmin, permissions
-      const extraProfile = await fetchFullProfile(baseUser.id);
+      const isSuperAdmin = Boolean(
+        baseUser.isSuperAdmin || baseUser.roles?.includes("SUPER_ADMIN")
+      );
 
       const fullUser: AdminUser = {
         id: baseUser.id,
         email: baseUser.email,
-        firstName: extraProfile.firstName ?? null,
-        lastName: extraProfile.lastName ?? null,
+        firstName: baseUser.firstName ?? null,
+        lastName: baseUser.lastName ?? null,
         status: baseUser.status ?? "ACTIVE",
-        isSuperAdmin:
-          extraProfile.isSuperAdmin ??
-          baseUser.roles?.includes("SUPER_ADMIN") ??
-          false,
-        roles: extraProfile.roles ?? baseUser.roles ?? [],
-        permissions: extraProfile.permissions ?? [],
-        lastLoginAt: extraProfile.lastLoginAt ?? null,
+        isSuperAdmin,
+        roles: baseUser.roles ?? [],
+        permissions: baseUser.permissions ?? (isSuperAdmin ? ["*"] : []),
+        lastLoginAt: baseUser.lastLoginAt ?? null,
       };
 
       setUser(fullUser);
       setPermissions(fullUser.permissions);
-    } catch (error) {
-      console.warn("Failed to restore admin auth session:", error);
-      localStorage.removeItem("airave_admin_token");
-      localStorage.removeItem("token");
+      localStorage.setItem("airave_admin_user", JSON.stringify(fullUser));
+    } catch (error: any) {
+      console.warn("Auth session validation error:", error?.message || error);
+      // Only wipe session if server explicitly returns 401 Unauthorized
+      if (error?.response?.status === 401) {
+        localStorage.removeItem("airave_admin_token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("airave_admin_user");
+        setUser(null);
+        setPermissions([]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -117,20 +126,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [restoreSession]);
 
   const login = useCallback((token: string, staffUser: AdminUser) => {
-    
     localStorage.setItem("airave_admin_token", token);
     localStorage.setItem("token", token);
-    // Enrich isSuperAdmin from roles array if not explicitly set
+
+    const isSuperAdmin = Boolean(
+      staffUser.isSuperAdmin || staffUser.roles?.includes("SUPER_ADMIN")
+    );
+
     const enriched: AdminUser = {
       ...staffUser,
-      isSuperAdmin:
-        staffUser.isSuperAdmin ??
-        staffUser.roles?.includes("SUPER_ADMIN") ??
-        false,
-      permissions: staffUser.permissions ?? [],
+      isSuperAdmin,
+      permissions: staffUser.permissions || (isSuperAdmin ? ["*"] : []),
     };
+
     setUser(enriched);
     setPermissions(enriched.permissions);
+    localStorage.setItem("airave_admin_user", JSON.stringify(enriched));
     setIsLoading(false);
   }, []);
 
@@ -142,6 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       localStorage.removeItem("airave_admin_token");
       localStorage.removeItem("token");
+      localStorage.removeItem("airave_admin_user");
       setUser(null);
       setPermissions([]);
       if (typeof window !== "undefined") {

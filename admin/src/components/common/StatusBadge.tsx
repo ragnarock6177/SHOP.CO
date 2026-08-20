@@ -13,16 +13,16 @@ interface StatusBadgeProps {
 }
 
 const variantStyles: Record<StatusVariant, string> = {
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-400',
-  warning: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-400',
-  danger: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-400',
-  info: 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-400',
-  neutral: 'border-neutral-200 bg-neutral-50 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400',
+  success: 'border-emerald-200/80 bg-emerald-50 text-emerald-700',
+  warning: 'border-amber-200/80 bg-amber-50 text-amber-700',
+  danger: 'border-rose-200/80 bg-rose-50 text-rose-700',
+  info: 'border-sky-200/80 bg-sky-50 text-sky-700',
+  neutral: 'border-slate-200 bg-slate-100 text-slate-700',
 };
 
 export function StatusBadge({ status, variant = 'neutral', className }: StatusBadgeProps) {
   return (
-    <Badge variant="outline" className={cn('font-medium capitalize', variantStyles[variant], className)}>
+    <Badge variant="outline" className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide capitalize', variantStyles[variant], className)}>
       {status}
     </Badge>
   );

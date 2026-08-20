@@ -43,10 +43,10 @@ export default function PaymentsPage() {
       header: "Provider & Ref",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
-          <CreditCard className="h-4 w-4 text-zinc-400" />
+          <CreditCard className="h-4 w-4 text-slate-500" />
           <div>
-            <span className="font-semibold text-zinc-100">{row.original.provider}</span>
-            <p className="text-[10px] text-zinc-500 font-mono">{row.original.providerPaymentId || "COD / Direct"}</p>
+            <span className="font-semibold text-slate-900">{row.original.provider}</span>
+            <p className="text-[10px] text-slate-500 font-mono">{row.original.providerPaymentId || "COD / Direct"}</p>
           </div>
         </div>
       ),
@@ -55,7 +55,7 @@ export default function PaymentsPage() {
       accessorKey: "orderId",
       header: "Order Reference",
       cell: ({ row }) => (
-        <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-zinc-200 hover:underline">
+        <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-slate-800 hover:underline">
           #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
         </Link>
       ),
@@ -64,7 +64,7 @@ export default function PaymentsPage() {
       accessorKey: "amount",
       header: "Amount",
       cell: ({ row }) => (
-        <span className="font-bold text-zinc-100">
+        <span className="font-bold text-slate-900">
           ₹{row.original.amount} {row.original.currency}
         </span>
       ),
@@ -80,8 +80,8 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">Payment Gateway Transactions</h1>
-          <p className="text-xs text-zinc-400">Read-only oversight of gateway payment attempts and authorization statuses</p>
+          <h1 className="text-xl font-bold text-slate-900">Payment Gateway Transactions</h1>
+          <p className="text-xs text-slate-500">Read-only oversight of gateway payment attempts and authorization statuses</p>
         </div>
         <div className="flex justify-end">
           <select
@@ -90,7 +90,7 @@ export default function PaymentsPage() {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-300 focus:outline-none"
+            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
           >
             <option value="">All Payment Statuses</option>
             <option value="CAPTURED">Captured</option>
@@ -104,7 +104,7 @@ export default function PaymentsPage() {
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
     </div>
   );
 }

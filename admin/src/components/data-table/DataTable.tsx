@@ -28,14 +28,14 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl">
+    <div className="w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-zinc-300">
-          <thead className="border-b border-zinc-800 bg-zinc-950/80 text-[11px] uppercase tracking-wider text-zinc-400">
+        <table className="w-full text-left text-xs text-slate-700">
+          <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="px-4 py-3 font-semibold">
+                  <th key={header.id} className="px-4 py-3.5 font-bold">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -47,25 +47,101 @@ export function DataTable<TData, TValue>({
               </tr>
             ))}
           </thead>
-          <tbody className="divide-y divide-zinc-800/60">
+          <tbody className="divide-y divide-slate-100">
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, idx) => (
-                <tr key={idx} className="animate-pulse">
-                  {columns.map((_, colIdx) => (
-                    <td key={colIdx} className="px-4 py-3.5">
-                      <div className="h-3.5 w-3/4 rounded bg-zinc-800" />
-                    </td>
-                  ))}
+              Array.from({ length: 6 }).map((_, idx) => (
+                <tr key={idx} className="transition-colors">
+                  {columns.map((col: any, colIdx) => {
+                    const headerStr = typeof col.header === "string" ? col.header.toLowerCase() : "";
+                    const accessorKey = typeof col.accessorKey === "string" ? col.accessorKey.toLowerCase() : "";
+                    const isFirst = colIdx === 0;
+                    const isLast = colIdx === columns.length - 1;
+                    const isBadge =
+                      headerStr.includes("status") ||
+                      headerStr.includes("verified") ||
+                      headerStr.includes("published") ||
+                      accessorKey.includes("status") ||
+                      accessorKey.includes("verified") ||
+                      accessorKey.includes("published");
+                    const isNumeric =
+                      headerStr.includes("price") ||
+                      headerStr.includes("amount") ||
+                      headerStr.includes("total") ||
+                      headerStr.includes("inventory") ||
+                      headerStr.includes("stock") ||
+                      headerStr.includes("rating");
+                    const isAction =
+                      isLast && (headerStr.includes("action") || col.id === "actions");
+
+                    if (isFirst) {
+                      return (
+                        <td key={colIdx} className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-xl animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
+                            <div className="space-y-1.5 flex-1 min-w-0">
+                              <div
+                                className="h-3.5 rounded-md animate-shimmer bg-slate-100"
+                                style={{ width: `${Math.min(160, 95 + ((idx * 19) % 65))}px` }}
+                              />
+                              <div
+                                className="h-2.5 rounded-md animate-shimmer bg-slate-100"
+                                style={{ width: `${Math.min(110, 60 + ((idx * 13) % 45))}px` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    if (isBadge) {
+                      return (
+                        <td key={colIdx} className="px-4 py-3.5">
+                          <div className="h-5 w-20 rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
+                        </td>
+                      );
+                    }
+
+                    if (isAction) {
+                      return (
+                        <td key={colIdx} className="px-4 py-3.5">
+                          <div className="flex items-center space-x-2">
+                            <div className="h-7 w-7 rounded-lg animate-shimmer bg-slate-100 border border-slate-200/60" />
+                            <div className="h-7 w-7 rounded-lg animate-shimmer bg-slate-100 border border-slate-200/60" />
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    if (isNumeric) {
+                      return (
+                        <td key={colIdx} className="px-4 py-3.5 text-right">
+                          <div
+                            className="h-3.5 rounded-md animate-shimmer bg-slate-100 ml-auto"
+                            style={{ width: `${Math.min(75, 45 + ((idx * 11) % 30))}px` }}
+                          />
+                        </td>
+                      );
+                    }
+
+                    return (
+                      <td key={colIdx} className="px-4 py-3.5">
+                        <div
+                          className="h-3.5 rounded-md animate-shimmer bg-slate-100"
+                          style={{ width: `${Math.min(130, 70 + (((idx + colIdx) * 17) % 55))}px` }}
+                        />
+                      </td>
+                    );
+                  })}
                 </tr>
               ))
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="transition hover:bg-zinc-800/40"
+                  className="transition-colors hover:bg-slate-50/70"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3.5 align-middle">
+                    <td key={cell.id} className="px-4 py-3.5 align-middle text-slate-700 font-medium">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -78,7 +154,7 @@ export function DataTable<TData, TValue>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-4 py-12 text-center text-xs text-zinc-500"
+                  className="px-4 py-16 text-center text-xs font-medium text-slate-400"
                 >
                   {emptyMessage}
                 </td>

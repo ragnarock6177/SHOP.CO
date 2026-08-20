@@ -51,40 +51,40 @@ export const StockAdjustModal: React.FC<StockAdjustModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md space-y-4 rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
-        <h3 className="text-base font-semibold text-zinc-100">Adjust Inventory Balance</h3>
-        <p className="text-xs text-zinc-400">
-          SKU: <span className="font-mono text-zinc-200">{item.sku}</span> ({item.productName})
+      <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+        <h3 className="text-base font-semibold text-slate-900">Adjust Inventory Balance</h3>
+        <p className="text-xs text-slate-500">
+          SKU: <span className="font-mono text-slate-800">{item.sku}</span> ({item.productName})
         </p>
 
-        <div className="grid grid-cols-3 gap-2 rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-center text-xs">
+        <div className="grid grid-cols-3 gap-2 rounded-lg border border-slate-200 bg-white p-3 text-center text-xs">
           <div>
-            <span className="block text-[10px] text-zinc-500">On Hand</span>
-            <span className="font-bold text-zinc-200">{item.quantityOnHand}</span>
+            <span className="block text-[10px] text-slate-500">On Hand</span>
+            <span className="font-bold text-slate-800">{item.quantityOnHand}</span>
           </div>
           <div>
-            <span className="block text-[10px] text-zinc-500">Reserved</span>
-            <span className="font-bold text-zinc-400">{item.quantityReserved}</span>
+            <span className="block text-[10px] text-slate-500">Reserved</span>
+            <span className="font-bold text-slate-500">{item.quantityReserved}</span>
           </div>
           <div>
-            <span className="block text-[10px] text-zinc-500">Available</span>
+            <span className="block text-[10px] text-slate-500">Available</span>
             <span className="font-bold text-emerald-400">{item.availableQuantity}</span>
           </div>
         </div>
 
         {errorMessage && (
-          <div className="rounded-lg border border-red-900/50 bg-red-950/40 p-2.5 text-xs text-red-300">
+          <div className="rounded-lg border border-rose-200 bg-rose-50/80 p-3 text-xs font-semibold text-rose-700">
             {errorMessage}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
-            <label className="block text-zinc-300 font-semibold mb-1">Movement Type</label>
+            <label className="block text-slate-700 font-semibold mb-1">Movement Type</label>
             <select
               value={movementType}
               onChange={(e) => setMovementType(e.target.value as any)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
             >
               <option value="PURCHASE">PURCHASE (Stock In)</option>
               <option value="ADJUSTMENT">ADJUSTMENT (Correction)</option>
@@ -95,42 +95,42 @@ export const StockAdjustModal: React.FC<StockAdjustModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-zinc-300 font-semibold mb-1">Quantity Change (e.g. +50 or -5)</label>
+            <label className="block text-slate-700 font-semibold mb-1">Quantity Change (e.g. +50 or -5)</label>
             <input
               type="number"
               value={quantityChange}
               onChange={(e) => setQuantityChange(parseInt(e.target.value, 10) || 0)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
             />
-            <p className="mt-1 text-[10px] text-zinc-400">
-              Resulting On Hand Balance: <span className="font-bold text-zinc-200">{resultingStock}</span>
+            <p className="mt-1 text-[10px] text-slate-500">
+              Resulting On Hand Balance: <span className="font-bold text-slate-800">{resultingStock}</span>
             </p>
           </div>
 
           <div>
-            <label className="block text-zinc-300 font-semibold mb-1">Internal Notes</label>
+            <label className="block text-slate-700 font-semibold mb-1">Internal Notes</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Reason for stock adjustment..."
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-zinc-100 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
             />
           </div>
 
-          <div className="flex justify-end space-x-3 pt-3 border-t border-zinc-800">
+          <div className="flex justify-end space-x-3 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800"
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="rounded-lg bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-zinc-200 disabled:opacity-50"
+              className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
             >
               {isLoading ? "Submitting..." : "Submit Adjustment"}
             </button>

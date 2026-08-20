@@ -4,6 +4,7 @@ import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useProductDetails, useUpdateProduct } from "../../../../hooks/queries/useProducts";
 import { ProductForm } from "../../../../components/forms/ProductForm";
+import { FormSkeleton } from "../../../../components/ui/FormSkeleton";
 
 export default function EditProductPage() {
   const params = useParams();
@@ -26,16 +27,21 @@ export default function EditProductPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded bg-zinc-800" />
-        <div className="h-96 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900" />
+      <div className="mx-auto max-w-3xl space-y-6 animate-fade-in-up">
+        <div className="space-y-2">
+          <div className="h-7 w-48 rounded-xl animate-shimmer bg-slate-100" />
+          <div className="h-3.5 w-64 rounded-md animate-shimmer bg-slate-100" />
+        </div>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+          <FormSkeleton />
+        </div>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="mx-auto max-w-3xl rounded-xl border border-red-900/50 bg-red-950/30 p-6 text-center text-xs text-red-300">
+      <div className="mx-auto max-w-3xl rounded-xl border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs">
         Product not found or failed to load product details.
       </div>
     );
@@ -44,11 +50,11 @@ export default function EditProductPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-zinc-100">Edit Product #{product.name}</h1>
-        <p className="text-xs text-zinc-400">Update product attributes, pricing, and catalog status</p>
+        <h1 className="text-xl font-bold text-slate-900">Edit Product #{product.name}</h1>
+        <p className="text-xs text-slate-500">Update product attributes, pricing, and catalog status</p>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
         <ProductForm
           initialValues={{
             name: product.name,

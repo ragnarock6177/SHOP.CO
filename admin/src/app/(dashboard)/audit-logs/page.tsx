@@ -25,7 +25,7 @@ export default function AuditLogsPage() {
       accessorKey: "createdAt",
       header: "Timestamp",
       cell: ({ row }) => (
-        <span className="text-[11px] text-zinc-400">
+        <span className="text-[11px] text-slate-500">
           {new Date(row.original.createdAt).toLocaleString()}
         </span>
       ),
@@ -35,23 +35,23 @@ export default function AuditLogsPage() {
       header: "Action",
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
-          <Activity className="h-4 w-4 text-zinc-400" />
-          <span className="font-semibold text-zinc-100">{row.original.action}</span>
+          <Activity className="h-4 w-4 text-slate-500" />
+          <span className="font-semibold text-slate-900">{row.original.action}</span>
         </div>
       ),
     },
     {
       accessorKey: "actorName",
       header: "Actor",
-      cell: ({ row }) => <span className="text-xs text-zinc-300">{row.original.actorName}</span>,
+      cell: ({ row }) => <span className="text-xs text-slate-700">{row.original.actorName}</span>,
     },
     {
       accessorKey: "entityType",
       header: "Entity Reference",
       cell: ({ row }) => (
         <div>
-          <span className="text-xs font-semibold text-zinc-300 uppercase">{row.original.entityType}</span>
-          <p className="text-[10px] text-zinc-500 font-mono">#{row.original.entityId.slice(0, 8)}</p>
+          <span className="text-xs font-semibold text-slate-700 uppercase">{row.original.entityType}</span>
+          <p className="text-[10px] text-slate-500 font-mono">#{row.original.entityId.slice(0, 8)}</p>
         </div>
       ),
     },
@@ -61,7 +61,7 @@ export default function AuditLogsPage() {
       cell: ({ row }) => (
         <button
           onClick={() => setSelectedLog(row.original)}
-          className="flex items-center space-x-1 rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] font-semibold text-zinc-300 transition hover:bg-zinc-800"
+          className="flex items-center space-x-1 rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100"
         >
           <Eye className="h-3 w-3" />
           <span>View Payload</span>
@@ -73,8 +73,8 @@ export default function AuditLogsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-zinc-100">System Audit Logs Stream</h1>
-        <p className="text-xs text-zinc-400">Immutable record of admin actions, status shifts, and entity mutations</p>
+        <h1 className="text-xl font-bold text-slate-900">System Audit Logs Stream</h1>
+        <p className="text-xs text-slate-500">Immutable record of admin actions, status shifts, and entity mutations</p>
       </div>
 
       <SearchInput
@@ -89,7 +89,7 @@ export default function AuditLogsPage() {
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
 
       <AuditDiffModal
         log={selectedLog}

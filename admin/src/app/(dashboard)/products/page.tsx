@@ -41,17 +41,17 @@ export default function ProductsPage() {
       header: "Product Name",
       cell: ({ row }) => (
         <div>
-          <Link href={`/products/${row.original.id}`} className="font-semibold text-zinc-100 hover:underline">
+          <Link href={`/products/${row.original.id}`} className="font-semibold text-slate-900 hover:underline">
             {row.original.name}
           </Link>
-          <p className="text-[10px] text-zinc-500">{row.original.slug}</p>
+          <p className="text-[10px] text-slate-500">{row.original.slug}</p>
         </div>
       ),
     },
     {
       accessorKey: "basePrice",
       header: "Base Price",
-      cell: ({ row }) => <span className="font-semibold text-zinc-200">₹{row.original.basePrice}</span>,
+      cell: ({ row }) => <span className="font-semibold text-slate-800">₹{row.original.basePrice}</span>,
     },
     {
       accessorKey: "status",
@@ -62,7 +62,7 @@ export default function ProductsPage() {
       accessorKey: "visibility",
       header: "Visibility",
       cell: ({ row }) => (
-        <span className="text-[10px] font-bold text-zinc-400 uppercase">{row.original.visibility}</span>
+        <span className="text-[10px] font-bold text-slate-500 uppercase">{row.original.visibility}</span>
       ),
     },
     {
@@ -73,7 +73,7 @@ export default function ProductsPage() {
           <PermissionGate permission="products:update">
             <Link
               href={`/products/${row.original.id}`}
-              className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
             >
               <Edit className="h-4 w-4" />
             </Link>
@@ -81,7 +81,7 @@ export default function ProductsPage() {
           <PermissionGate permission="products:delete">
             <button
               onClick={() => setArchiveId(row.original.id)}
-              className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-red-400"
+              className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-rose-600"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -95,13 +95,13 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">Product Catalog</h1>
-          <p className="text-xs text-zinc-400">Manage ecommerce products, pricing, and variants</p>
+          <h1 className="text-xl font-bold text-slate-900">Product Catalog</h1>
+          <p className="text-xs text-slate-500">Manage ecommerce products, pricing, and variants</p>
         </div>
         <PermissionGate permission="products:create">
           <Link
             href="/products/new"
-            className="flex items-center space-x-1.5 rounded-lg bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-zinc-200"
+            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             <span>Create Product</span>
@@ -126,7 +126,7 @@ export default function ProductsPage() {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-300 focus:outline-none"
+            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
           >
             <option value="">All Statuses</option>
             <option value="PUBLISHED">Published</option>
@@ -138,7 +138,7 @@ export default function ProductsPage() {
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
 
       <ConfirmDialog
         isOpen={!!archiveId}

@@ -26,18 +26,18 @@ export const SearchInput: React.FC<SearchInputProps> = ({
 
   return (
     <div className={`relative flex items-center ${className}`}>
-      <Search className="absolute left-3 h-4 w-4 text-zinc-500" />
+      <Search className="absolute left-3.5 h-4 w-4 text-slate-400" />
       <input
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-zinc-800 bg-zinc-900 py-2 pl-9 pr-8 text-xs text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+        className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-900 placeholder:text-slate-400 shadow-2xs focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
       />
       {searchTerm && (
         <button
           onClick={() => setSearchTerm("")}
-          className="absolute right-2.5 text-zinc-500 hover:text-zinc-300"
+          className="absolute right-2.5 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
         >
           <X className="h-3.5 w-3.5" />
         </button>

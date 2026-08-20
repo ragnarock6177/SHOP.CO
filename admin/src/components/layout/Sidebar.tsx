@@ -132,19 +132,22 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-10 hidden w-64 flex-col border-r border-neutral-200 bg-white sm:flex">
-      {/* Logo */}
-      <div className="flex h-16 shrink-0 items-center justify-center border-b border-neutral-200 px-6">
-        <span className="text-xl font-black uppercase tracking-[0.2em] text-black">
-          AIRAVÉ
-        </span>
-        <span className="ml-1.5 rounded bg-neutral-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-neutral-500 tracking-widest">
-          Admin
-        </span>
+    <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-200/80 bg-white shadow-xs sm:flex">
+      {/* Brand Header */}
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 px-6">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <span className="text-xl font-black uppercase tracking-[0.2em] text-slate-900 group-hover:opacity-80 transition-opacity">
+            AIRAVÉ
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-slate-700 border border-slate-200/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Admin
+          </span>
+        </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3.5 sidebar-scrollbar">
         {navItems.map((item) => {
           const hasSubItems = item.subItems && item.subItems.length > 0;
           const isSubActive =
@@ -164,25 +167,26 @@ export function Sidebar() {
                 <button
                   onClick={() => toggleMenu(item.name)}
                   className={cn(
-                    'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
+                    'flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150',
                     isActive
-                      ? 'bg-neutral-900 text-white'
-                      : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   )}
                 >
                   <div className="flex items-center gap-2.5">
-                    <item.icon className="h-4 w-4 shrink-0" />
+                    <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-white' : 'text-slate-500')} />
                     <span>{item.name}</span>
                   </div>
                   <ChevronDown
                     className={cn(
-                      'h-3.5 w-3.5 transition-transform duration-200 opacity-50',
+                      'h-3.5 w-3.5 transition-transform duration-200',
+                      isActive ? 'text-slate-300' : 'text-slate-400',
                       isOpen && 'rotate-180'
                     )}
                   />
                 </button>
                 {isOpen && (
-                  <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-neutral-200 pl-3">
+                  <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l-2 border-slate-100 pl-3.5">
                     {item.subItems?.map((sub) => {
                       const isSubCurrent =
                         pathname === sub.href ||
@@ -193,13 +197,13 @@ export function Sidebar() {
                           key={sub.name}
                           href={sub.href}
                           className={cn(
-                            'flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all duration-150',
+                            'flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150',
                             isSubCurrent
-                              ? 'bg-neutral-900 text-white font-semibold'
-                              : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900'
+                              ? 'bg-slate-100 text-slate-900 font-bold border border-slate-200/60 shadow-2xs'
+                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                           )}
                         >
-                          {SubIcon && <SubIcon className="h-3.5 w-3.5 shrink-0 opacity-70" />}
+                          {SubIcon && <SubIcon className={cn('h-3.5 w-3.5 shrink-0', isSubCurrent ? 'text-slate-900' : 'text-slate-400')} />}
                           <span>{sub.name}</span>
                         </Link>
                       );
@@ -215,37 +219,37 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150',
+                'flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150',
                 isActive
-                  ? 'bg-neutral-900 text-white'
-                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {item.name}
+              <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-white' : 'text-slate-500')} />
+              <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
       {/* User Footer */}
-      <div className="border-t border-neutral-200 p-3">
-        <div className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5">
+      <div className="border-t border-slate-200/80 p-3 bg-slate-50/50">
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-xs">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-white text-xs font-bold">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white text-xs font-bold shadow-2xs">
               {user?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'A'}
             </div>
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-xs font-semibold text-neutral-900">{getDisplayName()}</span>
-              <span className="truncate text-[10px] text-neutral-400">{user?.email}</span>
+              <span className="truncate text-xs font-bold text-slate-900">{getDisplayName()}</span>
+              <span className="truncate text-[10px] text-slate-500">{user?.email}</span>
             </div>
           </div>
           <button
             onClick={() => logout()}
             title="Log out"
-            className="shrink-0 rounded-md p-1.5 text-neutral-400 transition hover:bg-red-50 hover:text-red-500"
+            className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
       </div>

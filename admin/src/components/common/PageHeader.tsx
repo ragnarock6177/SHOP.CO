@@ -13,11 +13,11 @@ export function PageHeader({ title, description, action, children }: PageHeaderP
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">
           {title}
         </h1>
         {description && (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+          <p className="text-xs font-medium text-slate-500 mt-1">
             {description}
           </p>
         )}

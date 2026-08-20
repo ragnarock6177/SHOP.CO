@@ -39,20 +39,20 @@ export default function InventoryPage() {
       header: "SKU / Product",
       cell: ({ row }) => (
         <div>
-          <span className="font-mono text-xs font-semibold text-zinc-100">{row.original.sku}</span>
-          <p className="text-[11px] text-zinc-400">{row.original.productName}</p>
+          <span className="font-mono text-xs font-semibold text-slate-900">{row.original.sku}</span>
+          <p className="text-[11px] text-slate-500">{row.original.productName}</p>
         </div>
       ),
     },
     {
       accessorKey: "quantityOnHand",
       header: "On Hand",
-      cell: ({ row }) => <span className="font-semibold text-zinc-200">{row.original.quantityOnHand}</span>,
+      cell: ({ row }) => <span className="font-semibold text-slate-800">{row.original.quantityOnHand}</span>,
     },
     {
       accessorKey: "quantityReserved",
       header: "Reserved",
-      cell: ({ row }) => <span className="text-zinc-400">{row.original.quantityReserved}</span>,
+      cell: ({ row }) => <span className="text-slate-500">{row.original.quantityReserved}</span>,
     },
     {
       accessorKey: "availableQuantity",
@@ -71,7 +71,7 @@ export default function InventoryPage() {
         <PermissionGate permission="inventory:adjust">
           <button
             onClick={() => setSelectedItem(row.original)}
-            className="flex items-center space-x-1 rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] font-semibold text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+            className="flex items-center space-x-1 rounded border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
           >
             <SlidersHorizontal className="h-3 w-3" />
             <span>Adjust</span>
@@ -85,13 +85,13 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">Stock Inventory Balances</h1>
-          <p className="text-xs text-zinc-400">Monitor stock on hand, reservations, and execute balance adjustments</p>
+          <h1 className="text-xl font-bold text-slate-900">Stock Inventory Balances</h1>
+          <p className="text-xs text-slate-500">Monitor stock on hand, reservations, and execute balance adjustments</p>
         </div>
         <div className="flex items-center space-x-2">
           <Link
             href="/inventory/movements"
-            className="flex items-center space-x-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800"
+            className="flex items-center space-x-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             <ArrowLeftRight className="h-3.5 w-3.5" />
             <span>Movements Log</span>
@@ -116,7 +116,7 @@ export default function InventoryPage() {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-300 focus:outline-none"
+            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
           >
             <option value="">All Stock Statuses</option>
             <option value="IN_STOCK">In Stock</option>
@@ -128,7 +128,7 @@ export default function InventoryPage() {
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
-      <Pagination pagination={data?.pagination} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
 
       <StockAdjustModal
         item={selectedItem}
