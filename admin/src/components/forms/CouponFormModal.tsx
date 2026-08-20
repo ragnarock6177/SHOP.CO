@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { CustomSelect } from "@/components/ui/select";
 
 export interface CouponFormModalProps {
   isOpen: boolean;
@@ -57,14 +58,16 @@ export const CouponFormModal: React.FC<CouponFormModalProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-slate-700 font-semibold mb-1">Discount Type</label>
-              <select
+              <CustomSelect
                 value={discountType}
-                onChange={(e) => setDiscountType(e.target.value as any)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
-              >
-                <option value="PERCENTAGE">Percentage (%)</option>
-                <option value="FIXED_AMOUNT">Fixed Amount (₹)</option>
-              </select>
+                onChange={(val) => setDiscountType(val as any)}
+                options={[
+                  { value: "PERCENTAGE", label: "Percentage (%)" },
+                  { value: "FIXED_AMOUNT", label: "Fixed Amount (₹)" },
+                ]}
+                className="w-full"
+                triggerClassName="w-full h-10 px-3.5"
+              />
             </div>
 
             <div>

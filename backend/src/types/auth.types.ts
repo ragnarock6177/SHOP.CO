@@ -50,6 +50,8 @@ export interface SanitizedUser {
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
   roles: string[];
+  permissions?: string[];
+  isSuperAdmin?: boolean;
   status: UserStatus;
   lastLoginAt: Date | null;
   createdAt: Date;

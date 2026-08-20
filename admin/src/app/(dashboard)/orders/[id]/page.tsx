@@ -8,6 +8,7 @@ import { useOrderDetails, useUpdateOrderStatus, OrderStatus } from "../../../../
 import { StatusBadge } from "../../../../components/ui/StatusBadge";
 import { OrderCancelModal } from "../../../../components/orders/OrderCancelModal";
 import { PermissionGate } from "../../../../components/rbac/PermissionGate";
+import { CustomSelect } from "@/components/ui/select";
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -147,21 +148,19 @@ export default function OrderDetailsPage() {
 
           <PermissionGate permission="orders:update_status">
             {allowedTransitions.length > 0 && (
-              <select
-                onChange={(e) => handleStatusChange(e.target.value as OrderStatus)}
-                defaultValue=""
+              <CustomSelect
+                value=""
+                placeholder="Advance Order Status..."
+                onChange={(val) => {
+                  if (val) handleStatusChange(val as OrderStatus);
+                }}
                 disabled={updateStatusMutation.isPending}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
-              >
-                <option value="" disabled>
-                  Advance Order Status...
-                </option>
-                {allowedTransitions.map((st) => (
-                  <option key={st} value={st}>
-                    Mark as {st}
-                  </option>
-                ))}
-              </select>
+                options={allowedTransitions.map((st) => ({
+                  value: st,
+                  label: `Mark as ${st}`,
+                }))}
+                triggerClassName="w-48"
+              />
             )}
           </PermissionGate>
         </div>

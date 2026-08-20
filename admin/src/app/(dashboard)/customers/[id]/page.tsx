@@ -7,6 +7,7 @@ import { ArrowLeft, Mail, Phone, MapPin, ShoppingBag } from "lucide-react";
 import { useCustomerDetails, useUpdateCustomerStatus } from "../../../../hooks/queries/useCustomers";
 import { StatusBadge } from "../../../../components/ui/StatusBadge";
 import { PermissionGate } from "../../../../components/rbac/PermissionGate";
+import { CustomSelect } from "@/components/ui/select";
 
 export default function CustomerDetailPage() {
   const params = useParams();
@@ -98,16 +99,17 @@ export default function CustomerDetailPage() {
         <PermissionGate permission="customers:update">
           <div className="flex items-center space-x-2">
             <span className="text-xs font-semibold text-slate-500">Set Account Status:</span>
-            <select
+            <CustomSelect
               value={customer.status}
-              onChange={(e) => handleStatusShift(e.target.value as any)}
+              onChange={(val) => handleStatusShift(val as any)}
               disabled={statusMutation.isPending}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none disabled:opacity-50"
-            >
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="SUSPENDED">SUSPENDED</option>
-              <option value="BLOCKED">BLOCKED</option>
-            </select>
+              options={[
+                { value: "ACTIVE", label: "ACTIVE" },
+                { value: "SUSPENDED", label: "SUSPENDED" },
+                { value: "BLOCKED", label: "BLOCKED" },
+              ]}
+              triggerClassName="w-36"
+            />
           </div>
         </PermissionGate>
       </div>

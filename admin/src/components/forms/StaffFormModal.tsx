@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { CustomSelect } from "@/components/ui/select";
 
 export interface StaffFormModalProps {
   isOpen: boolean;
@@ -93,17 +94,14 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
 
           <div>
             <label className="block text-slate-700 font-semibold mb-1">Assigned Role</label>
-            <select
-              onChange={(e) => setRoleIds(e.target.value ? [e.target.value] : [])}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
-            >
-              <option value="">Select Role</option>
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
+            <CustomSelect
+              value={roleIds[0] || ""}
+              onChange={(val) => setRoleIds(val ? [val] : [])}
+              placeholder="Select Role"
+              options={roles.map((r) => ({ value: r.id, label: r.name }))}
+              className="w-full"
+              triggerClassName="w-full h-10 px-3.5"
+            />
           </div>
 
           <div className="flex items-center space-x-2 pt-1">

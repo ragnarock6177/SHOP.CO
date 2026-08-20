@@ -10,6 +10,7 @@ import { ApiPaginatedResponse } from "@/types/api";
 import { DataTable } from "@/components/data-table/DataTable";
 import { Pagination } from "@/components/data-table/Pagination";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { CustomSelect } from "@/components/ui/select";
 
 export interface PaymentItem {
   id: string;
@@ -84,21 +85,22 @@ export default function PaymentsPage() {
           <p className="text-xs text-slate-500">Read-only oversight of gateway payment attempts and authorization statuses</p>
         </div>
         <div className="flex justify-end">
-          <select
+          <CustomSelect
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
+            onChange={(val) => {
+              setStatusFilter(val);
               setPage(1);
             }}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
-          >
-            <option value="">All Payment Statuses</option>
-            <option value="CAPTURED">Captured</option>
-            <option value="AUTHORIZED">Authorized</option>
-            <option value="PENDING">Pending</option>
-            <option value="FAILED">Failed</option>
-            <option value="REFUNDED">Refunded</option>
-          </select>
+            options={[
+              { value: "", label: "All Payment Statuses" },
+              { value: "CAPTURED", label: "Captured" },
+              { value: "AUTHORIZED", label: "Authorized" },
+              { value: "PENDING", label: "Pending" },
+              { value: "FAILED", label: "Failed" },
+              { value: "REFUNDED", label: "Refunded" },
+            ]}
+            triggerClassName="w-44"
+          />
         </div>
       </div>
 

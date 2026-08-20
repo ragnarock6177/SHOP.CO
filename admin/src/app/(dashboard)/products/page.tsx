@@ -11,12 +11,15 @@ import { SearchInput } from "../../../components/filters/SearchInput";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { ConfirmDialog } from "../../../components/feedback/ConfirmDialog";
 import { PermissionGate } from "../../../components/rbac/PermissionGate";
+import { CustomSelect } from "@/components/ui/select";
+import { CreateProductModal } from "../../../components/forms/CreateProductModal";
 
 export default function ProductsPage() {
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [archiveId, setArchiveId] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
 
   const { data, isLoading } = useProducts({
     page,
@@ -99,13 +102,14 @@ export default function ProductsPage() {
           <p className="text-xs text-slate-500">Manage ecommerce products, pricing, and variants</p>
         </div>
         <PermissionGate permission="products:create">
-          <Link
-            href="/products/new"
-            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
+          <button
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Create Product</span>
-          </Link>
+          </button>
         </PermissionGate>
       </div>
 
@@ -120,25 +124,31 @@ export default function ProductsPage() {
           className="w-full sm:w-72"
         />
         <div className="flex items-center space-x-2">
-          <select
+          <CustomSelect
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
+            onChange={(val) => {
+              setStatusFilter(val);
               setPage(1);
             }}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
-          >
-            <option value="">All Statuses</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="DRAFT">Draft</option>
-            <option value="ARCHIVED">Archived</option>
-          </select>
+            options={[
+              { value: "", label: "All Statuses" },
+              { value: "PUBLISHED", label: "Published" },
+              { value: "DRAFT", label: "Draft" },
+              { value: "ARCHIVED", label: "Archived" },
+            ]}
+            triggerClassName="w-36"
+          />
         </div>
       </div>
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
       <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+
+      <CreateProductModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
 
       <ConfirmDialog
         isOpen={!!archiveId}

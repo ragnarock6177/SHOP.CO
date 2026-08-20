@@ -13,18 +13,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   const { isAuthenticated, isLoading, user, permissions } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [mounted, setMounted] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    // Only redirect AFTER loading is complete and user is definitely not authenticated
-    if (!isLoading && !isAuthenticated) {
+    // Only redirect AFTER mounted & loading is complete and user is definitely not authenticated
+    if (mounted && !isLoading && !isAuthenticated) {
       const redirectUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
       router.replace(redirectUrl);
     }
-  }, [isLoading, isAuthenticated, router, pathname]);
+  }, [mounted, isLoading, isAuthenticated, router, pathname]);
 
-  // While the auth session is being restored from localStorage, show a loading spinner
-  // This prevents the flash redirect on reload when the user IS logged in
-  if (isLoading) {
+  // While mounting or loading session, render matching shell
+  if (!mounted || isLoading) {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-[#f8fafc] text-slate-900">
         <div className="flex flex-col items-center space-y-4">

@@ -11,6 +11,7 @@ import { SearchInput } from "../../../components/filters/SearchInput";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { StockAdjustModal } from "../../../components/forms/StockAdjustModal";
 import { PermissionGate } from "../../../components/rbac/PermissionGate";
+import { CustomSelect } from "@/components/ui/select";
 
 export default function InventoryPage() {
   const [page, setPage] = useState<number>(1);
@@ -110,19 +111,20 @@ export default function InventoryPage() {
           className="w-full sm:w-72"
         />
         <div className="flex items-center space-x-2">
-          <select
+          <CustomSelect
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
+            onChange={(val) => {
+              setStatusFilter(val);
               setPage(1);
             }}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
-          >
-            <option value="">All Stock Statuses</option>
-            <option value="IN_STOCK">In Stock</option>
-            <option value="LOW_STOCK">Low Stock</option>
-            <option value="OUT_OF_STOCK">Out of Stock</option>
-          </select>
+            options={[
+              { value: "", label: "All Stock Statuses" },
+              { value: "IN_STOCK", label: "In Stock" },
+              { value: "LOW_STOCK", label: "Low Stock" },
+              { value: "OUT_OF_STOCK", label: "Out of Stock" },
+            ]}
+            triggerClassName="w-40"
+          />
         </div>
       </div>
 

@@ -28,40 +28,9 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AdminUser | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("airave_admin_user");
-        if (cached) return JSON.parse(cached);
-      } catch {
-        // Ignore parse error
-      }
-    }
-    return null;
-  });
-
-  const [permissions, setPermissions] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("airave_admin_user");
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          return parsed.permissions || [];
-        }
-      } catch {
-        // Ignore parse error
-      }
-    }
-    return [];
-  });
-
-  const [isLoading, setIsLoading] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
-      return Boolean(token);
-    }
-    return true;
-  });
+  const [user, setUser] = useState<AdminUser | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const restoreSession = useCallback(async () => {
     if (typeof window === "undefined") return;
@@ -122,6 +91,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem("airave_admin_user");
+      const token =
+        localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
+      if (cached && token) {
+        const parsed = JSON.parse(cached);
+        setUser(parsed);
+        setPermissions(parsed.permissions || []);
+        setIsLoading(false);
+      } else if (!token) {
+        setIsLoading(false);
+      }
+    } catch {
+      // Ignore parse error
+    }
+
     restoreSession();
   }, [restoreSession]);
 

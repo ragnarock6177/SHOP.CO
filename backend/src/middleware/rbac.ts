@@ -49,11 +49,21 @@ export function requirePermission(requiredPermission: string) {
       }
 
       // SUPER_ADMIN role bypasses granular permission check
-      if (req.user.roles.includes("SUPER_ADMIN")) {
+      if (req.user.roles.includes("SUPER_ADMIN") || (req.user as any).isSuperAdmin) {
         return next();
       }
 
-      // Query user's assigned role permissions from database
+      // Fast check: Use preloaded permissions from authenticate middleware (0ms)
+      if (Array.isArray(req.user.permissions)) {
+        if (req.user.permissions.includes(requiredPermission) || req.user.permissions.includes("*")) {
+          return next();
+        }
+        return next(
+          new ForbiddenError(`Access denied. Missing required permission: '${requiredPermission}'`)
+        );
+      }
+
+      // Fallback: Query user's assigned role permissions from database if not preloaded
       const dbUser = await prisma.user.findUnique({
         where: { id: req.user.id },
         select: {

@@ -9,6 +9,7 @@ import { DataTable } from "../../../components/data-table/DataTable";
 import { Pagination } from "../../../components/data-table/Pagination";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { PermissionGate } from "../../../components/rbac/PermissionGate";
+import { CustomSelect } from "@/components/ui/select";
 
 export default function ReturnsPage() {
   const [page, setPage] = useState<number>(1);
@@ -68,24 +69,31 @@ export default function ReturnsPage() {
       cell: ({ row }) => (
         <PermissionGate permission="returns:update">
           {row.original.status !== "COMPLETED" && row.original.status !== "REJECTED" && (
-            <select
+            <CustomSelect
               value=""
-              onChange={(e) => updateStatusMutation.mutate({ id: row.original.id, status: e.target.value as any })}
+              placeholder="Shift Status..."
+              onChange={(val) => {
+                if (val) {
+                  updateStatusMutation.mutate({ id: row.original.id, status: val as any });
+                }
+              }}
               disabled={updateStatusMutation.isPending}
-              className="rounded border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-700 focus:outline-none"
-            >
-              <option value="" disabled>
-                Shift Status...
-              </option>
-              {row.original.status === "REQUESTED" && (
-                <>
-                  <option value="APPROVED">Approve Return</option>
-                  <option value="REJECTED">Reject Return</option>
-                </>
-              )}
-              {row.original.status === "APPROVED" && <option value="RECEIVED">Mark Items RECEIVED</option>}
-              {row.original.status === "RECEIVED" && <option value="COMPLETED">Mark COMPLETED</option>}
-            </select>
+              options={[
+                ...(row.original.status === "REQUESTED"
+                  ? [
+                      { value: "APPROVED", label: "Approve Return" },
+                      { value: "REJECTED", label: "Reject Return" },
+                    ]
+                  : []),
+                ...(row.original.status === "APPROVED"
+                  ? [{ value: "RECEIVED", label: "Mark Items RECEIVED" }]
+                  : []),
+                ...(row.original.status === "RECEIVED"
+                  ? [{ value: "COMPLETED", label: "Mark COMPLETED" }]
+                  : []),
+              ]}
+              triggerClassName="h-7 px-2.5 text-[11px] w-40"
+            />
           )}
         </PermissionGate>
       ),
@@ -100,21 +108,22 @@ export default function ReturnsPage() {
           <p className="text-xs text-slate-500">Inspect customer return submissions, item inspect states, and approval flows</p>
         </div>
         <div className="flex justify-end">
-          <select
+          <CustomSelect
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
+            onChange={(val) => {
+              setStatusFilter(val);
               setPage(1);
             }}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
-          >
-            <option value="">All Return Statuses</option>
-            <option value="REQUESTED">Requested</option>
-            <option value="APPROVED">Approved</option>
-            <option value="RECEIVED">Received</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
+            options={[
+              { value: "", label: "All Return Statuses" },
+              { value: "REQUESTED", label: "Requested" },
+              { value: "APPROVED", label: "Approved" },
+              { value: "RECEIVED", label: "Received" },
+              { value: "COMPLETED", label: "Completed" },
+              { value: "REJECTED", label: "Rejected" },
+            ]}
+            triggerClassName="w-44"
+          />
         </div>
       </div>
 

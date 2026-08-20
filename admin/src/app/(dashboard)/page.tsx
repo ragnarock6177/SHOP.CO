@@ -6,6 +6,7 @@ import { useDashboard } from "@/hooks/queries/useDashboard";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
+import { CustomSelect } from "@/components/ui/select";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -33,16 +34,17 @@ export default function DashboardPage() {
           <p className="text-xs text-slate-500 font-medium mt-0.5">AIRAVÉ Operational Metrics & System Stream</p>
         </div>
         <div className="flex items-center space-x-2">
-          <select
+          <CustomSelect
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
-          >
-            <option value="today">Today</option>
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="all">All Time</option>
-          </select>
+            onChange={(val) => setDateRange(val)}
+            options={[
+              { value: "today", label: "Today" },
+              { value: "7d", label: "Last 7 Days" },
+              { value: "30d", label: "Last 30 Days" },
+              { value: "all", label: "All Time" },
+            ]}
+            triggerClassName="w-36"
+          />
         </div>
       </div>
 

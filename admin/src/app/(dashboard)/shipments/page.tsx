@@ -10,6 +10,7 @@ import { Pagination } from "../../../components/data-table/Pagination";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { CreateShipmentModal } from "../../../components/fulfillment/CreateShipmentModal";
 import { PermissionGate } from "../../../components/rbac/PermissionGate";
+import { CustomSelect } from "@/components/ui/select";
 
 export default function ShipmentsPage() {
   const [page, setPage] = useState<number>(1);
@@ -74,18 +75,23 @@ export default function ShipmentsPage() {
       cell: ({ row }) => (
         <PermissionGate permission="fulfillment:update">
           {row.original.status !== "DELIVERED" && (
-            <select
+            <CustomSelect
               value=""
-              onChange={(e) => updateStatusMutation.mutate({ id: row.original.id, status: e.target.value as any })}
+              placeholder="Shift Status..."
+              onChange={(val) => {
+                if (val) {
+                  updateStatusMutation.mutate({ id: row.original.id, status: val as any });
+                }
+              }}
               disabled={updateStatusMutation.isPending}
-              className="rounded border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-700 focus:outline-none"
-            >
-              <option value="" disabled>
-                Shift Status...
-              </option>
-              {row.original.status === "PENDING" && <option value="SHIPPED">Mark SHIPPED</option>}
-              <option value="DELIVERED">Mark DELIVERED</option>
-            </select>
+              options={[
+                ...(row.original.status === "PENDING"
+                  ? [{ value: "SHIPPED", label: "Mark SHIPPED" }]
+                  : []),
+                { value: "DELIVERED", label: "Mark DELIVERED" },
+              ]}
+              triggerClassName="h-7 px-2.5 text-[11px] w-36"
+            />
           )}
         </PermissionGate>
       ),
@@ -111,19 +117,20 @@ export default function ShipmentsPage() {
       </div>
 
       <div className="flex justify-end">
-        <select
+        <CustomSelect
           value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
+          onChange={(val) => {
+            setStatusFilter(val);
             setPage(1);
           }}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
-        >
-          <option value="">All Shipment Statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="SHIPPED">Shipped</option>
-          <option value="DELIVERED">Delivered</option>
-        </select>
+          options={[
+            { value: "", label: "All Shipment Statuses" },
+            { value: "PENDING", label: "Pending" },
+            { value: "SHIPPED", label: "Shipped" },
+            { value: "DELIVERED", label: "Delivered" },
+          ]}
+          triggerClassName="w-44"
+        />
       </div>
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />

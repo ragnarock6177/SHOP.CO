@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { CustomSelect } from "@/components/ui/select";
 
 export interface CreateShipmentModalProps {
   isOpen: boolean;
@@ -56,17 +57,19 @@ export const CreateShipmentModal: React.FC<CreateShipmentModalProps> = ({
 
           <div>
             <label className="block text-slate-700 font-semibold mb-1">Logistics Carrier</label>
-            <select
+            <CustomSelect
               value={carrier}
-              onChange={(e) => setCarrier(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
-            >
-              <option value="FedEx">FedEx</option>
-              <option value="Bluedart">Bluedart Express</option>
-              <option value="Delhivery">Delhivery</option>
-              <option value="DHL">DHL Express</option>
-              <option value="DTDC">DTDC</option>
-            </select>
+              onChange={(val) => setCarrier(val)}
+              options={[
+                { value: "FedEx", label: "FedEx" },
+                { value: "Bluedart", label: "Bluedart Express" },
+                { value: "Delhivery", label: "Delhivery" },
+                { value: "DHL", label: "DHL Express" },
+                { value: "DTDC", label: "DTDC" },
+              ]}
+              className="w-full"
+              triggerClassName="w-full h-10 px-3.5"
+            />
           </div>
 
           <div>

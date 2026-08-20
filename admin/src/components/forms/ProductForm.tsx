@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductFormSchema, ProductFormInput } from "@/validators/product.validator";
 import { FormField } from "./FormField";
+import { CustomSelect } from "@/components/ui/select";
 
 export interface ProductFormProps {
   initialValues?: Partial<ProductFormInput>;
@@ -43,6 +44,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   });
 
   const nameVal = watch("name");
+  const currentCategory = watch("primaryCategoryId");
+
+  useEffect(() => {
+    if (!currentCategory && categories.length > 0) {
+      setValue("primaryCategoryId", categories[0].id, { shouldValidate: true });
+    }
+  }, [categories, currentCategory, setValue]);
 
   useEffect(() => {
     if (!initialValues?.slug && nameVal) {
@@ -99,40 +107,43 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       </div>
 
       <FormField label="Primary Category" required error={errors.primaryCategoryId?.message}>
-        <select
-          {...register("primaryCategoryId")}
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10 focus:outline-none"
-        >
-          <option value="">Select Category</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+        <CustomSelect
+          value={watch("primaryCategoryId") || ""}
+          onChange={(val) => setValue("primaryCategoryId", val, { shouldValidate: true })}
+          placeholder="Select Category"
+          options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+          className="w-full"
+          triggerClassName="w-full h-10 px-3.5"
+        />
       </FormField>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label="Status" required error={errors.status?.message}>
-          <select
-            {...register("status")}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10 focus:outline-none"
-          >
-            <option value="DRAFT">Draft</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="ARCHIVED">Archived</option>
-          </select>
+          <CustomSelect
+            value={watch("status") || "DRAFT"}
+            onChange={(val) => setValue("status", val as any, { shouldValidate: true })}
+            options={[
+              { value: "DRAFT", label: "Draft" },
+              { value: "PUBLISHED", label: "Published" },
+              { value: "ARCHIVED", label: "Archived" },
+            ]}
+            className="w-full"
+            triggerClassName="w-full h-10 px-3.5"
+          />
         </FormField>
 
         <FormField label="Visibility" required error={errors.visibility?.message}>
-          <select
-            {...register("visibility")}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10 focus:outline-none"
-          >
-            <option value="PUBLIC">Public</option>
-            <option value="PRIVATE">Private</option>
-            <option value="HIDDEN">Hidden</option>
-          </select>
+          <CustomSelect
+            value={watch("visibility") || "PUBLIC"}
+            onChange={(val) => setValue("visibility", val as any, { shouldValidate: true })}
+            options={[
+              { value: "PUBLIC", label: "Public" },
+              { value: "PRIVATE", label: "Private" },
+              { value: "HIDDEN", label: "Hidden" },
+            ]}
+            className="w-full"
+            triggerClassName="w-full h-10 px-3.5"
+          />
         </FormField>
       </div>
 

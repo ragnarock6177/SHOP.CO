@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { InventoryItem, StockAdjustPayload } from "@/hooks/queries/useInventory";
+import { CustomSelect } from "@/components/ui/select";
 
 export interface StockAdjustModalProps {
   item: InventoryItem | null;
@@ -81,17 +82,19 @@ export const StockAdjustModal: React.FC<StockAdjustModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
             <label className="block text-slate-700 font-semibold mb-1">Movement Type</label>
-            <select
+            <CustomSelect
               value={movementType}
-              onChange={(e) => setMovementType(e.target.value as any)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
-            >
-              <option value="PURCHASE">PURCHASE (Stock In)</option>
-              <option value="ADJUSTMENT">ADJUSTMENT (Correction)</option>
-              <option value="DAMAGE">DAMAGE (Stock Out)</option>
-              <option value="LOSS">LOSS (Stock Out)</option>
-              <option value="RETURN">RETURN (Stock In)</option>
-            </select>
+              onChange={(val) => setMovementType(val as any)}
+              options={[
+                { value: "PURCHASE", label: "PURCHASE (Stock In)" },
+                { value: "ADJUSTMENT", label: "ADJUSTMENT (Correction)" },
+                { value: "DAMAGE", label: "DAMAGE (Stock Out)" },
+                { value: "LOSS", label: "LOSS (Stock Out)" },
+                { value: "RETURN", label: "RETURN (Stock In)" },
+              ]}
+              className="w-full"
+              triggerClassName="w-full h-10 px-3.5"
+            />
           </div>
 
           <div>

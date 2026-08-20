@@ -7,6 +7,8 @@ export interface AuthUser {
   firebaseUid?: string | null;
   status: UserStatus;
   roles: string[];
+  permissions?: string[];
+  isSuperAdmin?: boolean;
 }
 
 declare global {

@@ -10,6 +10,7 @@ import { Pagination } from "../../../components/data-table/Pagination";
 import { SearchInput } from "../../../components/filters/SearchInput";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { PermissionGate } from "../../../components/rbac/PermissionGate";
+import { CustomSelect } from "@/components/ui/select";
 
 export default function OrdersPage() {
   const [page, setPage] = useState<number>(1);
@@ -98,23 +99,24 @@ export default function OrdersPage() {
           className="w-full sm:w-72"
         />
         <div className="flex items-center space-x-2">
-          <select
+          <CustomSelect
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
+            onChange={(val) => {
+              setStatusFilter(val);
               setPage(1);
             }}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer"
-          >
-            <option value="">All Order Statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="PROCESSING">Processing</option>
-            <option value="SHIPPED">Shipped</option>
-            <option value="DELIVERED">Delivered</option>
-            <option value="CANCELLED">Cancelled</option>
-            <option value="REFUNDED">Refunded</option>
-          </select>
+            options={[
+              { value: "", label: "All Order Statuses" },
+              { value: "PENDING", label: "Pending" },
+              { value: "CONFIRMED", label: "Confirmed" },
+              { value: "PROCESSING", label: "Processing" },
+              { value: "SHIPPED", label: "Shipped" },
+              { value: "DELIVERED", label: "Delivered" },
+              { value: "CANCELLED", label: "Cancelled" },
+              { value: "REFUNDED", label: "Refunded" },
+            ]}
+            triggerClassName="w-40"
+          />
         </div>
       </div>
 

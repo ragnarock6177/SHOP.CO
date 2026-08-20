@@ -8,6 +8,21 @@ import { AuthUser } from "../types/express.js";
 
 const JWT_SECRET = env.JWT_SECRET || "airave@123454321@airave";
 
+// High-performance in-memory cache for authenticated staff & users (30s TTL)
+interface CachedAuthUser {
+  user: AuthUser;
+  expiresAt: number;
+}
+const authCache = new Map<string, CachedAuthUser>();
+
+export function invalidateAuthCache(userId?: string) {
+  if (userId) {
+    authCache.delete(userId);
+  } else {
+    authCache.clear();
+  }
+}
+
 export async function authenticate(
   req: Request,
   _res: Response,
@@ -22,62 +37,130 @@ export async function authenticate(
     const token = authHeader.split(" ")[1];
     let user: AuthUser | null = null;
 
-    // 1. Try Firebase Admin ID Token Verification first if Firebase initialized
-    if (firebaseApp) {
+    // 1. Fast local JWT verification FIRST (< 0.1ms)
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      if (decoded?.userId) {
+        const cached = authCache.get(decoded.userId);
+        if (cached && cached.expiresAt > Date.now()) {
+          user = cached.user;
+        } else {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: {
+              id: true,
+              email: true,
+              firebaseUid: true,
+              status: true,
+              userRoles: {
+                select: {
+                  role: {
+                    select: {
+                      name: true,
+                      rolePermissions: {
+                        select: {
+                          permission: {
+                            select: { name: true },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          if (dbUser) {
+            const roles = dbUser.userRoles.map((ur) => ur.role.name);
+            const isSuperAdmin = roles.includes("SUPER_ADMIN");
+            const permissionsSet = new Set<string>();
+
+            for (const ur of dbUser.userRoles) {
+              for (const rp of ur.role.rolePermissions) {
+                permissionsSet.add(rp.permission.name);
+              }
+            }
+
+            user = {
+              id: dbUser.id,
+              email: dbUser.email,
+              firebaseUid: dbUser.firebaseUid,
+              status: dbUser.status,
+              roles,
+              permissions: Array.from(permissionsSet),
+              isSuperAdmin,
+            };
+
+            authCache.set(dbUser.id, {
+              user,
+              expiresAt: Date.now() + 30 * 1000,
+            });
+          }
+        }
+      }
+    } catch {
+      // Not a valid backend JWT, proceed to Firebase verification fallback
+    }
+
+    // 2. Firebase ID Token Verification fallback (only if JWT verify didn't match)
+    if (!user && firebaseApp) {
       try {
         const decodedToken = await getFirebaseAuth().verifyIdToken(token);
         const dbUser = await prisma.user.findUnique({
           where: { firebaseUid: decodedToken.uid },
-          include: {
+          select: {
+            id: true,
+            email: true,
+            firebaseUid: true,
+            status: true,
             userRoles: {
-              include: { role: true },
+              select: {
+                role: {
+                  select: {
+                    name: true,
+                    rolePermissions: {
+                      select: {
+                        permission: {
+                          select: { name: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         });
 
         if (dbUser) {
+          const roles = dbUser.userRoles.map((ur) => ur.role.name);
+          const isSuperAdmin = roles.includes("SUPER_ADMIN");
+          const permissionsSet = new Set<string>();
+
+          for (const ur of dbUser.userRoles) {
+            for (const rp of ur.role.rolePermissions) {
+              permissionsSet.add(rp.permission.name);
+            }
+          }
+
           user = {
             id: dbUser.id,
             email: dbUser.email,
             firebaseUid: dbUser.firebaseUid,
             status: dbUser.status,
-            roles: dbUser.userRoles.map((ur) => ur.role.name),
+            roles,
+            permissions: Array.from(permissionsSet),
+            isSuperAdmin,
           };
         }
       } catch {
-        // Fallback to JWT verification if Firebase verification fails
-      }
-    }
-
-    // 2. JWT Verification Fallback
-    if (!user) {
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
-        const dbUser = await prisma.user.findUnique({
-          where: { id: decoded.userId },
-          include: {
-            userRoles: {
-              include: { role: true },
-            },
-          },
-        });
-
-        if (dbUser) {
-          user = {
-            id: dbUser.id,
-            email: dbUser.email,
-            firebaseUid: dbUser.firebaseUid,
-            status: dbUser.status,
-            roles: dbUser.userRoles.map((ur) => ur.role.name),
-          };
-        }
-      } catch {
-        throw new UnauthorizedError("Invalid or expired authentication token");
+        // Firebase verification failed
       }
     }
 
     if (!user) {
-      throw new UnauthorizedError("User profile associated with token not found");
+      throw new UnauthorizedError("Invalid or expired authentication token");
     }
 
     // 3. User Account Status Guard
