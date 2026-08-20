@@ -2,6 +2,8 @@ import prisma from "../../lib/prisma.js";
 import { parseAdminQueryParams } from "../../utils/adminQueryParams.js";
 import { ProductStatus, ProductVisibility } from "@prisma/client";
 import { ConflictError, NotFoundError } from "../../utils/errors.js";
+import { UploadService } from "./upload.service.js";
+
 
 export class AdminProductsService {
   static async getProducts(query: Record<string, any>) {
@@ -261,4 +263,127 @@ export class AdminProductsService {
 
     return { id, status: ProductStatus.ARCHIVED };
   }
+
+  // ──────────────────────────────────────────────────────────
+  // IMAGE CRUD
+  // ──────────────────────────────────────────────────────────
+
+  static async listImages(productId: string) {
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundError("Product not found");
+
+    return prisma.productImage.findMany({
+      where: { productId },
+      orderBy: { sortOrder: "asc" },
+    });
+  }
+
+  static async addImage(
+    productId: string,
+    data: {
+      imageUrl: string;
+      altText?: string;
+      storagePath?: string;
+      sortOrder?: number;
+      isPrimary?: boolean;
+    }
+  ) {
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundError("Product not found");
+
+    // If this image is primary, demote all others
+    if (data.isPrimary) {
+      await prisma.productImage.updateMany({
+        where: { productId },
+        data: { isPrimary: false },
+      });
+    }
+
+    // Auto-assign sort order to end if not provided
+    if (data.sortOrder === undefined) {
+      const count = await prisma.productImage.count({ where: { productId } });
+      data.sortOrder = count;
+    }
+
+    return prisma.productImage.create({
+      data: {
+        productId,
+        imageUrl: data.imageUrl,
+        altText: data.altText,
+        sortOrder: data.sortOrder,
+        isPrimary: data.isPrimary ?? false,
+      },
+    });
+  }
+
+  static async updateImage(
+    productId: string,
+    imageId: string,
+    data: { altText?: string; sortOrder?: number; isPrimary?: boolean }
+  ) {
+    const image = await prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+    if (!image) throw new NotFoundError("Image not found");
+
+    // If setting as primary, demote others first
+    if (data.isPrimary) {
+      await prisma.productImage.updateMany({
+        where: { productId, id: { not: imageId } },
+        data: { isPrimary: false },
+      });
+    }
+
+    return prisma.productImage.update({
+      where: { id: imageId },
+      data: {
+        altText: data.altText,
+        sortOrder: data.sortOrder,
+        isPrimary: data.isPrimary,
+      },
+    });
+  }
+
+  static async deleteImage(productId: string, imageId: string) {
+    const image = await prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+    if (!image) throw new NotFoundError("Image not found");
+
+    await prisma.productImage.delete({ where: { id: imageId } });
+
+    // Derive storage path from the public URL and delete from Supabase
+    try {
+      const url = new URL(image.imageUrl);
+      // Public URL pattern: /storage/v1/object/public/<bucket>/<path>
+      const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)/);
+      if (pathMatch?.[1]) {
+        await UploadService.deleteFile(pathMatch[1]);
+      }
+    } catch {
+      // If URL parsing fails, skip storage deletion silently
+    }
+
+    return { id: imageId, deleted: true };
+  }
+
+  static async reorderImages(
+    productId: string,
+    orderedIds: string[]
+  ) {
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw new NotFoundError("Product not found");
+
+    await prisma.$transaction(
+      orderedIds.map((id, index) =>
+        prisma.productImage.updateMany({
+          where: { id, productId },
+          data: { sortOrder: index },
+        })
+      )
+    );
+
+    return this.listImages(productId);
+  }
 }
+

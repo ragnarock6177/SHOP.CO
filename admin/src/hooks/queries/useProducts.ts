@@ -6,14 +6,18 @@ export interface ProductItem {
   id: string;
   name: string;
   slug: string;
+  shortDescription: string | null;
   description: string | null;
+  careInstructions: string | null;
+  productType: string | null;
   basePrice: number;
-  comparePrice: number | null;
-  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  compareAtPrice: number | null;
+  status: "DRAFT" | "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK" | "ARCHIVED";
   visibility: "PUBLIC" | "PRIVATE" | "HIDDEN";
-  primaryCategoryId: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
   primaryCategory?: { id: string; name: string };
-  images?: Array<{ id: string; url: string; altText: string | null; sortOrder: number; isPrimary: boolean }>;
+  images?: Array<{ id: string; imageUrl: string; altText: string | null; sortOrder: number; isPrimary: boolean }>;
   variants?: any[];
   createdAt: string;
   updatedAt: string;
@@ -45,7 +49,14 @@ export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: any) => {
-      const response = await apiClient.post<ApiResponse<ProductItem>>("/admin/products", payload);
+      // Map form field names to API field names
+      const { primaryCategoryId, comparePrice, ...rest } = payload;
+      const apiPayload = {
+        ...rest,
+        ...(primaryCategoryId ? { categoryId: primaryCategoryId } : {}),
+        ...(comparePrice !== undefined ? { compareAtPrice: comparePrice } : {}),
+      };
+      const response = await apiClient.post<ApiResponse<ProductItem>>("/admin/products", apiPayload);
       return response.data.data;
     },
     onSuccess: () => {

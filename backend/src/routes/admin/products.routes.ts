@@ -9,6 +9,7 @@ const router = Router();
 
 router.use(requireAdminAuth);
 
+// ── Product CRUD ──────────────────────────────────────────────────────────────
 router.get("/", requirePermission("products:read"), AdminProductsController.getProducts);
 router.get("/:id", requirePermission("products:read"), AdminProductsController.getProductById);
 router.post(
@@ -25,4 +26,12 @@ router.put(
 );
 router.delete("/:id", requirePermission("products:delete"), AdminProductsController.archiveProduct);
 
+// ── Product Image CRUD ────────────────────────────────────────────────────────
+router.get("/:id/images", requirePermission("products:read"), AdminProductsController.listImages);
+router.post("/:id/images", requirePermission("products:update"), AdminProductsController.addImage);
+router.patch("/:id/images/:imageId", requirePermission("products:update"), AdminProductsController.updateImage);
+router.delete("/:id/images/:imageId", requirePermission("products:update"), AdminProductsController.deleteImage);
+router.put("/:id/images/reorder", requirePermission("products:update"), AdminProductsController.reorderImages);
+
 export default router;
+

@@ -15,6 +15,7 @@ import returnsRoutes from "./returns.routes.js";
 import auditRoutes from "./audit.routes.js";
 import adminUsersRoutes from "./adminUsers.routes.js";
 import rolesRoutes from "./roles.routes.js";
+import uploadRoutes from "./upload.routes.js";
 import legacyAdminRoutes from "../admin.routes.js";
 import { sendSuccess } from "../../utils/response.js";
 
@@ -51,6 +52,7 @@ adminRouter.use("/returns", returnsRoutes);
 adminRouter.use("/audit-logs", auditRoutes);
 adminRouter.use("/admin-users", adminUsersRoutes);
 adminRouter.use("/roles", rolesRoutes);
+adminRouter.use("/upload", uploadRoutes);
 
 // Delegation to legacy admin route handlers
 adminRouter.use("/", legacyAdminRoutes);

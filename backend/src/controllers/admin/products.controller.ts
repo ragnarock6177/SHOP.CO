@@ -54,4 +54,56 @@ export class AdminProductsController {
       next(error);
     }
   }
+
+  // ── Image CRUD ────────────────────────────────────────────
+
+  static async listImages(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const images = await AdminProductsService.listImages(req.params.id);
+      sendAdminSuccess(res, images, "Product images retrieved.");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async addImage(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const image = await AdminProductsService.addImage(req.params.id, req.body);
+      sendAdminSuccess(res, image, "Image added to product.", 201);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateImage(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const image = await AdminProductsService.updateImage(
+        req.params.id,
+        req.params.imageId,
+        req.body
+      );
+      sendAdminSuccess(res, image, "Image updated.");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteImage(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AdminProductsService.deleteImage(req.params.id, req.params.imageId);
+      sendAdminSuccess(res, result, "Image deleted.");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async reorderImages(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const images = await AdminProductsService.reorderImages(req.params.id, req.body.orderedIds);
+      sendAdminSuccess(res, images, "Images reordered.");
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+
