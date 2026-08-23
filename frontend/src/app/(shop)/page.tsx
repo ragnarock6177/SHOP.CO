@@ -24,7 +24,7 @@ const CustomerReviews = dynamic(
 
 export default function HomePage() {
   return (
-    <div className="space-y-12 pb-12">
+    <div className="pb-12">
       {/* 1. Hero Poster Banner & Narrow Brand Marquee (Flush together with 0 gap) */}
       <div>
         <HeroBanner />

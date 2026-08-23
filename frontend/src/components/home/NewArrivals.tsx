@@ -46,7 +46,7 @@ export function NewArrivals() {
   };
 
   return (
-    <section className="w-full bg-white py-8 sm:py-14 px-3 sm:px-8 max-w-7xl mx-auto border-b border-black/10 overflow-hidden">
+    <section className="w-full bg-white py-8 sm:py-14 px-3 sm:px-8 max-w-7xl mx-auto border-black/10 overflow-hidden">
       {/* Header */}
       <div className="text-center mb-5 sm:mb-7">
         <span className="text-[9px] sm:text-xs font-bold tracking-widest text-gray-500 uppercase block mb-1 font-be-vietnam-pro">

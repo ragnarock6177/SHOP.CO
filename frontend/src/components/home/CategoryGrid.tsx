@@ -50,7 +50,7 @@ const DRESS_STYLES = [
 
 export function CategoryGrid() {
   return (
-    <section className="w-full bg-[#F0F0F0] py-12 lg:py-20 px-4 sm:px-10 lg:px-16 overflow-hidden my-8">
+    <section className="w-full bg-[#F0F0F0] py-12 lg:py-20 px-4 sm:px-10 lg:px-16 overflow-hidden">
       <div className="max-w-7xl mx-auto flex flex-col justify-center">
         {/* Section Header */}
         <div className="text-center mb-8 lg:mb-14">
