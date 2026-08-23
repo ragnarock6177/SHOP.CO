@@ -43,8 +43,14 @@ const navigationItems = [
   { name: "Returns", href: "/returns", icon: RotateCcw, permission: "returns:read" },
   { name: "Staff Users", href: "/staff", icon: UserCheck, permission: "staff:read" },
   { name: "Roles & Permissions", href: "/roles", icon: Shield, permission: "roles:read" },
-  { name: "Audit Logs", href: "/audit-logs", icon: Activity, permission: "audit_logs:read" },
-  { name: "Settings", href: "/settings", icon: Settings, permission: "settings:manage" },
+  { name: "General Settings", href: "/settings/general", icon: Settings, permission: "settings:manage" },
+  { name: "Homepage Sections", href: "/settings/homepage", icon: Settings, permission: "settings:manage" },
+  { name: "Header & Announcement", href: "/settings/header", icon: Settings, permission: "settings:manage" },
+  { name: "Footer Settings", href: "/settings/footer", icon: Settings, permission: "settings:manage" },
+  { name: "Contact Details", href: "/settings/contact", icon: Settings, permission: "settings:manage" },
+  { name: "Social Media", href: "/settings/social", icon: Settings, permission: "settings:manage" },
+  { name: "SEO & Metadata", href: "/settings/seo", icon: Settings, permission: "settings:manage" },
+  { name: "Hero Banners", href: "/settings/banners", icon: Settings, permission: "settings:manage" },
 ];
 
 export interface MobileSidebarProps {

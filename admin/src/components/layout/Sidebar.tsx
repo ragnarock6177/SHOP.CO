@@ -28,6 +28,14 @@ import {
   ScrollText,
   LogOut,
   Settings,
+  Store,
+  LayoutGrid,
+  Navigation,
+  PanelBottom,
+  PhoneCall,
+  Share2,
+  Search,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface SubItem {
@@ -99,7 +107,21 @@ const navItems: NavItem[] = [
     ],
   },
   { name: 'Audit Logs', href: '/audit-logs', icon: ScrollText },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  {
+    name: 'Settings',
+    href: '/settings',
+    icon: Settings,
+    subItems: [
+      { name: 'General', href: '/settings/general', icon: Store },
+      { name: 'Homepage Sections', href: '/settings/homepage', icon: LayoutGrid },
+      { name: 'Header & Banner', href: '/settings/header', icon: Navigation },
+      { name: 'Footer', href: '/settings/footer', icon: PanelBottom },
+      { name: 'Contact Details', href: '/settings/contact', icon: PhoneCall },
+      { name: 'Social Media', href: '/settings/social', icon: Share2 },
+      { name: 'SEO & Metadata', href: '/settings/seo', icon: Search },
+      { name: 'Hero Banners', href: '/settings/banners', icon: ImageIcon },
+    ],
+  },
 ];
 
 export function Sidebar() {
