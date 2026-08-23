@@ -7,9 +7,41 @@ import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
 import { PRODUCTS } from "@/data/mockData";
 
-export const PersonalizedRecommendations: React.FC = () => {
+import { getProductsApi } from "@/lib/productApi";
+import { StorefrontHomepageSection } from "@/types/settings";
+
+interface PersonalizedRecommendationsProps {
+  section?: StorefrontHomepageSection;
+  initialProducts?: Product[];
+}
+
+export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = ({
+  section,
+  initialProducts = [],
+}) => {
+  const [products, setProducts] = useState<Product[]>(
+    initialProducts.length > 0 ? initialProducts : PRODUCTS
+  );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
+
+  const displayTitle = section?.title || "RECOMMENDED FOR YOU";
+  const displaySubtitle = section?.subtitle || "TAILORED RECOMMENDATIONS";
+  const limit = section?.config?.limit || 8;
+
+  React.useEffect(() => {
+    getProductsApi({ limit, sortBy: "rating" })
+      .then(({ products: fetched }) => {
+        if (fetched.length > 0) {
+          setProducts(fetched);
+        } else {
+          setProducts(PRODUCTS);
+        }
+      })
+      .catch(() => {
+        setProducts(PRODUCTS);
+      });
+  }, [limit]);
 
   const scroll = (direction: "left" | "right") => {
     if (sliderRef.current) {
@@ -23,11 +55,13 @@ export const PersonalizedRecommendations: React.FC = () => {
       {/* Header with Navigation Arrows */}
       <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div>
-          <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1 font-be-vietnam-pro">
-            TAILORED RECOMMENDATIONS
-          </span>
+          {displaySubtitle && (
+            <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1 font-be-vietnam-pro">
+              {displaySubtitle}
+            </span>
+          )}
           <h2 className="font-be-vietnam-pro-black text-xl sm:text-3xl lg:text-4xl font-black uppercase text-black">
-            RECOMMENDED FOR YOU
+            {displayTitle}
           </h2>
         </div>
 
@@ -55,7 +89,7 @@ export const PersonalizedRecommendations: React.FC = () => {
         ref={sliderRef}
         className="flex gap-2 sm:gap-4 overflow-x-auto scrollbar-none scroll-smooth pb-3 touch-pan-x gpu-layer"
       >
-        {PRODUCTS.map((product) => (
+        {products.map((product) => (
           <div key={product.id} className="w-32 sm:w-44 lg:w-48 shrink-0">
             <ProductCard
               product={product}

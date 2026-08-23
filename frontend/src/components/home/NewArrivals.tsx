@@ -8,6 +8,8 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
 
+import { StorefrontHomepageSection } from "@/types/settings";
+
 const CATEGORY_TABS = [
   { id: "all", label: "All New Drops" },
   { id: "t-shirts", label: "T-Shirts & Tops" },
@@ -15,22 +17,35 @@ const CATEGORY_TABS = [
   { id: "hoodies", label: "Hoodies & Jackets" },
 ];
 
-export function NewArrivals() {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+interface NewArrivalsProps {
+  section?: StorefrontHomepageSection;
+  initialProducts?: Product[];
+}
+
+export function NewArrivals({ section, initialProducts = [] }: NewArrivalsProps) {
+  const limit = section?.config?.limit || 6;
+  const selectionMode = section?.config?.selectionMode || "LATEST";
+
+  const [allProducts, setAllProducts] = useState<Product[]>(initialProducts);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(
+    initialProducts.slice(0, limit)
+  );
   const [activeTab, setActiveTab] = useState<string>("all");
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
+  const displayTitle = section?.title || "NEW ARRIVALS";
+  const displaySubtitle = section?.subtitle || "LATEST SEASONAL ARRIVALS";
+
   useEffect(() => {
-    getProductsApi({ limit: 12 })
+    getProductsApi({ limit: 12, selectionMode })
       .then(({ products }) => {
         if (products.length > 0) {
           setAllProducts(products);
-          setFilteredProducts(products.slice(0, 6));
+          setFilteredProducts(products.slice(0, limit));
         }
       })
       .catch(() => {});
-  }, []);
+  }, [limit, selectionMode]);
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
@@ -49,11 +64,13 @@ export function NewArrivals() {
     <section className="w-full bg-white py-8 sm:py-14 px-3 sm:px-8 max-w-7xl mx-auto border-black/10 overflow-hidden">
       {/* Header */}
       <div className="text-center mb-5 sm:mb-7">
-        <span className="text-[9px] sm:text-xs font-bold tracking-widest text-gray-500 uppercase block mb-1 font-be-vietnam-pro">
-          LATEST SEASONAL ARRIVALS
-        </span>
+        {displaySubtitle && (
+          <span className="text-[9px] sm:text-xs font-bold tracking-widest text-gray-500 uppercase block mb-1 font-be-vietnam-pro">
+            {displaySubtitle}
+          </span>
+        )}
         <h2 className="font-be-vietnam-pro-black text-xl sm:text-3xl lg:text-4xl font-black text-black uppercase tracking-tight leading-tight">
-          NEW ARRIVALS
+          {displayTitle}
         </h2>
       </div>
 

@@ -21,6 +21,7 @@ import {
   UserCheck,
   Shield,
   Activity,
+  Settings,
   X,
 } from "lucide-react";
 import { PermissionGate } from "../rbac/PermissionGate";
@@ -43,6 +44,7 @@ const navigationItems = [
   { name: "Staff Users", href: "/staff", icon: UserCheck, permission: "staff:read" },
   { name: "Roles & Permissions", href: "/roles", icon: Shield, permission: "roles:read" },
   { name: "Audit Logs", href: "/audit-logs", icon: Activity, permission: "audit_logs:read" },
+  { name: "Settings", href: "/settings", icon: Settings, permission: "settings:manage" },
 ];
 
 export interface MobileSidebarProps {

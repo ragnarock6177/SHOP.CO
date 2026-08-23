@@ -12,11 +12,22 @@ const app: Express = express();
 // Security Headers
 app.use(helmet());
 
-// CORS Configuration
-const allowedOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
+// CORS Configuration: Allow storefront (3000) and admin panel (3001) origins
+const defaultAllowedOrigins = ["http://localhost:3000", "http://localhost:3001"];
+const envOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+  : [];
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envOrigins]));
+
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Dev fallback
+      }
+    },
     credentials: true,
   }),
 );

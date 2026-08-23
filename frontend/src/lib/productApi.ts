@@ -84,25 +84,35 @@ export function normalizeProduct(apiItem: any): Product {
  */
 export async function getProductsApi(options?: {
   category?: string;
+  collection?: string;
   search?: string;
   minPrice?: number;
   maxPrice?: number;
   sortBy?: string;
+  selectionMode?: string;
+  ids?: string[];
+  featured?: boolean;
+  onSale?: boolean;
   limit?: number;
   page?: number;
 }): Promise<{ products: Product[]; meta?: any }> {
   try {
     const params = new URLSearchParams();
     if (options?.category) params.append("category", options.category.toLowerCase());
+    if (options?.collection) params.append("collection", options.collection.toLowerCase());
     if (options?.search) params.append("search", options.search);
     if (options?.minPrice) params.append("minPrice", String(options.minPrice));
     if (options?.maxPrice) params.append("maxPrice", String(options.maxPrice));
     if (options?.sortBy) params.append("sortBy", options.sortBy);
+    if (options?.selectionMode) params.append("selectionMode", options.selectionMode);
+    if (options?.ids && options.ids.length > 0) params.append("ids", options.ids.join(","));
+    if (options?.featured !== undefined) params.append("featured", String(options.featured));
+    if (options?.onSale !== undefined) params.append("onSale", String(options.onSale));
     if (options?.limit) params.append("limit", String(options.limit));
     if (options?.page) params.append("page", String(options.page));
 
     const response = await fetch(`${API_BASE_URL}/products?${params.toString()}`, {
-      next: { revalidate: 60, tags: ["products"] },
+      next: { revalidate: 30, tags: ["products"] },
     });
 
     if (response.ok) {
@@ -118,9 +128,14 @@ export async function getProductsApi(options?: {
 
   // Fail-Safe Fallback to mock data with live filtering
   let filtered = [...PRODUCTS];
+  if (options?.ids && options.ids.length > 0) {
+    const idSet = new Set(options.ids.map((id) => id.toLowerCase()));
+    filtered = filtered.filter((p) => idSet.has(p.id.toLowerCase()));
+  }
+
   if (options?.category) {
     const catLow = options.category.toLowerCase();
-    filtered = filtered.filter((p) => p.category.toLowerCase() === catLow);
+    filtered = filtered.filter((p) => p.category.toLowerCase().includes(catLow));
   }
   if (options?.search) {
     const searchLow = options.search.toLowerCase();
@@ -133,11 +148,18 @@ export async function getProductsApi(options?: {
   if (options?.maxPrice) {
     filtered = filtered.filter((p) => p.price <= options.maxPrice!);
   }
+
+  if (options?.selectionMode === "FEATURED" || options?.featured) {
+    filtered = filtered.filter((p) => p.featured);
+  } else if (options?.selectionMode === "SALE" || options?.onSale) {
+    filtered = filtered.filter((p) => p.discount && p.discount > 0);
+  }
+
   if (options?.sortBy === "price-low") {
     filtered.sort((a, b) => a.price - b.price);
   } else if (options?.sortBy === "price-high") {
     filtered.sort((a, b) => b.price - a.price);
-  } else if (options?.sortBy === "rating") {
+  } else if (options?.sortBy === "rating" || options?.selectionMode === "BEST_SELLING") {
     filtered.sort((a, b) => b.rating - a.rating);
   }
 

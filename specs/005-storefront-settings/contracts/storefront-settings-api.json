@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StorefrontSettingsResponse",
+  "type": "object",
+  "required": ["success", "data"],
+  "properties": {
+    "success": { "type": "boolean", "const": true },
+    "data": {
+      "type": "object",
+      "required": ["store", "header", "home", "contact", "social", "footer", "seo"],
+      "properties": {
+        "store": {
+          "type": "object",
+          "required": ["name", "description", "logoUrl", "faviconUrl", "currency", "defaultLanguage", "timezone", "maintenanceMode"],
+          "properties": {
+            "name": { "type": "string" },
+            "description": { "type": "string" },
+            "logoUrl": { "type": "string" },
+            "faviconUrl": { "type": "string" },
+            "currency": { "type": "string" },
+            "defaultLanguage": { "type": "string" },
+            "timezone": { "type": "string" },
+            "maintenanceMode": { "type": "boolean" }
+          }
+        },
+        "header": {
+          "type": "object",
+          "required": ["announcementBar", "searchVisible", "wishlistVisible", "cartVisible", "accountVisible"],
+          "properties": {
+            "announcementBar": {
+              "type": "object",
+              "required": ["enabled", "text"],
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "text": { "type": "string" },
+                "link": { "type": "string" }
+              }
+            },
+            "searchVisible": { "type": "boolean" },
+            "wishlistVisible": { "type": "boolean" },
+            "cartVisible": { "type": "boolean" },
+            "accountVisible": { "type": "boolean" }
+          }
+        },
+        "home": {
+          "type": "object",
+          "required": ["sections", "banners"],
+          "properties": {
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "sectionKey", "sectionType", "displayOrder", "isEnabled", "config"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "sectionKey": { "type": "string" },
+                  "sectionType": { "type": "string" },
+                  "title": { "type": ["string", "null"] },
+                  "subtitle": { "type": ["string", "null"] },
+                  "displayOrder": { "type": "integer" },
+                  "isEnabled": { "type": "boolean" },
+                  "config": { "type": "object" }
+                }
+              }
+            },
+            "banners": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "desktopImageUrl", "targetType", "displayOrder", "isEnabled"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "title": { "type": ["string", "null"] },
+                  "subtitle": { "type": ["string", "null"] },
+                  "desktopImageUrl": { "type": "string" },
+                  "mobileImageUrl": { "type": ["string", "null"] },
+                  "buttonText": { "type": ["string", "null"] },
+                  "buttonUrl": { "type": ["string", "null"] },
+                  "targetType": { "type": "string", "enum": ["NONE", "PRODUCT", "CATEGORY", "URL"] },
+                  "targetProductId": { "type": ["string", "null"] },
+                  "targetCategoryId": { "type": ["string", "null"] },
+                  "targetSlug": { "type": ["string", "null"] },
+                  "displayOrder": { "type": "integer" },
+                  "isEnabled": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "contact": { "type": "object" },
+        "social": { "type": "object" },
+        "footer": { "type": "object" },
+        "seo": { "type": "object" }
+      }
+    }
+  }
+}

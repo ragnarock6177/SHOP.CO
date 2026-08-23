@@ -1,59 +1,81 @@
 import React from 'react';
-import dynamic from 'next/dynamic';
-import { HeroBanner } from '@/components/home/HeroBanner';
-import { BrandBanner } from '@/components/home/BrandBanner';
-import { NewArrivals } from '@/components/home/NewArrivals';
-import { CuratedCollections } from '@/components/home/CuratedCollections';
-import { CategoryGrid } from '@/components/home/CategoryGrid';
-import { EditorialShowcase } from '@/components/home/EditorialShowcase';
-import { TopSelling } from '@/components/home/TopSelling';
-import { PersonalizedRecommendations } from '@/components/home/PersonalizedRecommendations';
-import { NewsletterBanner } from '@/components/home/NewsletterBanner';
+import { getStorefrontSettingsApi } from '@/lib/settingsApi';
+import { getProductsApi } from '@/lib/productApi';
+import { HomepageSectionRenderer } from '@/components/home/HomepageSectionRenderer';
+import { Product } from '@/types/ecommerce';
+import { StorefrontHomepageSection } from '@/types/settings';
 
-// Dynamically import CustomerReviews (GSAP marquee animation) to split heavy JS bundle
-const CustomerReviews = dynamic(
-  () => import('@/components/home/CustomerReviews').then((mod) => mod.CustomerReviews),
-  {
-    loading: () => (
-      <div className="w-full h-64 bg-gray-50 animate-pulse rounded-2xl flex items-center justify-center">
-        <span className="text-sm font-semibold text-gray-400">Loading Customer Reviews...</span>
-      </div>
-    ),
+export const revalidate = 30; // 30 seconds ISR revalidation
+
+const PRODUCT_SECTION_TYPES = new Set([
+  'NEW_ARRIVALS',
+  'TOP_SELLING',
+  'BEST_SELLERS',
+  'RECOMMENDATIONS',
+  'TRENDING_PRODUCTS',
+  'PRODUCT_GRID',
+  'SALE_PRODUCTS',
+  'FEATURED_PRODUCTS',
+  'MANUAL',
+]);
+
+async function prefetchSectionProducts(section: StorefrontHomepageSection): Promise<Product[]> {
+  if (!PRODUCT_SECTION_TYPES.has(section.sectionType)) {
+    return [];
   }
-);
 
-export default function HomePage() {
+  const limit = section.config?.limit || 6;
+  const selectionMode = section.config?.selectionMode || 'LATEST';
+  const selectedProductIds = section.config?.selectedProductIds;
+
+  try {
+    const { products } = await getProductsApi({
+      limit,
+      selectionMode: section.sectionType === 'TOP_SELLING' ? 'BEST_SELLING' : selectionMode,
+      ids: selectedProductIds,
+      sortBy: section.sectionType === 'TOP_SELLING' || section.sectionType === 'RECOMMENDATIONS' ? 'rating' : undefined,
+    });
+    return products;
+  } catch (error) {
+    console.warn(`Build-time pre-fetch warning for section ${section.sectionKey}:`, error);
+    return [];
+  }
+}
+
+export default async function HomePage() {
+  const settings = await getStorefrontSettingsApi();
+  
+  // Filter and sort active homepage sections
+  const sortedSections = (settings.home?.sections || [])
+    .filter((sec) => sec.isEnabled)
+    .sort((a, b) => a.displayOrder - b.displayOrder);
+
+  // Pre-fetch all section product datasets in parallel at build time / ISR revalidation
+  const sectionProductEntries = await Promise.all(
+    sortedSections.map(async (section) => {
+      const products = await prefetchSectionProducts(section);
+      return { sectionId: section.id || section.sectionKey, products };
+    })
+  );
+
+  const productMap = new Map<string, Product[]>();
+  sectionProductEntries.forEach((entry) => {
+    productMap.set(entry.sectionId, entry.products);
+  });
+
   return (
-    <div className="pb-12">
-      {/* 1. Hero Poster Banner & Narrow Brand Marquee (Flush together with 0 gap) */}
-      <div>
-        <HeroBanner />
-        <BrandBanner />
-      </div>
-
-      {/* 2. New Arrivals with Category Filter Tabs */}
-      <NewArrivals />
-
-      {/* 3. Curated Product Collections Lineup */}
-      <CuratedCollections />
-
-      {/* 4. Browse By Dress Style Bento Grid */}
-      <CategoryGrid />
-
-      {/* 5. High-Fashion Editorial Campaign Showcase */}
-      <EditorialShowcase />
-
-      {/* 6. Top Selling Bestsellers */}
-      <TopSelling />
-
-      {/* 7. Tailored Product Recommendations Carousel */}
-      <PersonalizedRecommendations />
-
-      {/* 8. Customer Reviews & Testimonials Marquee */}
-      <CustomerReviews />
-
-      {/* 9. VIP Club Newsletter Banner */}
-      <NewsletterBanner />
+    <div className="pb-12 space-y-0">
+      {sortedSections.map((section) => {
+        const key = section.id || section.sectionKey;
+        const initialProducts = productMap.get(key) || [];
+        return (
+          <HomepageSectionRenderer
+            key={key}
+            section={section}
+            initialProducts={initialProducts}
+          />
+        );
+      })}
     </div>
   );
 }

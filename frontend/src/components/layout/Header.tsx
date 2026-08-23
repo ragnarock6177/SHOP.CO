@@ -8,6 +8,27 @@ import { Navbar } from "./Navbar";
 
 export const Header: React.FC = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [announcementText, setAnnouncementText] = useState("Sign up and get 20% off your first order.");
+  const [announcementLink, setAnnouncementLink] = useState("/signup");
+
+  React.useEffect(() => {
+    import("@/lib/settingsApi").then(({ getStorefrontSettingsApi }) => {
+      getStorefrontSettingsApi().then((settings) => {
+        if (settings?.header?.announcementBar) {
+          if (!settings.header.announcementBar.enabled) {
+            setShowAnnouncement(false);
+          } else {
+            if (settings.header.announcementBar.text) {
+              setAnnouncementText(settings.header.announcementBar.text);
+            }
+            if (settings.header.announcementBar.link) {
+              setAnnouncementLink(settings.header.announcementBar.link);
+            }
+          }
+        }
+      });
+    });
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100 font-be-vietnam-pro">
@@ -22,13 +43,15 @@ export const Header: React.FC = () => {
           >
             <div className="py-2 px-7 sm:px-12 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-[36px] sm:min-h-[40px]">
               <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap">
-                <span className="opacity-90">Sign up and get 20% off your first order.</span>
-                <Link
-                  href="/signup"
-                  className="font-extrabold underline hover:text-gray-300 transition-colors whitespace-nowrap"
-                >
-                  Sign Up Now
-                </Link>
+                <span className="opacity-90">{announcementText}</span>
+                {announcementLink && (
+                  <Link
+                    href={announcementLink}
+                    className="font-extrabold underline hover:text-gray-300 transition-colors whitespace-nowrap ml-1"
+                  >
+                    Sign Up Now
+                  </Link>
+                )}
               </div>
 
               <button

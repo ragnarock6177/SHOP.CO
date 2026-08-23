@@ -27,6 +27,7 @@ import {
   Shield,
   ScrollText,
   LogOut,
+  Settings,
 } from 'lucide-react';
 
 interface SubItem {
@@ -98,6 +99,7 @@ const navItems: NavItem[] = [
     ],
   },
   { name: 'Audit Logs', href: '/audit-logs', icon: ScrollText },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {

@@ -216,6 +216,7 @@ model User {
   couponUsages              CouponUsage[]
   returns                   Return[]
   auditLogs                 AuditLog[]
+  storeSettingsUpdated      StoreSetting[]
 
   @@index([status])
   @@index([phone])
@@ -341,6 +342,7 @@ model Category {
   collectionCategories CollectionCategory[]
   productCategories    ProductCategory[]
   couponCategories     CouponCategory[]
+  banners              Banner[]
 
   @@index([parentId])
   @@index([status, sortOrder])
@@ -388,6 +390,7 @@ model Product {
   wishlistItems      WishlistItem[]
   reviews            ProductReview[]
   couponProducts     CouponProduct[]
+  banners            Banner[]
 
   @@index([status, visibility])
   @@index([createdAt(sort: Desc)])
@@ -1098,3 +1101,73 @@ model AuditLog {
   @@index([userId, createdAt(sort: Desc)])
   @@map("audit_logs")
 }
+
+// ============================================================
+// STOREFRONT SETTINGS & HOMEPAGE CUSTOMIZATION
+// ============================================================
+
+enum BannerTargetType {
+  NONE
+  PRODUCT
+  CATEGORY
+  URL
+
+  @@map("banner_target_type")
+}
+
+model StoreSetting {
+  key       String   @id @db.VarChar(100)
+  value     Json     @default("{}")
+  category  String   @db.VarChar(50)
+  updatedBy String?  @map("updated_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  updatedByUser User? @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@map("store_settings")
+}
+
+model HomepageSection {
+  id           String   @id @default(uuid()) @db.Uuid
+  sectionKey   String   @unique @map("section_key") @db.VarChar(100)
+  sectionType  String   @map("section_type") @db.VarChar(50)
+  title        String?  @db.VarChar(255)
+  subtitle     String?  @db.VarChar(500)
+  displayOrder Int      @default(0) @map("display_order")
+  isEnabled    Boolean  @default(true) @map("is_enabled")
+  config       Json     @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([isEnabled, displayOrder])
+  @@map("homepage_sections")
+}
+
+model Banner {
+  id               String           @id @default(uuid()) @db.Uuid
+  title            String?          @db.VarChar(255)
+  subtitle         String?          @db.VarChar(500)
+  desktopImageUrl  String           @map("desktop_image_url")
+  mobileImageUrl   String?          @map("mobile_image_url")
+  buttonText       String?          @map("button_text") @db.VarChar(100)
+  buttonUrl        String?          @map("button_url") @db.VarChar(500)
+  targetType       BannerTargetType @default(NONE) @map("target_type")
+  targetProductId  String?          @map("target_product_id") @db.Uuid
+  targetCategoryId String?          @map("target_category_id") @db.Uuid
+  displayOrder     Int              @default(0) @map("display_order")
+  isEnabled        Boolean          @default(true) @map("is_enabled")
+  startsAt         DateTime?        @map("starts_at") @db.Timestamptz
+  endsAt           DateTime?        @map("ends_at") @db.Timestamptz
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  targetProduct  Product?  @relation(fields: [targetProductId], references: [id], onDelete: SetNull)
+  targetCategory Category? @relation(fields: [targetCategoryId], references: [id], onDelete: SetNull)
+
+  @@index([isEnabled, displayOrder])
+  @@index([startsAt, endsAt])
+  @@map("banners")
+}
+

@@ -13,6 +13,10 @@ export class ProductService {
     search?: string;
     sortBy?: string;
     sortOrder?: string;
+    selectionMode?: string;
+    ids?: string | string[];
+    featured?: string | boolean;
+    onSale?: string | boolean;
   }) {
     const { page, limit, skip } = parsePaginationParams(query.page, query.limit);
 
@@ -21,6 +25,23 @@ export class ProductService {
       visibility: "PUBLIC",
       deletedAt: null,
     };
+
+    if (query.ids) {
+      const idList = Array.isArray(query.ids)
+        ? query.ids
+        : String(query.ids).split(",").map((s) => s.trim()).filter(Boolean);
+      if (idList.length > 0) {
+        where.id = { in: idList };
+      }
+    }
+
+    if (query.featured === true || query.featured === "true" || query.selectionMode === "FEATURED") {
+      where.isFeatured = true;
+    }
+
+    if (query.onSale === true || query.onSale === "true" || query.selectionMode === "SALE") {
+      where.compareAtPrice = { not: null };
+    }
 
     if (query.category) {
       where.productCategories = {
@@ -48,9 +69,22 @@ export class ProductService {
     }
 
     const orderBy: any = {};
-    const sortBy = query.sortBy || "createdAt";
-    const sortOrder = (query.sortOrder || "desc").toLowerCase();
-    orderBy[sortBy] = sortOrder;
+    let sortBy = query.sortBy || "createdAt";
+    let sortOrder = (query.sortOrder || "desc").toLowerCase();
+
+    if (query.selectionMode === "LATEST") {
+      sortBy = "createdAt";
+      sortOrder = "desc";
+    } else if (query.selectionMode === "BEST_SELLING") {
+      sortBy = "createdAt";
+      sortOrder = "desc";
+    }
+
+    if (sortBy === "basePrice" || sortBy === "name" || sortBy === "createdAt") {
+      orderBy[sortBy] = sortOrder;
+    } else {
+      orderBy["createdAt"] = sortOrder;
+    }
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
