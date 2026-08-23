@@ -11,6 +11,7 @@ import { CustomSelect } from '@/components/common/CustomSelect';
 import { ProductSkeleton } from '@/components/common/ProductSkeleton';
 import { Pagination } from '@/components/common/Pagination';
 import { Product } from '@/types/ecommerce';
+import { getProductsApi } from '@/lib/productApi';
 
 const SORT_OPTIONS = [
   { label: 'Most Popular', value: 'popular' },
@@ -102,9 +103,36 @@ function ProductGridWithParams({
   const activeCategory = searchParams.get('category') || searchParams.get('filter') || 'Casual';
   const searchQuery = searchParams.get('search') || '';
 
+  const [searchProducts, setSearchProducts] = React.useState<Product[] | null>(null);
+  const [loadingSearch, setLoadingSearch] = React.useState(false);
+
+  React.useEffect(() => {
+    if (searchQuery.trim()) {
+      setLoadingSearch(true);
+      getProductsApi({ search: searchQuery.trim(), limit: 100 })
+        .then(({ products }) => {
+          setSearchProducts(products);
+        })
+        .catch(() => {
+          setSearchProducts(null);
+        })
+        .finally(() => {
+          setLoadingSearch(false);
+        });
+    } else {
+      setSearchProducts(null);
+    }
+  }, [searchQuery]);
+
+  const displayProducts = searchProducts !== null ? searchProducts : initialProducts;
+
+  if (loadingSearch) {
+    return <ProductSkeleton count={6} />;
+  }
+
   return (
     <ProductGridList
-      initialProducts={initialProducts}
+      initialProducts={displayProducts}
       category={activeCategory}
       searchQuery={searchQuery}
       sortBy={sortBy}

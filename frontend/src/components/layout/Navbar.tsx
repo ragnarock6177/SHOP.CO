@@ -14,13 +14,14 @@ import {
   Heart,
   ChevronDown,
   ChevronRight,
-  Tag,
   ArrowRight,
   TrendingUp,
+  Loader2,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { CATEGORIES, PRODUCTS } from "@/data/mockData";
+import { CATEGORIES } from "@/data/mockData";
+import { getProductsApi } from "@/lib/productApi";
 import { Product } from "@/types/ecommerce";
 
 export const Navbar: React.FC = () => {
@@ -31,6 +32,7 @@ export const Navbar: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,20 +78,29 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Live Predictive Search filtering
+  // Live Predictive Search API call with 250ms debouncing
   useEffect(() => {
-    if (searchQuery.trim().length > 0) {
-      const query = searchQuery.toLowerCase();
-      const filtered = PRODUCTS.filter(
-        (p) =>
-          p.title.toLowerCase().includes(query) ||
-          p.category.toLowerCase().includes(query) ||
-          (p.tags && p.tags.some((t) => t.toLowerCase().includes(query)))
-      ).slice(0, 5);
-      setSearchResults(filtered);
-    } else {
+    if (!searchQuery.trim()) {
       setSearchResults([]);
+      setIsSearching(false);
+      return;
     }
+
+    setIsSearching(true);
+    const timer = setTimeout(() => {
+      getProductsApi({ search: searchQuery.trim(), limit: 6 })
+        .then(({ products }) => {
+          setSearchResults(products);
+        })
+        .catch(() => {
+          setSearchResults([]);
+        })
+        .finally(() => {
+          setIsSearching(false);
+        });
+    }, 250);
+
+    return () => clearTimeout(timer);
   }, [searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -184,11 +195,15 @@ export const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center flex-1 max-w-sm lg:max-w-md relative">
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="w-full flex items-center gap-3 bg-[#F4F4F4] hover:bg-gray-100 border border-transparent hover:border-gray-200/80 rounded-full px-4 py-2 text-xs text-gray-500 transition-all duration-200 text-left group cursor-pointer"
+              className="w-full flex items-center justify-between bg-[#F4F4F4] hover:bg-gray-100 border border-transparent hover:border-gray-200/80 rounded-full px-4 py-2 text-xs text-gray-500 transition-all duration-200 text-left group cursor-pointer"
             >
-              <Search className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
-              <span className="truncate text-gray-500 font-medium">Search garments, styles...</span>
-
+              <div className="flex items-center gap-3 truncate">
+                <Search className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
+                <span className="truncate text-gray-500 font-medium">Search garments, styles...</span>
+              </div>
+              <span className="text-[10px] font-bold bg-white text-gray-400 border border-gray-200 px-2 py-0.5 rounded-md font-mono shrink-0">
+                ⌘K
+              </span>
             </button>
           </div>
 
@@ -266,7 +281,7 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Predictive Live Search Overlay */}
+      {/* Predictive Dynamic Live Search Overlay */}
       <AnimatePresence>
         {isSearchOpen && (
           <div className="fixed inset-0 z-50 flex flex-col justify-start">
@@ -302,13 +317,17 @@ export const Navbar: React.FC = () => {
 
                 {/* Form Input */}
                 <form onSubmit={handleSearchSubmit} className="relative mb-6">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  {isSearching ? (
+                    <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black animate-spin" />
+                  ) : (
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  )}
                   <input
                     ref={searchInputRef}
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by garment, category..."
+                    placeholder="Search by garment name, category, style..."
                     className="w-full pl-12 pr-12 py-3.5 bg-gray-100 rounded-2xl text-black font-semibold text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black transition-all"
                   />
                   {searchQuery && (
@@ -322,12 +341,17 @@ export const Navbar: React.FC = () => {
                   )}
                 </form>
 
-                {/* Search Results */}
+                {/* Dynamic Live API Search Results */}
                 {searchQuery.trim().length > 0 ? (
                   <div>
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-                      Matching Products ({searchResults.length})
-                    </h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Live Results ({searchResults.length})
+                      </h4>
+                      {isSearching && (
+                        <span className="text-[10px] font-bold text-gray-400 animate-pulse">Searching catalog...</span>
+                      )}
+                    </div>
 
                     {searchResults.length > 0 ? (
                       <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
@@ -336,7 +360,7 @@ export const Navbar: React.FC = () => {
                             key={product.id}
                             href={`/product/${product.id}`}
                             onClick={() => setIsSearchOpen(false)}
-                            className="flex items-center gap-4 p-2.5 rounded-2xl hover:bg-gray-50 transition-colors group"
+                            className="flex items-center gap-4 p-2.5 rounded-2xl hover:bg-gray-50 transition-colors group border border-transparent hover:border-gray-200"
                           >
                             <div className="relative w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0">
                               <Image
@@ -353,16 +377,20 @@ export const Navbar: React.FC = () => {
                               <p className="text-xs text-gray-400 capitalize">{product.category}</p>
                             </div>
                             <div className="text-right">
-                              <span className="font-extrabold text-sm text-black">${product.price}</span>
+                              <span className="font-extrabold text-sm text-black">₹{product.price}</span>
                               {product.originalPrice && (
                                 <span className="block text-xs text-gray-400 line-through">
-                                  ${product.originalPrice}
+                                  ₹{product.originalPrice}
                                 </span>
                               )}
                             </div>
                             <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all" />
                           </Link>
                         ))}
+                      </div>
+                    ) : isSearching ? (
+                      <div className="py-8 text-center text-gray-400 animate-pulse text-xs font-semibold">
+                        Searching products...
                       </div>
                     ) : (
                       <div className="py-8 text-center text-gray-500">
@@ -381,7 +409,7 @@ export const Navbar: React.FC = () => {
                           <button
                             key={tag}
                             onClick={() => setSearchQuery(tag)}
-                            className="px-3.5 py-1.5 rounded-full bg-gray-100 hover:bg-black hover:text-white text-xs font-bold transition-colors"
+                            className="px-3.5 py-1.5 rounded-full bg-gray-100 hover:bg-black hover:text-white text-xs font-bold transition-colors cursor-pointer"
                           >
                             {tag}
                           </button>

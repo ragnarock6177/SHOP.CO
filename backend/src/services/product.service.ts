@@ -65,6 +65,9 @@ export class ProductService {
       where.OR = [
         { name: { contains: query.search, mode: "insensitive" } },
         { description: { contains: query.search, mode: "insensitive" } },
+        { shortDescription: { contains: query.search, mode: "insensitive" } },
+        { slug: { contains: query.search, mode: "insensitive" } },
+        { productCategories: { some: { category: { name: { contains: query.search, mode: "insensitive" } } } } },
       ];
     }
 
