@@ -1,46 +1,53 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { SlidersHorizontal } from 'lucide-react';
-import { Drawer } from 'vaul';
-import { ProductCard } from '@/components/product/ProductCard';
-import { FilterSidebar } from '@/components/shop/FilterSidebar';
-import { CustomSelect } from '@/components/common/CustomSelect';
-import { ProductSkeleton } from '@/components/common/ProductSkeleton';
-import { Pagination } from '@/components/common/Pagination';
-import { Product } from '@/types/ecommerce';
-import { getProductsApi } from '@/lib/productApi';
+import React, { useState, useMemo, Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { SlidersHorizontal } from "lucide-react";
+import { Drawer } from "vaul";
+import { ProductCard } from "@/components/product/ProductCard";
+import { FilterSidebar } from "@/components/shop/FilterSidebar";
+import { CustomSelect } from "@/components/common/CustomSelect";
+import { ProductSkeleton } from "@/components/common/ProductSkeleton";
+import { Pagination } from "@/components/common/Pagination";
+import { Breadcrumb } from "@/components/common/Breadcrumb";
+import { Product, Category } from "@/types/ecommerce";
+import { getProductsApi } from "@/lib/productApi";
 
 const SORT_OPTIONS = [
-  { label: 'Most Popular', value: 'popular' },
-  { label: 'Price: Low to High', value: 'price-low' },
-  { label: 'Price: High to Low', value: 'price-high' },
-  { label: 'Highest Rated', value: 'rating' },
+  { label: "Most Popular", value: "popular" },
+  { label: "Price: Low to High", value: "price-low" },
+  { label: "Price: High to Low", value: "price-high" },
+  { label: "Highest Rated", value: "rating" },
 ];
 
+interface ShopCatalogClientProps {
+  initialProducts: Product[];
+  initialCategories?: Category[];
+  initialFilterSettings?: any;
+}
+
 function ProductGridList({
-  initialProducts,
+  products,
   category,
   searchQuery,
   sortBy,
-  activeFilters
+  activeFilters,
 }: {
-  initialProducts: Product[];
+  products: Product[];
   category: string;
   searchQuery: string;
   sortBy: string;
   activeFilters: any;
 }) {
   const filteredProducts = useMemo(() => {
-    return initialProducts
+    return products
       .filter((product) => {
         // Category Filter
         if (
           category &&
-          category !== 'Casual' &&
-          category !== 'All' &&
+          category !== "Casual" &&
+          category !== "All" &&
           product.category.toLowerCase() !== category.toLowerCase()
         ) {
           return false;
@@ -63,12 +70,12 @@ function ProductGridList({
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'price-low') return a.price - b.price;
-        if (sortBy === 'price-high') return b.price - a.price;
-        if (sortBy === 'rating') return b.rating - a.rating;
+        if (sortBy === "price-low") return a.price - b.price;
+        if (sortBy === "price-high") return b.price - a.price;
+        if (sortBy === "rating") return b.rating - a.rating;
         return 0;
       });
-  }, [initialProducts, category, searchQuery, sortBy, activeFilters]);
+  }, [products, category, searchQuery, sortBy, activeFilters]);
 
   if (filteredProducts.length === 0) {
     return (
@@ -90,86 +97,44 @@ function ProductGridList({
   );
 }
 
-function ProductGridWithParams({
-  initialProducts,
-  sortBy,
-  activeFilters
-}: {
-  initialProducts: Product[];
-  sortBy: string;
-  activeFilters: any;
-}) {
-  const searchParams = useSearchParams();
-  const activeCategory = searchParams.get('category') || searchParams.get('filter') || 'Casual';
-  const searchQuery = searchParams.get('search') || '';
-
-  const [searchProducts, setSearchProducts] = React.useState<Product[] | null>(null);
-  const [loadingSearch, setLoadingSearch] = React.useState(false);
-
-  React.useEffect(() => {
-    if (searchQuery.trim()) {
-      setLoadingSearch(true);
-      getProductsApi({ search: searchQuery.trim(), limit: 100 })
-        .then(({ products }) => {
-          setSearchProducts(products);
-        })
-        .catch(() => {
-          setSearchProducts(null);
-        })
-        .finally(() => {
-          setLoadingSearch(false);
-        });
-    } else {
-      setSearchProducts(null);
-    }
-  }, [searchQuery]);
-
-  const displayProducts = searchProducts !== null ? searchProducts : initialProducts;
-
-  if (loadingSearch) {
-    return <ProductSkeleton count={6} />;
-  }
-
-  return (
-    <ProductGridList
-      initialProducts={displayProducts}
-      category={activeCategory}
-      searchQuery={searchQuery}
-      sortBy={sortBy}
-      activeFilters={activeFilters}
-    />
-  );
-}
-
 function ShopHeaderRow({
   sortBy,
   setSortBy,
   isMobileFilterOpen,
   setIsMobileFilterOpen,
-  handleApplyFilter
+  handleApplyFilter,
+  initialCategories,
+  initialFilterSettings,
 }: {
   sortBy: string;
   setSortBy: (val: string) => void;
   isMobileFilterOpen: boolean;
   setIsMobileFilterOpen: (val: boolean) => void;
   handleApplyFilter: (filters: any) => void;
+  initialCategories?: Category[];
+  initialFilterSettings?: any;
 }) {
   const searchParams = useSearchParams();
-  const activeCategory = searchParams.get('category') || searchParams.get('filter') || 'Casual';
+  const activeCategory = searchParams.get("category") || searchParams.get("filter") || "Shop Catalog";
+  const searchQuery = searchParams.get("search") || "";
+
+  const titleText = searchQuery
+    ? `Search: "${searchQuery}"`
+    : activeCategory;
+
+  const breadcrumbItems = searchQuery
+    ? [{ label: "Shop", href: "/product" }, { label: `Search: ${searchQuery}` }]
+    : [{ label: "Shop", href: "/product" }, { label: activeCategory }];
 
   return (
     <div className="space-y-2 mb-4">
-      {/* Breadcrumb Trail */}
-      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap font-be-vietnam-pro">
-        <Link href="/" className="hover:text-black transition-colors">Home</Link>
-        <span>&gt;</span>
-        <span className="text-black font-semibold capitalize">{activeCategory}</span>
-      </nav>
+      {/* Dynamic Reusable Breadcrumb Component */}
+      <Breadcrumb items={breadcrumbItems} />
 
       {/* Title & Action Controls Row */}
       <div className="flex items-center justify-between gap-2 sm:gap-4">
         <h1 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black text-black capitalize truncate">
-          {activeCategory}
+          {titleText}
         </h1>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -192,6 +157,8 @@ function ShopHeaderRow({
                   <Drawer.Handle className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4" />
                   <Drawer.Title className="sr-only">Filter Products</Drawer.Title>
                   <FilterSidebar
+                    categories={initialCategories}
+                    filterSettings={initialFilterSettings}
                     onCloseMobile={() => setIsMobileFilterOpen(false)}
                     onApplyFilter={handleApplyFilter}
                   />
@@ -213,83 +180,120 @@ function ShopHeaderRow({
   );
 }
 
-export function ShopCatalogClient({ initialProducts }: { initialProducts: Product[] }) {
-  const [sortBy, setSortBy] = useState('popular');
+export function ShopCatalogClient({
+  initialProducts,
+  initialCategories = [],
+  initialFilterSettings,
+}: ShopCatalogClientProps) {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
+  const activeCategory = searchParams.get("category") || searchParams.get("filter") || "";
+
+  const [sortBy, setSortBy] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<any>(null);
+
+  const [fetchedProducts, setFetchedProducts] = useState<Product[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Trigger live backend API query whenever filters change
+  useEffect(() => {
+    if (!activeFilters && !searchQuery && !activeCategory) {
+      setFetchedProducts(null);
+      return;
+    }
+
+    setLoading(true);
+    getProductsApi({
+      category: activeFilters?.category || activeCategory || undefined,
+      search: searchQuery || undefined,
+      maxPrice: activeFilters?.maxPrice || undefined,
+      colors: activeFilters?.color ? [activeFilters.color] : undefined,
+      sizes: activeFilters?.size ? [activeFilters.size] : undefined,
+      sortBy,
+      limit: 100,
+    })
+      .then(({ products }) => {
+        setFetchedProducts(products);
+      })
+      .catch(() => {
+        setFetchedProducts(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [activeFilters, searchQuery, activeCategory, sortBy]);
 
   const handleApplyFilter = (filters: any) => {
     setActiveFilters(filters);
     setIsMobileFilterOpen(false);
   };
 
+  const displayProducts = fetchedProducts !== null ? fetchedProducts : initialProducts;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 py-4 pb-16 font-be-vietnam-pro gpu-layer">
-      
-      {/* Header Row: Breadcrumbs, Title & Filter/Sort Controls (Appears Immediately, Never Shimmers) */}
-      <Suspense fallback={
-        <div className="space-y-2 mb-4">
-          <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap">
-            <Link href="/" className="hover:text-black transition-colors">Home</Link>
-            <span>&gt;</span>
-            <span className="text-black font-semibold capitalize">Catalog</span>
-          </nav>
-          <div className="flex items-center justify-between gap-2">
-            <h1 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black text-black capitalize">
-              Casual
-            </h1>
-            <div className="flex items-center gap-2">
-              <button className="lg:hidden flex items-center gap-1.5 px-3 py-2 bg-[#F0F0F0] rounded-full text-black text-xs font-bold">
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                <span>Filters</span>
-              </button>
+      {/* Header Row: Breadcrumbs, Title & Filter/Sort Controls */}
+      <Suspense
+        fallback={
+          <div className="space-y-2 mb-4">
+            <Breadcrumb items={[{ label: "Shop", href: "/product" }]} />
+            <div className="flex items-center justify-between gap-2">
+              <h1 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black text-black capitalize">
+                Shop Catalog
+              </h1>
             </div>
           </div>
-        </div>
-      }>
+        }
+      >
         <ShopHeaderRow
           sortBy={sortBy}
           setSortBy={setSortBy}
           isMobileFilterOpen={isMobileFilterOpen}
           setIsMobileFilterOpen={setIsMobileFilterOpen}
           handleApplyFilter={handleApplyFilter}
+          initialCategories={initialCategories}
+          initialFilterSettings={initialFilterSettings}
         />
       </Suspense>
 
       {/* Flex Layout: Left Desktop Sidebar + Right Main Catalog */}
       <div className="flex flex-col lg:flex-row gap-5 lg:gap-7 items-start">
-        
-        {/* Left Desktop Filter Sidebar (Appears Immediately, Never Shimmers) */}
+        {/* Left Desktop Filter Sidebar */}
         <aside className="hidden lg:block w-73.75 shrink-0">
-          <FilterSidebar onApplyFilter={handleApplyFilter} />
+          <FilterSidebar
+            categories={initialCategories}
+            filterSettings={initialFilterSettings}
+            onApplyFilter={handleApplyFilter}
+          />
         </aside>
 
         {/* Right Main Catalog Area */}
         <main className="flex-1 min-w-0 space-y-5 w-full">
-          
-          {/* Product Cards Grid: ONLY Place Where Shimmer Skeleton Appears */}
-          <Suspense fallback={<ProductSkeleton count={6} />}>
-            <ProductGridWithParams
-              initialProducts={initialProducts}
+          {loading ? (
+            <ProductSkeleton count={6} />
+          ) : (
+            <ProductGridList
+              products={displayProducts}
+              category={activeCategory}
+              searchQuery={searchQuery}
               sortBy={sortBy}
               activeFilters={activeFilters}
             />
-          </Suspense>
+          )}
 
           {/* Responsive Pagination Component */}
           <Pagination
             currentPage={currentPage}
-            totalPages={Math.max(1, Math.ceil(initialProducts.length / 10))}
+            totalPages={Math.max(1, Math.ceil(displayProducts.length / 10))}
             onPageChange={(page) => {
               setCurrentPage(page);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />
-
         </main>
       </div>
-
     </div>
   );
 }

@@ -11,9 +11,26 @@ export const ProductFilterQuerySchema = z.object({
     search: z.string().max(100).optional(),
     selectionMode: z.string().optional(),
     ids: z.string().optional(),
+    colors: z.string().optional(),
+    sizes: z.string().optional(),
     featured: z.string().optional(),
     onSale: z.string().optional(),
-    sortBy: z.enum(["createdAt", "basePrice", "name", "sortOrder", "rating", "newest", "best_selling"]).default("createdAt"),
+    sortBy: z
+      .enum([
+        "createdAt",
+        "basePrice",
+        "name",
+        "sortOrder",
+        "rating",
+        "newest",
+        "best_selling",
+        "popular",
+        "price-low",
+        "price-high",
+        "featured",
+      ])
+      .optional()
+      .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   }),
 });

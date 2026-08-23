@@ -45,6 +45,16 @@ export async function updateSeoSettings(data: SeoSettings): Promise<SeoSettings>
   return response.data.data;
 }
 
+export async function updateSettingsGroup(key: string, category: string, value: any): Promise<any> {
+  const response = await apiClient.put(`/admin/settings/${key}`, value);
+  return response.data.data;
+}
+
+export async function updateFilterSettings(data: any): Promise<any> {
+  const response = await apiClient.put("/admin/settings/filters", data);
+  return response.data.data;
+}
+
 // ==========================================
 // Homepage Sections API
 // ==========================================

@@ -186,7 +186,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         )}
 
         {/* Product Title */}
-        <Link href={`/product/${product.id}`}>
+        <Link href={`/product/${product.slug || product.id}`}>
           <h3 className="font-be-vietnam-pro font-semibold text-[11px] sm:text-xs text-black group-hover:text-neutral-600 transition-colors line-clamp-1 leading-snug">
             {product.title}
           </h3>

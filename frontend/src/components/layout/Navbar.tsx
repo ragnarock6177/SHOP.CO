@@ -21,8 +21,8 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { CATEGORIES } from "@/data/mockData";
-import { getProductsApi } from "@/lib/productApi";
-import { Product } from "@/types/ecommerce";
+import { getProductsApi, getCategoriesApi } from "@/lib/productApi";
+import { Product, Category } from "@/types/ecommerce";
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
@@ -32,9 +32,20 @@ export const Navbar: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [navCategories, setNavCategories] = useState<Category[]>(CATEGORIES);
   const [isSearching, setIsSearching] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    getCategoriesApi()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setNavCategories(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const userInitial = (
     user?.firstName?.[0] ||
@@ -154,7 +165,7 @@ export const Navbar: React.FC = () => {
                 <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1.5 block">
                   Categories
                 </span>
-                {CATEGORIES.map((cat) => (
+                {navCategories.map((cat) => (
                   <Link
                     key={cat.id}
                     href={`/product?category=${cat.slug}`}
@@ -358,7 +369,7 @@ export const Navbar: React.FC = () => {
                         {searchResults.map((product) => (
                           <Link
                             key={product.id}
-                            href={`/product/${product.id}`}
+                            href={`/product/${product.slug || product.id}`}
                             onClick={() => setIsSearchOpen(false)}
                             className="flex items-center gap-4 p-2.5 rounded-2xl hover:bg-gray-50 transition-colors group border border-transparent hover:border-gray-200"
                           >

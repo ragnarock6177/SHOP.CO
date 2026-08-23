@@ -57,9 +57,13 @@ export function normalizeProduct(apiItem: any): Product {
   const sizes = sizesSet.size > 0 ? Array.from(sizesSet) : (apiItem.sizes || ["Small", "Medium", "Large", "X-Large"]);
   const finalColors = colors.length > 0 ? colors : (apiItem.colors || [{ name: "Default", hex: "#000000" }]);
 
+  const title = apiItem.name || apiItem.title || "ONE LIFE GRAPHIC T-SHIRT";
+  const slug = apiItem.slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || apiItem.id;
+
   return {
     id: apiItem.id || apiItem.slug || `prod-${Math.random().toString(36).substr(2, 9)}`,
-    title: apiItem.name || apiItem.title || "ONE LIFE GRAPHIC T-SHIRT",
+    slug,
+    title,
     subtitle: apiItem.shortDescription || apiItem.subtitle || "100% Organic Cotton Streetwear",
     description: apiItem.description || apiItem.shortDescription || "Crafted from a soft and breathable fabric for superior style.",
     price,
@@ -88,6 +92,8 @@ export async function getProductsApi(options?: {
   search?: string;
   minPrice?: number;
   maxPrice?: number;
+  colors?: string[];
+  sizes?: string[];
   sortBy?: string;
   selectionMode?: string;
   ids?: string[];
@@ -103,6 +109,8 @@ export async function getProductsApi(options?: {
     if (options?.search) params.append("search", options.search);
     if (options?.minPrice) params.append("minPrice", String(options.minPrice));
     if (options?.maxPrice) params.append("maxPrice", String(options.maxPrice));
+    if (options?.colors && options.colors.length > 0) params.append("colors", options.colors.join(","));
+    if (options?.sizes && options.sizes.length > 0) params.append("sizes", options.sizes.join(","));
     if (options?.sortBy) params.append("sortBy", options.sortBy);
     if (options?.selectionMode) params.append("selectionMode", options.selectionMode);
     if (options?.ids && options.ids.length > 0) params.append("ids", options.ids.join(","));
@@ -248,11 +256,11 @@ export async function getProductBySlugOrIdApi(slugOrId: string): Promise<Product
 export async function getAllProductSlugsOrIdsApi(): Promise<string[]> {
   try {
     const { products } = await getProductsApi({ limit: 100 });
-    const ids = products.map((p) => p.id);
-    if (ids.length > 0) return ids;
+    const identifiers = products.map((p) => p.slug || p.id);
+    if (identifiers.length > 0) return identifiers;
   } catch {}
 
-  return PRODUCTS.map((p) => p.id);
+  return PRODUCTS.map((p) => p.slug || p.id);
 }
 
 /**
@@ -261,7 +269,7 @@ export async function getAllProductSlugsOrIdsApi(): Promise<string[]> {
 export async function getCategoriesApi(): Promise<Category[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/categories`, {
-      next: { revalidate: 3600, tags: ["categories"] },
+      next: { revalidate: 30, tags: ["categories"] },
     });
 
     if (response.ok) {

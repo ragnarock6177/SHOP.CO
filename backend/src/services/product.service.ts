@@ -15,6 +15,8 @@ export class ProductService {
     sortOrder?: string;
     selectionMode?: string;
     ids?: string | string[];
+    colors?: string | string[];
+    sizes?: string | string[];
     featured?: string | boolean;
     onSale?: string | boolean;
   }) {
@@ -61,6 +63,46 @@ export class ProductService {
       if (query.maxPrice) where.basePrice.lte = parseFloat(query.maxPrice);
     }
 
+    if (query.colors) {
+      const colorList = Array.isArray(query.colors)
+        ? query.colors
+        : String(query.colors).split(",").map((s) => s.trim()).filter(Boolean);
+      if (colorList.length > 0) {
+        where.variants = {
+          some: {
+            variantAttributeValues: {
+              some: {
+                attributeValue: {
+                  value: { in: colorList, mode: "insensitive" },
+                },
+              },
+            },
+          },
+        };
+      }
+    }
+
+    if (query.sizes) {
+      const sizeList = Array.isArray(query.sizes)
+        ? query.sizes
+        : String(query.sizes).split(",").map((s) => s.trim()).filter(Boolean);
+      if (sizeList.length > 0) {
+        where.variants = {
+          ...(where.variants || {}),
+          some: {
+            ...(where.variants?.some || {}),
+            variantAttributeValues: {
+              some: {
+                attributeValue: {
+                  value: { in: sizeList, mode: "insensitive" },
+                },
+              },
+            },
+          },
+        };
+      }
+    }
+
     if (query.search) {
       where.OR = [
         { name: { contains: query.search, mode: "insensitive" } },
@@ -83,7 +125,11 @@ export class ProductService {
       sortOrder = "desc";
     }
 
-    if (sortBy === "basePrice" || sortBy === "name" || sortBy === "createdAt") {
+    if (sortBy === "price-low") {
+      orderBy["basePrice"] = "asc";
+    } else if (sortBy === "price-high") {
+      orderBy["basePrice"] = "desc";
+    } else if (sortBy === "basePrice" || sortBy === "name" || sortBy === "createdAt") {
       orderBy[sortBy] = sortOrder;
     } else {
       orderBy["createdAt"] = sortOrder;

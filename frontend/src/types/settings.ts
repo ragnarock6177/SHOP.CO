@@ -124,4 +124,5 @@ export interface StorefrontSettingsResponse {
   social: StorefrontSocialSettings;
   footer: StorefrontFooterSettings;
   seo: StorefrontSeoSettings;
+  filters?: any;
 }

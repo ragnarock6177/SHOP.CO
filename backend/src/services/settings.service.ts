@@ -71,6 +71,29 @@ const DEFAULT_SETTINGS: Record<string, any> = {
     faviconUrl: "/favicon.ico",
     robots: "index, follow",
   },
+  filters: {
+    maxPrice: 500,
+    enablePriceFilter: true,
+    enableCategoryFilter: true,
+    enableColorFilter: true,
+    enableSizeFilter: true,
+    enableDressStyleFilter: true,
+    availableColors: [
+      { name: "Black", hex: "#000000" },
+      { name: "White", hex: "#FFFFFF" },
+      { name: "Gray", hex: "#808080" },
+      { name: "Navy", hex: "#000080" },
+      { name: "Olive", hex: "#556B2F" },
+      { name: "Red", hex: "#FF0000" },
+    ],
+    availableSizes: ["Small", "Medium", "Large", "X-Large"],
+    dressStyles: [
+      { name: "Casual", slug: "casual" },
+      { name: "Formal", slug: "formal" },
+      { name: "Party", slug: "party" },
+      { name: "Gym", slug: "gym" },
+    ],
+  },
 };
 
 export class SettingsService {
@@ -194,6 +217,7 @@ export class SettingsService {
       social: allSettings.social || DEFAULT_SETTINGS.social,
       footer: allSettings.footer || DEFAULT_SETTINGS.footer,
       seo: allSettings.seo || DEFAULT_SETTINGS.seo,
+      filters: allSettings.filters || DEFAULT_SETTINGS.filters,
     };
   }
 }
