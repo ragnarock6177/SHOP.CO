@@ -20,11 +20,10 @@ export class SettingsController {
 
   static async updateGeneralSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const updated = await SettingsService.updateSettingsGroup(
+      const updated = await SettingsService.setSettingGroup(
         "general",
         "store",
-        req.body,
-        req.user?.id
+        req.body
       );
       sendSuccess(res, updated, "General settings updated successfully");
     } catch (error) {
@@ -34,11 +33,10 @@ export class SettingsController {
 
   static async updateHeaderSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const updated = await SettingsService.updateSettingsGroup(
+      const updated = await SettingsService.setSettingGroup(
         "header",
         "layout",
-        req.body,
-        req.user?.id
+        req.body
       );
       sendSuccess(res, updated, "Header settings updated successfully");
     } catch (error) {
@@ -48,11 +46,10 @@ export class SettingsController {
 
   static async updateContactSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const updated = await SettingsService.updateSettingsGroup(
+      const updated = await SettingsService.setSettingGroup(
         "contact",
         "info",
-        req.body,
-        req.user?.id
+        req.body
       );
       sendSuccess(res, updated, "Contact settings updated successfully");
     } catch (error) {
@@ -62,11 +59,10 @@ export class SettingsController {
 
   static async updateSocialSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const updated = await SettingsService.updateSettingsGroup(
+      const updated = await SettingsService.setSettingGroup(
         "social",
         "links",
-        req.body,
-        req.user?.id
+        req.body
       );
       sendSuccess(res, updated, "Social settings updated successfully");
     } catch (error) {
@@ -76,11 +72,10 @@ export class SettingsController {
 
   static async updateFooterSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const updated = await SettingsService.updateSettingsGroup(
+      const updated = await SettingsService.setSettingGroup(
         "footer",
         "layout",
-        req.body,
-        req.user?.id
+        req.body
       );
       sendSuccess(res, updated, "Footer settings updated successfully");
     } catch (error) {
@@ -90,13 +85,38 @@ export class SettingsController {
 
   static async updateSeoSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const updated = await SettingsService.updateSettingsGroup(
+      const updated = await SettingsService.setSettingGroup(
         "seo",
         "marketing",
-        req.body,
-        req.user?.id
+        req.body
       );
       sendSuccess(res, updated, "SEO settings updated successfully");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateMarqueeSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const updated = await SettingsService.setSettingGroup(
+        "brand_marquee",
+        "home",
+        req.body
+      );
+      sendSuccess(res, updated, "Brand marquee settings updated successfully");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateFilterSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const updated = await SettingsService.setSettingGroup(
+        "filters",
+        "catalog",
+        req.body
+      );
+      sendSuccess(res, updated, "Catalog filter settings updated successfully");
     } catch (error) {
       next(error);
     }

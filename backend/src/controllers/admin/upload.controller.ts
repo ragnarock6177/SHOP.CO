@@ -21,4 +21,27 @@ export class UploadController {
       next(error);
     }
   }
+
+  static async uploadBannerImage(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { image, fileName } = req.body as {
+        image: string;
+        fileName?: string;
+      };
+
+      if (!image) {
+        res.status(400).json({ success: false, error: { message: "Image base64 payload is required" } });
+        return;
+      }
+
+      const result = await UploadService.uploadBannerImage(image, fileName || "banner.webp");
+      sendAdminSuccess(res, result, "Banner image uploaded and compressed successfully.");
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -73,20 +73,33 @@ const DEFAULT_SETTINGS: Record<string, any> = {
   },
   filters: {
     maxPrice: 500,
-    enablePriceFilter: true,
     enableCategoryFilter: true,
+    enablePriceFilter: true,
     enableColorFilter: true,
     enableSizeFilter: true,
     enableDressStyleFilter: true,
     availableColors: [
-      { name: "Black", hex: "#000000" },
+      { name: "Green", hex: "#00C12B" },
+      { name: "Red", hex: "#F50606" },
+      { name: "Yellow", hex: "#F5DD06" },
+      { name: "Orange", hex: "#F57906" },
+      { name: "Cyan", hex: "#06CAF5" },
+      { name: "Blue", hex: "#063AF5" },
+      { name: "Purple", hex: "#7D06F5" },
+      { name: "Pink", hex: "#F506A4" },
       { name: "White", hex: "#FFFFFF" },
-      { name: "Gray", hex: "#808080" },
-      { name: "Navy", hex: "#000080" },
-      { name: "Olive", hex: "#556B2F" },
-      { name: "Red", hex: "#FF0000" },
+      { name: "Black", hex: "#000000" },
     ],
-    availableSizes: ["Small", "Medium", "Large", "X-Large"],
+    availableSizes: [
+      "XX-Small",
+      "X-Small",
+      "Small",
+      "Medium",
+      "Large",
+      "X-Large",
+      "XX-Large",
+      "3X-Large",
+    ],
     dressStyles: [
       { name: "Casual", slug: "casual" },
       { name: "Formal", slug: "formal" },
@@ -94,54 +107,61 @@ const DEFAULT_SETTINGS: Record<string, any> = {
       { name: "Gym", slug: "gym" },
     ],
   },
+  brand_marquee: [
+    { name: "VERSACE", isBrand: true },
+    { name: "PREMIUM HEAVYWEIGHT COTTON", isBrand: false },
+    { name: "GUCCI", isBrand: true },
+    { name: "FREE WORLDWIDE EXPRESS SHIPPING", isBrand: false },
+    { name: "PRADA", isBrand: true },
+    { name: "ETHICALLY CRAFTED ATELIER", isBrand: false },
+    { name: "NIKE", isBrand: true },
+    { name: "30-DAY COMPLIMENTARY RETURNS", isBrand: false },
+    { name: "ZARA", isBrand: true },
+    { name: "CALVIN KLEIN", isBrand: true },
+  ],
 };
 
 export class SettingsService {
   /**
-   * Fetch all raw store settings grouped by key.
+   * Helper: Retrieve all key-value settings from DB as a single object.
    */
   static async getAllSettings(): Promise<Record<string, any>> {
-    const records = await prisma.storeSetting.findMany();
-    const settings: Record<string, any> = { ...DEFAULT_SETTINGS };
-
-    for (const record of records) {
-      if (record.value && typeof record.value === "object") {
-        settings[record.key] = record.value;
-      }
+    const settings = await prisma.storeSetting.findMany();
+    const map: Record<string, any> = {};
+    for (const s of settings) {
+      map[s.key] = s.value;
     }
-
-    return settings;
+    return map;
   }
 
   /**
-   * Update a specific settings group key (general, header, contact, social, footer, seo).
+   * Helper: Update or insert a setting group by key.
    */
-  static async updateSettingsGroup(
+  static async setSettingGroup(
     key: string,
     category: string,
-    value: any,
-    userId?: string
+    value: any
   ): Promise<any> {
-    const updated = await prisma.storeSetting.upsert({
+    const existing = await prisma.storeSetting.findUnique({
       where: { key },
-      update: {
-        value,
-        category,
-        ...(userId ? { updatedBy: userId } : {}),
-      },
-      create: {
-        key,
-        category,
-        value,
-        ...(userId ? { updatedBy: userId } : {}),
-      },
     });
 
-    return updated.value;
+    if (existing) {
+      const updated = await prisma.storeSetting.update({
+        where: { key },
+        data: { value, category },
+      });
+      return updated.value;
+    }
+
+    const created = await prisma.storeSetting.create({
+      data: { key, category, value },
+    });
+    return created.value;
   }
 
   /**
-   * Aggregates storefront public settings response (Store, Header, Home, Contact, Social, Footer, SEO).
+   * Build complete public payload for GET /api/v1/settings/storefront
    */
   static async getStorefrontSettingsPayload(): Promise<Record<string, any>> {
     // 1. Load Store Settings key-values
@@ -176,7 +196,31 @@ export class SettingsService {
       },
       orderBy: { displayOrder: "asc" },
       include: {
-        targetProduct: { select: { id: true, name: true, slug: true } },
+        targetProduct: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            basePrice: true,
+            compareAtPrice: true,
+            images: {
+              take: 1,
+              select: { imageUrl: true },
+            },
+            variants: {
+              take: 10,
+              select: {
+                variantAttributeValues: {
+                  select: {
+                    attributeValue: {
+                      select: { value: true, attribute: { select: { slug: true } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         targetCategory: { select: { id: true, name: true, slug: true } },
       },
     });
@@ -187,6 +231,37 @@ export class SettingsService {
         targetSlug = ban.targetProduct.slug;
       } else if (ban.targetType === "CATEGORY" && ban.targetCategory) {
         targetSlug = ban.targetCategory.slug;
+      }
+
+      let hotspotProduct: any = null;
+      if (ban.targetProduct) {
+        const tp = ban.targetProduct;
+        const image =
+          tp.images && tp.images.length > 0
+            ? tp.images[0].imageUrl
+            : ban.desktopImageUrl;
+
+        const sizesSet = new Set<string>();
+        if (tp.variants) {
+          tp.variants.forEach((v: any) => {
+            v.variantAttributeValues?.forEach((vav: any) => {
+              if (vav.attributeValue?.attribute?.slug === "size") {
+                sizesSet.add(vav.attributeValue.value);
+              }
+            });
+          });
+        }
+        const sizes = sizesSet.size > 0 ? Array.from(sizesSet) : ["S", "M", "L", "XL"];
+
+        hotspotProduct = {
+          id: tp.id,
+          name: tp.name,
+          slug: tp.slug,
+          price: tp.basePrice ? Number(tp.basePrice) : 260,
+          compareAtPrice: tp.compareAtPrice ? Number(tp.compareAtPrice) : null,
+          image,
+          sizes,
+        };
       }
 
       return {
@@ -201,6 +276,7 @@ export class SettingsService {
         targetProductId: ban.targetProductId,
         targetCategoryId: ban.targetCategoryId,
         targetSlug,
+        hotspotProduct,
         displayOrder: ban.displayOrder,
         isEnabled: ban.isEnabled,
       };
@@ -212,6 +288,7 @@ export class SettingsService {
       home: {
         sections,
         banners,
+        brandMarquee: allSettings.brand_marquee || DEFAULT_SETTINGS.brand_marquee,
       },
       contact: allSettings.contact || DEFAULT_SETTINGS.contact,
       social: allSettings.social || DEFAULT_SETTINGS.social,

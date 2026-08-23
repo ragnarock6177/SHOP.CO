@@ -14,4 +14,11 @@ router.post(
   UploadController.presignProductImage
 );
 
+// POST /admin/upload/banner — upload & compress hero campaign banner images
+router.post(
+  "/banner",
+  requirePermission("settings:manage"),
+  UploadController.uploadBannerImage
+);
+
 export default router;

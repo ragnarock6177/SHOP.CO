@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "path";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { globalRateLimiter } from "./middleware/rateLimiter.js";
@@ -9,8 +10,12 @@ import { sendError } from "./utils/response.js";
 
 const app: Express = express();
 
-// Security Headers
-app.use(helmet());
+// Security Headers (configured to allow cross-origin image loading)
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 // CORS Configuration: Allow storefront (3000) and admin panel (3001) origins
 const defaultAllowedOrigins = ["http://localhost:3000", "http://localhost:3001"];
@@ -29,16 +34,19 @@ app.use(
       }
     },
     credentials: true,
-  }),
+  })
 );
 
 // Global Rate Limiting
 app.use(globalRateLimiter);
 
-// Request Logging & Body Parsing
+// Request Logging & Body Parsing (increased limit to 15mb for compressed high-res image uploads)
 app.use(morgan("dev"));
-app.use(express.json({ limit: "2mb" }));
-app.use(express.urlencoded({ extended: true, limit: "2mb" }));
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
+
+// Static upload file serving
+app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
 
 // Health Check Endpoint
 app.get("/health", (_req: Request, res: Response) => {

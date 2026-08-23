@@ -65,6 +65,9 @@ router.put(
   SettingsController.updateSeoSettings
 );
 
+router.put("/marquee", SettingsController.updateMarqueeSettings);
+router.put("/filters", SettingsController.updateFilterSettings);
+
 // ==========================================
 // 2. Dynamic Homepage Sections
 // ==========================================

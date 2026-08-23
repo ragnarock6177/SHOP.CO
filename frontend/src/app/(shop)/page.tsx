@@ -1,22 +1,22 @@
-import React from 'react';
-import { getStorefrontSettingsApi } from '@/lib/settingsApi';
-import { getProductsApi } from '@/lib/productApi';
-import { HomepageSectionRenderer } from '@/components/home/HomepageSectionRenderer';
-import { Product } from '@/types/ecommerce';
-import { StorefrontHomepageSection } from '@/types/settings';
+import React from "react";
+import { getStorefrontSettingsApi } from "@/lib/settingsApi";
+import { getProductsApi } from "@/lib/productApi";
+import { HomepageSectionRenderer } from "@/components/home/HomepageSectionRenderer";
+import { Product } from "@/types/ecommerce";
+import { StorefrontHomepageSection } from "@/types/settings";
 
 export const revalidate = 30; // 30 seconds ISR revalidation
 
 const PRODUCT_SECTION_TYPES = new Set([
-  'NEW_ARRIVALS',
-  'TOP_SELLING',
-  'BEST_SELLERS',
-  'RECOMMENDATIONS',
-  'TRENDING_PRODUCTS',
-  'PRODUCT_GRID',
-  'SALE_PRODUCTS',
-  'FEATURED_PRODUCTS',
-  'MANUAL',
+  "NEW_ARRIVALS",
+  "TOP_SELLING",
+  "BEST_SELLERS",
+  "RECOMMENDATIONS",
+  "TRENDING_PRODUCTS",
+  "PRODUCT_GRID",
+  "SALE_PRODUCTS",
+  "FEATURED_PRODUCTS",
+  "MANUAL",
 ]);
 
 async function prefetchSectionProducts(section: StorefrontHomepageSection): Promise<Product[]> {
@@ -25,15 +25,15 @@ async function prefetchSectionProducts(section: StorefrontHomepageSection): Prom
   }
 
   const limit = section.config?.limit || 6;
-  const selectionMode = section.config?.selectionMode || 'LATEST';
+  const selectionMode = section.config?.selectionMode || "LATEST";
   const selectedProductIds = section.config?.selectedProductIds;
 
   try {
     const { products } = await getProductsApi({
       limit,
-      selectionMode: section.sectionType === 'TOP_SELLING' ? 'BEST_SELLING' : selectionMode,
+      selectionMode: section.sectionType === "TOP_SELLING" ? "BEST_SELLING" : selectionMode,
       ids: selectedProductIds,
-      sortBy: section.sectionType === 'TOP_SELLING' || section.sectionType === 'RECOMMENDATIONS' ? 'rating' : undefined,
+      sortBy: section.sectionType === "TOP_SELLING" || section.sectionType === "RECOMMENDATIONS" ? "rating" : undefined,
     });
     return products;
   } catch (error) {
@@ -44,7 +44,7 @@ async function prefetchSectionProducts(section: StorefrontHomepageSection): Prom
 
 export default async function HomePage() {
   const settings = await getStorefrontSettingsApi();
-  
+
   // Filter and sort active homepage sections
   const sortedSections = (settings.home?.sections || [])
     .filter((sec) => sec.isEnabled)
@@ -73,6 +73,8 @@ export default async function HomePage() {
             key={key}
             section={section}
             initialProducts={initialProducts}
+            banners={settings.home?.banners}
+            brandMarquee={settings.home?.brandMarquee}
           />
         );
       })}

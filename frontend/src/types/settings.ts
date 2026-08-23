@@ -95,6 +95,16 @@ export interface StorefrontHomepageSection {
   config: Record<string, any>;
 }
 
+export interface StorefrontHotspotProduct {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  compareAtPrice?: number | null;
+  image: string;
+  sizes?: string[];
+}
+
 export interface StorefrontBanner {
   id: string;
   title?: string | null;
@@ -107,13 +117,20 @@ export interface StorefrontBanner {
   targetProductId?: string | null;
   targetCategoryId?: string | null;
   targetSlug?: string | null;
+  hotspotProduct?: StorefrontHotspotProduct | null;
   displayOrder: number;
   isEnabled: boolean;
+}
+
+export interface StorefrontBrandMarqueeItem {
+  name: string;
+  isBrand: boolean;
 }
 
 export interface StorefrontHomeSettings {
   sections: StorefrontHomepageSection[];
   banners: StorefrontBanner[];
+  brandMarquee?: StorefrontBrandMarqueeItem[];
 }
 
 export interface StorefrontSettingsResponse {
