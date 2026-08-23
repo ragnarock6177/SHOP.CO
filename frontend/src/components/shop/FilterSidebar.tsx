@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronRight, ChevronUp, SlidersHorizontal, X, Check } from "lucide-react";
 import { Category } from "@/types/ecommerce";
 
 interface FilterSidebarProps {
   categories?: Category[];
   filterSettings?: any;
+  activeFilters?: any;
   onCloseMobile?: () => void;
   onApplyFilter?: (filters: any) => void;
 }
@@ -14,6 +15,7 @@ interface FilterSidebarProps {
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   categories = [],
   filterSettings,
+  activeFilters,
   onCloseMobile,
   onApplyFilter,
 }) => {
@@ -49,11 +51,33 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
   const categoryNames = categories.length > 0 ? categories.map((c) => c.name) : ["T-shirts", "Shorts", "Shirts", "Hoodie", "Jeans"];
 
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [priceRange, setPriceRange] = useState<number>(maxPriceBound);
-  const [selectedColor, setSelectedColor] = useState<string>("");
-  const [selectedSize, setSelectedSize] = useState<string>("");
-  const [selectedStyle, setSelectedStyle] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState(activeFilters?.category || "");
+  const [priceRange, setPriceRange] = useState<number>(activeFilters?.maxPrice || maxPriceBound);
+  const [selectedColor, setSelectedColor] = useState<string>(activeFilters?.color || "");
+  const [selectedSize, setSelectedSize] = useState<string>(activeFilters?.size || "");
+  const [selectedStyle, setSelectedStyle] = useState<string>(activeFilters?.style || "");
+
+  // Sync state when activeFilters change from URL parameters
+  useEffect(() => {
+    if (activeFilters) {
+      setSelectedCategory(activeFilters.category || "");
+      if (activeFilters.maxPrice !== undefined) {
+        setPriceRange(activeFilters.maxPrice);
+      } else {
+        setPriceRange(maxPriceBound);
+      }
+      setSelectedColor(activeFilters.color || "");
+      setSelectedSize(activeFilters.size || "");
+      setSelectedStyle(activeFilters.style || "");
+    }
+  }, [
+    activeFilters?.category,
+    activeFilters?.maxPrice,
+    activeFilters?.color,
+    activeFilters?.size,
+    activeFilters?.style,
+    maxPriceBound,
+  ]);
 
   // Accordion toggle states
   const [isPriceOpen, setIsPriceOpen] = useState(filterSettings?.enablePriceFilter ?? true);
@@ -65,7 +89,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     if (onApplyFilter) {
       onApplyFilter({
         category: selectedCategory,
-        maxPrice: priceRange,
+        maxPrice: priceRange < maxPriceBound ? priceRange : undefined,
         color: selectedColor,
         size: selectedSize,
         style: selectedStyle,
@@ -86,6 +110,13 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     if (onCloseMobile) onCloseMobile();
   };
 
+  const isFilterActive =
+    selectedCategory ||
+    selectedColor ||
+    selectedSize ||
+    selectedStyle ||
+    priceRange < maxPriceBound;
+
   return (
     <div className="bg-white border border-gray-200 rounded-3xl p-5 sm:p-6 space-y-6 text-black shadow-xs font-be-vietnam-pro">
       {/* Header */}
@@ -94,7 +125,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
           <span>Filters</span>
         </h3>
         <div className="flex items-center gap-2">
-          {(selectedCategory || selectedColor || selectedSize || selectedStyle || priceRange < maxPriceBound) && (
+          {isFilterActive && (
             <button
               onClick={handleReset}
               className="text-xs font-bold text-gray-500 hover:text-black underline cursor-pointer"
@@ -122,13 +153,13 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
           {categoryNames.map((cat) => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(selectedCategory === cat ? "" : cat)}
+              onClick={() => setSelectedCategory(selectedCategory.toLowerCase() === cat.toLowerCase() ? "" : cat)}
               className={`w-full flex items-center justify-between text-sm text-left transition-colors cursor-pointer ${
-                selectedCategory === cat ? "font-bold text-black" : "text-gray-500 hover:text-black"
+                selectedCategory.toLowerCase() === cat.toLowerCase() ? "font-bold text-black" : "text-gray-500 hover:text-black"
               }`}
             >
               <span>{cat}</span>
-              <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${selectedCategory === cat ? "rotate-90 text-black" : ""}`} />
+              <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${selectedCategory.toLowerCase() === cat.toLowerCase() ? "rotate-90 text-black" : ""}`} />
             </button>
           ))}
         </div>
@@ -185,7 +216,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
               {colorsList.map((c: any) => {
                 const hex = typeof c === "string" ? "#000" : c.hex;
                 const name = typeof c === "string" ? c : c.name;
-                const isSelected = selectedColor === name || selectedColor === hex;
+                const isSelected = selectedColor.toLowerCase() === name.toLowerCase() || selectedColor.toLowerCase() === hex.toLowerCase();
                 return (
                   <button
                     key={name}
@@ -227,7 +258,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
           {isSizesOpen && (
             <div className="flex flex-wrap gap-2 pt-1">
               {sizesList.map((sz: string) => {
-                const isSelected = selectedSize === sz;
+                const isSelected = selectedSize.toLowerCase() === sz.toLowerCase();
                 return (
                   <button
                     key={sz}
@@ -264,7 +295,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             <div className="space-y-3 pt-1">
               {stylesList.map((style: any) => {
                 const name = typeof style === "string" ? style : style.name;
-                const isSelected = selectedStyle === name;
+                const isSelected = selectedStyle.toLowerCase() === name.toLowerCase();
                 return (
                   <button
                     key={name}

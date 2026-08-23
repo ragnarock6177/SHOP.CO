@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, Suspense, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { Drawer } from "vaul";
@@ -27,57 +27,8 @@ interface ShopCatalogClientProps {
   initialFilterSettings?: any;
 }
 
-function ProductGridList({
-  products,
-  category,
-  searchQuery,
-  sortBy,
-  activeFilters,
-}: {
-  products: Product[];
-  category: string;
-  searchQuery: string;
-  sortBy: string;
-  activeFilters: any;
-}) {
-  const filteredProducts = useMemo(() => {
-    return products
-      .filter((product) => {
-        // Category Filter
-        if (
-          category &&
-          category !== "Casual" &&
-          category !== "All" &&
-          product.category.toLowerCase() !== category.toLowerCase()
-        ) {
-          return false;
-        }
-
-        // Search Filter
-        if (
-          searchQuery &&
-          !product.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !product.description.toLowerCase().includes(searchQuery.toLowerCase())
-        ) {
-          return false;
-        }
-
-        // Price Filter
-        if (activeFilters && activeFilters.maxPrice && product.price > activeFilters.maxPrice) {
-          return false;
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === "price-low") return a.price - b.price;
-        if (sortBy === "price-high") return b.price - a.price;
-        if (sortBy === "rating") return b.rating - a.rating;
-        return 0;
-      });
-  }, [products, category, searchQuery, sortBy, activeFilters]);
-
-  if (filteredProducts.length === 0) {
+function ProductGridList({ products }: { products: Product[] }) {
+  if (!products || products.length === 0) {
     return (
       <div className="text-center py-16 space-y-3 bg-[#F0F0F0] rounded-3xl p-8 font-be-vietnam-pro">
         <h3 className="font-be-vietnam-pro-black text-xl font-bold text-black uppercase">No Products Found</h3>
@@ -90,7 +41,7 @@ function ProductGridList({
 
   return (
     <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 gpu-layer">
-      {filteredProducts.map((product) => (
+      {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
     </div>
@@ -103,6 +54,7 @@ function ShopHeaderRow({
   isMobileFilterOpen,
   setIsMobileFilterOpen,
   handleApplyFilter,
+  activeFilters,
   initialCategories,
   initialFilterSettings,
 }: {
@@ -111,6 +63,7 @@ function ShopHeaderRow({
   isMobileFilterOpen: boolean;
   setIsMobileFilterOpen: (val: boolean) => void;
   handleApplyFilter: (filters: any) => void;
+  activeFilters: any;
   initialCategories?: Category[];
   initialFilterSettings?: any;
 }) {
@@ -159,6 +112,7 @@ function ShopHeaderRow({
                   <FilterSidebar
                     categories={initialCategories}
                     filterSettings={initialFilterSettings}
+                    activeFilters={activeFilters}
                     onCloseMobile={() => setIsMobileFilterOpen(false)}
                     onApplyFilter={handleApplyFilter}
                   />
@@ -185,37 +139,65 @@ export function ShopCatalogClient({
   initialCategories = [],
   initialFilterSettings,
 }: ShopCatalogClientProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Extract filter parameters from URL query string
   const searchQuery = searchParams.get("search") || "";
   const activeCategory = searchParams.get("category") || searchParams.get("filter") || "";
+  const maxPriceParam = searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")!) : undefined;
+  const colorParam = searchParams.get("color") || "";
+  const sizeParam = searchParams.get("size") || "";
+  const styleParam = searchParams.get("style") || "";
+  const sortBy = searchParams.get("sort") || "popular";
+  const currentPage = parseInt(searchParams.get("page") || "1", 10) || 1;
 
-  const [sortBy, setSortBy] = useState("popular");
-  const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
+
+  const activeFilters = useMemo(
+    () => ({
+      category: activeCategory,
+      maxPrice: maxPriceParam,
+      color: colorParam,
+      size: sizeParam,
+      style: styleParam,
+    }),
+    [activeCategory, maxPriceParam, colorParam, sizeParam]
+  );
 
   const [fetchedProducts, setFetchedProducts] = useState<Product[] | null>(null);
+  const [paginationMeta, setPaginationMeta] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  // Trigger live backend API query whenever filters change
-  useEffect(() => {
-    if (!activeFilters && !searchQuery && !activeCategory) {
-      setFetchedProducts(null);
-      return;
-    }
+  // Function to push clean URL search parameters
+  const updateUrlParams = (newParams: Record<string, string | number | undefined | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(newParams).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== "") {
+        params.set(key, String(val));
+      } else {
+        params.delete(key);
+      }
+    });
+    router.push(`/product?${params.toString()}`, { scroll: false });
+  };
 
+  // Trigger live backend API query whenever URL search params change
+  useEffect(() => {
     setLoading(true);
     getProductsApi({
-      category: activeFilters?.category || activeCategory || undefined,
+      category: activeCategory || undefined,
       search: searchQuery || undefined,
-      maxPrice: activeFilters?.maxPrice || undefined,
-      colors: activeFilters?.color ? [activeFilters.color] : undefined,
-      sizes: activeFilters?.size ? [activeFilters.size] : undefined,
+      maxPrice: maxPriceParam || undefined,
+      colors: colorParam ? [colorParam] : undefined,
+      sizes: sizeParam ? [sizeParam] : undefined,
       sortBy,
-      limit: 100,
+      page: currentPage,
+      limit: 12,
     })
-      .then(({ products }) => {
+      .then(({ products, meta }) => {
         setFetchedProducts(products);
+        if (meta) setPaginationMeta(meta);
       })
       .catch(() => {
         setFetchedProducts(null);
@@ -223,14 +205,33 @@ export function ShopCatalogClient({
       .finally(() => {
         setLoading(false);
       });
-  }, [activeFilters, searchQuery, activeCategory, sortBy]);
+  }, [activeCategory, searchQuery, maxPriceParam, colorParam, sizeParam, sortBy, currentPage]);
 
   const handleApplyFilter = (filters: any) => {
-    setActiveFilters(filters);
+    updateUrlParams({
+      category: filters.category || undefined,
+      maxPrice: filters.maxPrice || undefined,
+      color: filters.color || undefined,
+      size: filters.size || undefined,
+      style: filters.style || undefined,
+      page: 1,
+    });
     setIsMobileFilterOpen(false);
   };
 
+  const handleSortChange = (val: string) => {
+    updateUrlParams({ sort: val, page: 1 });
+  };
+
+  const handlePageChange = (page: number) => {
+    updateUrlParams({ page });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const displayProducts = fetchedProducts !== null ? fetchedProducts : initialProducts;
+  const totalPages = paginationMeta?.totalPages
+    ? paginationMeta.totalPages
+    : Math.max(1, Math.ceil(displayProducts.length / 12));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 py-4 pb-16 font-be-vietnam-pro gpu-layer">
@@ -249,10 +250,11 @@ export function ShopCatalogClient({
       >
         <ShopHeaderRow
           sortBy={sortBy}
-          setSortBy={setSortBy}
+          setSortBy={handleSortChange}
           isMobileFilterOpen={isMobileFilterOpen}
           setIsMobileFilterOpen={setIsMobileFilterOpen}
           handleApplyFilter={handleApplyFilter}
+          activeFilters={activeFilters}
           initialCategories={initialCategories}
           initialFilterSettings={initialFilterSettings}
         />
@@ -265,6 +267,7 @@ export function ShopCatalogClient({
           <FilterSidebar
             categories={initialCategories}
             filterSettings={initialFilterSettings}
+            activeFilters={activeFilters}
             onApplyFilter={handleApplyFilter}
           />
         </aside>
@@ -274,23 +277,14 @@ export function ShopCatalogClient({
           {loading ? (
             <ProductSkeleton count={6} />
           ) : (
-            <ProductGridList
-              products={displayProducts}
-              category={activeCategory}
-              searchQuery={searchQuery}
-              sortBy={sortBy}
-              activeFilters={activeFilters}
-            />
+            <ProductGridList products={displayProducts} />
           )}
 
-          {/* Responsive Pagination Component */}
+          {/* Responsive Dynamic Pagination Component */}
           <Pagination
             currentPage={currentPage}
-            totalPages={Math.max(1, Math.ceil(displayProducts.length / 10))}
-            onPageChange={(page) => {
-              setCurrentPage(page);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
         </main>
       </div>
