@@ -7,12 +7,12 @@ import { ShopCatalogClient } from "@/components/shop/ShopCatalogClient";
 export const revalidate = 30;
 
 /**
- * Server Component: Prefetches product catalog, category list, and filter settings
- * at build time / 30s ISR for instant 0ms initial load time on /product catalog page.
+ * Server Component: Prefetches default product catalog (page 1, limit 12, default filters),
+ * category list, and storefront settings at build time / 30s ISR for instant 0ms initial load time.
  */
 export default async function ShopPage() {
   const [productsData, categories, settings] = await Promise.all([
-    getProductsApi({ limit: 100 }),
+    getProductsApi({ limit: 12, page: 1, sortBy: "popular" }),
     getCategoriesApi(),
     getStorefrontSettingsApi(),
   ]);
@@ -22,6 +22,7 @@ export default async function ShopPage() {
       initialProducts={productsData.products}
       initialCategories={categories}
       initialFilterSettings={settings.filters}
+      initialMeta={productsData.meta}
     />
   );
 }

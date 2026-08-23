@@ -180,13 +180,20 @@ export class ProductService {
 
   static async getProductDetailsBySlug(slug: string) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+    const whereCondition: any = {
+      status: "ACTIVE",
+      visibility: "PUBLIC",
+      deletedAt: null,
+    };
+
+    if (isUuid) {
+      whereCondition.OR = [{ id: slug }, { slug }];
+    } else {
+      whereCondition.slug = slug;
+    }
+
     const product = await prisma.product.findFirst({
-      where: {
-        status: "ACTIVE",
-        visibility: "PUBLIC",
-        deletedAt: null,
-        OR: isUuid ? [{ id: slug }, { slug }] : [{ slug }, { id: slug }],
-      },
+      where: whereCondition,
       include: {
         images: { orderBy: { sortOrder: "asc" } },
         videos: { orderBy: { sortOrder: "asc" } },

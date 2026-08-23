@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { Drawer } from "vaul";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -25,6 +24,7 @@ interface ShopCatalogClientProps {
   initialProducts: Product[];
   initialCategories?: Category[];
   initialFilterSettings?: any;
+  initialMeta?: any;
 }
 
 function ProductGridList({ products }: { products: Product[] }) {
@@ -80,7 +80,7 @@ function ShopHeaderRow({
     : [{ label: "Shop", href: "/product" }, { label: activeCategory }];
 
   return (
-    <div className="space-y-2 mb-4">
+    <div className="space-y-2 mb-4 font-be-vietnam-pro">
       {/* Dynamic Reusable Breadcrumb Component */}
       <Breadcrumb items={breadcrumbItems} />
 
@@ -134,10 +134,11 @@ function ShopHeaderRow({
   );
 }
 
-export function ShopCatalogClient({
+function ShopCatalogContent({
   initialProducts,
   initialCategories = [],
   initialFilterSettings,
+  initialMeta,
 }: ShopCatalogClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -166,8 +167,19 @@ export function ShopCatalogClient({
   );
 
   const [fetchedProducts, setFetchedProducts] = useState<Product[] | null>(null);
-  const [paginationMeta, setPaginationMeta] = useState<any>(null);
+  const [paginationMeta, setPaginationMeta] = useState<any>(initialMeta || null);
   const [loading, setLoading] = useState(false);
+
+  // Check if current URL parameters represent default initial state
+  const isDefaultState =
+    !activeCategory &&
+    !searchQuery &&
+    maxPriceParam === undefined &&
+    !colorParam &&
+    !sizeParam &&
+    !styleParam &&
+    sortBy === "popular" &&
+    currentPage === 1;
 
   // Function to push clean URL search parameters
   const updateUrlParams = (newParams: Record<string, string | number | undefined | null>) => {
@@ -182,8 +194,13 @@ export function ShopCatalogClient({
     router.push(`/product?${params.toString()}`, { scroll: false });
   };
 
-  // Trigger live backend API query whenever URL search params change
+  // Trigger live backend API query whenever URL search params change (skipping default SSG initial state)
   useEffect(() => {
+    if (isDefaultState && initialProducts && initialProducts.length > 0) {
+      setFetchedProducts(null); // Retain server pre-fetched initialProducts for instant 0ms load
+      return;
+    }
+
     setLoading(true);
     getProductsApi({
       category: activeCategory || undefined,
@@ -205,7 +222,17 @@ export function ShopCatalogClient({
       .finally(() => {
         setLoading(false);
       });
-  }, [activeCategory, searchQuery, maxPriceParam, colorParam, sizeParam, sortBy, currentPage]);
+  }, [
+    activeCategory,
+    searchQuery,
+    maxPriceParam,
+    colorParam,
+    sizeParam,
+    sortBy,
+    currentPage,
+    isDefaultState,
+    initialProducts,
+  ]);
 
   const handleApplyFilter = (filters: any) => {
     updateUrlParams({
@@ -236,29 +263,16 @@ export function ShopCatalogClient({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 py-4 pb-16 font-be-vietnam-pro gpu-layer">
       {/* Header Row: Breadcrumbs, Title & Filter/Sort Controls */}
-      <Suspense
-        fallback={
-          <div className="space-y-2 mb-4">
-            <Breadcrumb items={[{ label: "Shop", href: "/product" }]} />
-            <div className="flex items-center justify-between gap-2">
-              <h1 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black text-black capitalize">
-                Shop Catalog
-              </h1>
-            </div>
-          </div>
-        }
-      >
-        <ShopHeaderRow
-          sortBy={sortBy}
-          setSortBy={handleSortChange}
-          isMobileFilterOpen={isMobileFilterOpen}
-          setIsMobileFilterOpen={setIsMobileFilterOpen}
-          handleApplyFilter={handleApplyFilter}
-          activeFilters={activeFilters}
-          initialCategories={initialCategories}
-          initialFilterSettings={initialFilterSettings}
-        />
-      </Suspense>
+      <ShopHeaderRow
+        sortBy={sortBy}
+        setSortBy={handleSortChange}
+        isMobileFilterOpen={isMobileFilterOpen}
+        setIsMobileFilterOpen={setIsMobileFilterOpen}
+        handleApplyFilter={handleApplyFilter}
+        activeFilters={activeFilters}
+        initialCategories={initialCategories}
+        initialFilterSettings={initialFilterSettings}
+      />
 
       {/* Flex Layout: Left Desktop Sidebar + Right Main Catalog */}
       <div className="flex flex-col lg:flex-row gap-5 lg:gap-7 items-start">
@@ -289,5 +303,37 @@ export function ShopCatalogClient({
         </main>
       </div>
     </div>
+  );
+}
+
+export function ShopCatalogClient(props: ShopCatalogClientProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 py-4 pb-16 font-be-vietnam-pro">
+          <div className="space-y-2 mb-4">
+            <Breadcrumb items={[{ label: "Shop", href: "/product" }]} />
+            <div className="flex items-center justify-between gap-2">
+              <h1 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black text-black capitalize">
+                Shop Catalog
+              </h1>
+            </div>
+          </div>
+          <div className="flex flex-col lg:flex-row gap-5 lg:gap-7 items-start">
+            <aside className="hidden lg:block w-73.75 shrink-0">
+              <FilterSidebar
+                categories={props.initialCategories}
+                filterSettings={props.initialFilterSettings}
+              />
+            </aside>
+            <main className="flex-1 min-w-0 space-y-5 w-full">
+              <ProductSkeleton count={6} />
+            </main>
+          </div>
+        </div>
+      }
+    >
+      <ShopCatalogContent {...props} />
+    </Suspense>
   );
 }

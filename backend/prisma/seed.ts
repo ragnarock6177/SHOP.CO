@@ -125,7 +125,7 @@ async function main() {
       basePrice: 180,
       compareAtPrice: 242,
       categorySlug: "casual",
-      imageUrl: "https://images.unsplash.com/photo-1625910513413-43d94eb38e21?auto=format&fit=crop&q=80&w=800",
+      imageUrl: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?auto=format&fit=crop&q=80&w=800",
     },
     {
       name: "Black Striped T-Shirt",
