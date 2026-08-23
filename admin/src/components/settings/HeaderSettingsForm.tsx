@@ -3,10 +3,7 @@
 import React, { useState } from "react";
 import { HeaderSettings } from "@/types/settings";
 import { updateHeaderSettings } from "@/lib/settingsApi";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { CheckCircle2, AlertCircle, Save } from "lucide-react";
 
 interface HeaderSettingsFormProps {
   initialData?: HeaderSettings;
@@ -45,132 +42,148 @@ export function HeaderSettingsForm({ initialData, onSaved }: HeaderSettingsFormP
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">Header & Navigation Settings</CardTitle>
-          <CardDescription>Manage the announcement bar and global navigation visibility controls.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {message && (
-            <div
-              className={`p-3 text-xs font-semibold rounded-md ${
-                message.type === "success"
-                  ? "bg-slate-100 text-slate-900 border border-slate-300"
-                  : "bg-red-50 text-red-700 border border-red-200"
-              }`}
-            >
-              {message.text}
-            </div>
+    <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
+      <div className="border-b border-slate-200/80 pb-4">
+        <h2 className="text-base font-bold text-slate-900">Header & Announcement Configuration</h2>
+        <p className="text-xs text-slate-500 mt-0.5">Customize global top notification banner and header action visibility</p>
+      </div>
+
+      {message && (
+        <div
+          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-xl border ${
+            message.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-rose-50 text-rose-800 border-rose-200"
+          }`}
+        >
+          {message.type === "success" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
           )}
+          <span>{message.text}</span>
+        </div>
+      )}
 
-          <div className="space-y-4 rounded-lg border border-slate-200 p-4 bg-slate-50/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="announcementEnabled" className="font-semibold text-slate-900">
-                  Announcement Bar
-                </Label>
-                <p className="text-xs text-slate-500">Show top notification banner across all storefront pages.</p>
-              </div>
-              <input
-                type="checkbox"
-                id="announcementEnabled"
-                checked={formData.announcementBar.enabled}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    announcementBar: { ...prev.announcementBar, enabled: e.target.checked },
-                  }))
-                }
-                className="h-5 w-5 rounded border-slate-300 text-black focus:ring-black"
-              />
-            </div>
+      {/* Announcement Bar Box */}
+      <div className="space-y-4 rounded-xl border border-slate-200/80 p-4 bg-slate-50/50">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-slate-900 block">Top Announcement Bar</span>
+            <p className="text-[11px] text-slate-500">Show notification banner at the top of all storefront pages</p>
+          </div>
+          <input
+            type="checkbox"
+            id="announcementEnabled"
+            checked={formData.announcementBar.enabled}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                announcementBar: { ...prev.announcementBar, enabled: e.target.checked },
+              }))
+            }
+            className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="announcementText">Announcement Text</Label>
-              <Input
-                id="announcementText"
-                value={formData.announcementBar.text}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    announcementBar: { ...prev.announcementBar, text: e.target.value },
-                  }))
-                }
-                placeholder="COMPLIMENTARY EXPRESS SHIPPING..."
-                disabled={!formData.announcementBar.enabled}
-              />
-            </div>
+        <div className="space-y-1.5">
+          <label htmlFor="announcementText" className="text-xs font-semibold text-slate-700">
+            Announcement Text
+          </label>
+          <input
+            id="announcementText"
+            type="text"
+            value={formData.announcementBar.text}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                announcementBar: { ...prev.announcementBar, text: e.target.value },
+              }))
+            }
+            placeholder="COMPLIMENTARY EXPRESS SHIPPING ON ORDERS OVER ₹5,000"
+            disabled={!formData.announcementBar.enabled}
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs disabled:bg-slate-100 disabled:opacity-60"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="announcementLink">Action Link URL (Optional)</Label>
-              <Input
-                id="announcementLink"
-                value={formData.announcementBar.link || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    announcementBar: { ...prev.announcementBar, link: e.target.value },
-                  }))
-                }
-                placeholder="/collections/new-arrivals"
-                disabled={!formData.announcementBar.enabled}
-              />
-            </div>
+        <div className="space-y-1.5">
+          <label htmlFor="announcementLink" className="text-xs font-semibold text-slate-700">
+            CTA Action Link URL (Optional)
+          </label>
+          <input
+            id="announcementLink"
+            type="text"
+            value={formData.announcementBar.link || ""}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                announcementBar: { ...prev.announcementBar, link: e.target.value },
+              }))
+            }
+            placeholder="/collections/new-arrivals"
+            disabled={!formData.announcementBar.enabled}
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs disabled:bg-slate-100 disabled:opacity-60"
+          />
+        </div>
+      </div>
+
+      {/* Visibility Toggles */}
+      <div className="space-y-3 pt-2">
+        <span className="text-xs font-bold text-slate-900 block">Header Elements Visibility</span>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+            <span className="text-xs font-semibold text-slate-800">Search Icon</span>
+            <input
+              type="checkbox"
+              checked={formData.searchVisible}
+              onChange={(e) => setFormData((prev) => ({ ...prev, searchVisible: e.target.checked }))}
+              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+            />
           </div>
 
-          <div className="space-y-3 pt-2">
-            <Label className="font-semibold text-slate-900">Header Controls Visibility</Label>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between p-3 border border-slate-200 rounded-md">
-                <span className="text-sm font-medium">Search Icon</span>
-                <input
-                  type="checkbox"
-                  checked={formData.searchVisible}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, searchVisible: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 border border-slate-200 rounded-md">
-                <span className="text-sm font-medium">Wishlist Icon</span>
-                <input
-                  type="checkbox"
-                  checked={formData.wishlistVisible}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, wishlistVisible: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 border border-slate-200 rounded-md">
-                <span className="text-sm font-medium">Cart Drawer Icon</span>
-                <input
-                  type="checkbox"
-                  checked={formData.cartVisible}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, cartVisible: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 border border-slate-200 rounded-md">
-                <span className="text-sm font-medium">Account / Login Menu</span>
-                <input
-                  type="checkbox"
-                  checked={formData.accountVisible}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, accountVisible: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black"
-                />
-              </div>
-            </div>
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+            <span className="text-xs font-semibold text-slate-800">Wishlist Button</span>
+            <input
+              type="checkbox"
+              checked={formData.wishlistVisible}
+              onChange={(e) => setFormData((prev) => ({ ...prev, wishlistVisible: e.target.checked }))}
+              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+            />
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-end border-t border-slate-100 pt-4">
-          <Button type="submit" disabled={saving} className="bg-black text-white hover:bg-slate-800">
-            {saving ? "Saving..." : "Save Header Settings"}
-          </Button>
-        </CardFooter>
-      </Card>
+
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+            <span className="text-xs font-semibold text-slate-800">Cart Drawer Button</span>
+            <input
+              type="checkbox"
+              checked={formData.cartVisible}
+              onChange={(e) => setFormData((prev) => ({ ...prev, cartVisible: e.target.checked }))}
+              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+            <span className="text-xs font-semibold text-slate-800">Account / User Menu</span>
+            <input
+              type="checkbox"
+              checked={formData.accountVisible}
+              onChange={(e) => setFormData((prev) => ({ ...prev, accountVisible: e.target.checked }))}
+              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-3 border-t border-slate-200/80">
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+        >
+          <Save className="h-3.5 w-3.5" />
+          <span>{saving ? "Saving..." : "Save Header Settings"}</span>
+        </button>
+      </div>
     </form>
   );
 }

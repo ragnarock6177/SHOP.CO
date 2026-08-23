@@ -10,6 +10,17 @@ import { FooterSettingsForm } from "@/components/settings/FooterSettingsForm";
 import { SeoSettingsForm } from "@/components/settings/SeoSettingsForm";
 import { HomepageSectionManager } from "@/components/settings/HomepageSectionManager";
 import { BannerManager } from "@/components/settings/BannerManager";
+import {
+  Store,
+  LayoutGrid,
+  Navigation,
+  PanelBottom,
+  PhoneCall,
+  Share2,
+  Search,
+  Image as ImageIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type SettingsTab =
   | "general"
@@ -20,6 +31,17 @@ type SettingsTab =
   | "social"
   | "seo"
   | "banners";
+
+const TABS: Array<{ id: SettingsTab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  { id: "general", label: "General", icon: Store },
+  { id: "home", label: "Homepage Sections", icon: LayoutGrid },
+  { id: "header", label: "Header & Announcement", icon: Navigation },
+  { id: "footer", label: "Footer", icon: PanelBottom },
+  { id: "contact", label: "Contact Details", icon: PhoneCall },
+  { id: "social", label: "Social Media", icon: Share2 },
+  { id: "seo", label: "SEO & Metadata", icon: Search },
+  { id: "banners", label: "Hero Banners", icon: ImageIcon },
+];
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
@@ -42,49 +64,49 @@ export default function SettingsPage() {
     loadAllSettings();
   }, []);
 
-  const TABS: Array<{ id: SettingsTab; label: string }> = [
-    { id: "general", label: "General" },
-    { id: "home", label: "Home Page" },
-    { id: "header", label: "Header" },
-    { id: "footer", label: "Footer" },
-    { id: "contact", label: "Contact" },
-    { id: "social", label: "Social Media" },
-    { id: "seo", label: "SEO" },
-    { id: "banners", label: "Banners" },
-  ];
-
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-12">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Storefront Settings</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Customize store branding, homepage sections, banners, contact details, and SEO configuration.
-        </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Storefront Settings</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Configure store branding, announcement bar, homepage sections, promotional banners, contact info, and SEO
+          </p>
+        </div>
       </div>
 
-      {/* Tabs Bar */}
-      <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto pb-px scrollbar-none">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 ${
-              activeTab === tab.id
-                ? "border-black text-black"
-                : "border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tabs Navigation */}
+      <div className="flex items-center gap-1.5 border-b border-slate-200/80 overflow-x-auto pb-px scrollbar-none">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap cursor-pointer",
+                isActive
+                  ? "border-slate-900 text-slate-900 bg-slate-100/70"
+                  : "border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+              )}
+            >
+              <Icon className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-slate-900" : "text-slate-400")} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Tab Content Panels */}
+      {/* Main Content Card Container */}
       {loading ? (
-        <div className="p-12 text-center text-slate-500 font-semibold">Loading Store Settings...</div>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center text-xs font-medium text-slate-400 shadow-2xs animate-pulse">
+          Loading Storefront Settings...
+        </div>
       ) : (
-        <div className="pt-2">
+        <div className="transition-all">
           {activeTab === "general" && (
             <GeneralSettingsForm initialData={settingsData.general} onSaved={loadAllSettings} />
           )}

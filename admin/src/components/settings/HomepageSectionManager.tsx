@@ -9,12 +9,8 @@ import {
   deleteHomepageSection,
   createHomepageSection,
 } from "@/lib/settingsApi";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { CheckCircle2, AlertCircle, Plus, Save, ChevronUp, ChevronDown, Edit, Trash2 } from "lucide-react";
 
 export function HomepageSectionManager() {
   const [sections, setSections] = useState<HomepageSection[]>([]);
@@ -146,150 +142,172 @@ export function HomepageSectionManager() {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500 font-semibold">Loading Homepage Section Manager...</div>;
+    return (
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center text-xs font-medium text-slate-400 shadow-2xs animate-pulse">
+        Loading Homepage Section Manager...
+      </div>
+    );
   }
 
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <CardTitle className="text-xl font-bold">Homepage Section Manager</CardTitle>
-          <CardDescription>Drag or reorder dynamic homepage sections, toggle visibility, and edit display titles.</CardDescription>
+          <h2 className="text-base font-bold text-slate-900">Homepage Section Manager</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Reorder dynamic homepage sections, toggle visibility, and configure product filter rules</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setIsAddOpen(true)} variant="outline" size="sm" className="border-slate-300">
-            + Add Section
-          </Button>
-          <Button onClick={handleSaveOrder} disabled={saving} size="sm" className="bg-black text-white hover:bg-slate-800">
-            {saving ? "Saving..." : "Save Section Order"}
-          </Button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs cursor-pointer"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Add Section</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveOrder}
+            disabled={saving}
+            className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+          >
+            <Save className="h-3.5 w-3.5" />
+            <span>{saving ? "Saving..." : "Save Order"}</span>
+          </button>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {message && (
+      </div>
+
+      {message && (
+        <div
+          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-xl border ${
+            message.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-rose-50 text-rose-800 border-rose-200"
+          }`}
+        >
+          {message.type === "success" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+          )}
+          <span>{message.text}</span>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {sections.map((sec, index) => (
           <div
-            className={`p-3 text-xs font-semibold rounded-md ${
-              message.type === "success"
-                ? "bg-slate-100 text-slate-900 border border-slate-300"
-                : "bg-red-50 text-red-700 border border-red-200"
+            key={sec.id}
+            className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+              sec.isEnabled
+                ? "bg-white border-slate-200/80 shadow-2xs"
+                : "bg-slate-50 border-slate-200/60 opacity-60"
             }`}
           >
-            {message.text}
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {sections.map((sec, index) => (
-            <div
-              key={sec.id}
-              className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
-                sec.isEnabled ? "bg-white border-slate-200 shadow-xs" : "bg-slate-50 border-slate-200 opacity-60"
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => handleMove(index, "up")}
-                    disabled={index === 0}
-                    className="text-xs px-2 py-0.5 border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-30"
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleMove(index, "down")}
-                    disabled={index === sections.length - 1}
-                    className="text-xs px-2 py-0.5 border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-30"
-                  >
-                    ▼
-                  </button>
-                </div>
-
-                <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-900 font-bold flex items-center justify-center text-sm border border-slate-200">
-                  {index + 1}
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 text-base">{sec.title || sec.sectionKey}</span>
-                    <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider">
-                      {sec.sectionType}
-                    </Badge>
-                  </div>
-                  {sec.subtitle && <p className="text-xs text-slate-500 mt-0.5">{sec.subtitle}</p>}
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => handleMove(index, "up")}
+                  disabled={index === 0}
+                  className="p-1 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+                >
+                  <ChevronUp className="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMove(index, "down")}
+                  disabled={index === sections.length - 1}
+                  className="p-1 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </button>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
+                {index + 1}
+              </div>
+
+              <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-600">{sec.isEnabled ? "ON" : "OFF"}</span>
-                  <input
-                    type="checkbox"
-                    checked={sec.isEnabled}
-                    onChange={() => handleToggleEnable(sec.id, sec.isEnabled)}
-                    className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black"
-                  />
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{sec.title || sec.sectionKey}</span>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-700 border border-slate-200 font-mono">
+                    {sec.sectionType}
+                  </span>
                 </div>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setEditingSection({ ...sec });
-                    setIsDialogOpen(true);
-                  }}
-                  className="border-slate-200"
-                >
-                  Edit
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDelete(sec.id)}
-                  className="border-red-200 text-red-600 hover:bg-red-50"
-                >
-                  Remove
-                </Button>
+                {sec.subtitle && <p className="text-[11px] text-slate-500 mt-0.5">{sec.subtitle}</p>}
               </div>
             </div>
-          ))}
-        </div>
-      </CardContent>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-slate-600">{sec.isEnabled ? "ON" : "OFF"}</span>
+                <input
+                  type="checkbox"
+                  checked={sec.isEnabled}
+                  onChange={() => handleToggleEnable(sec.id, sec.isEnabled)}
+                  className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingSection({ ...sec });
+                  setIsDialogOpen(true);
+                }}
+                className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
+                title="Edit Configuration"
+              >
+                <Edit className="h-3.5 w-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDelete(sec.id)}
+                className="p-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                title="Delete Section"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* Edit Section Modal */}
       {editingSection && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md rounded-2xl">
             <DialogHeader>
-              <DialogTitle>Configure Section: {editingSection.sectionKey}</DialogTitle>
+              <DialogTitle className="text-base font-bold">Configure Section: {editingSection.sectionKey}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="editTitle">Display Title</Label>
-                <Input
-                  id="editTitle"
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Display Title</label>
+                <input
+                  type="text"
                   value={editingSection.title || ""}
                   onChange={(e) => setEditingSection((prev) => (prev ? { ...prev, title: e.target.value } : null))}
                   placeholder="Section Title"
+                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="editSubtitle">Display Subtitle</Label>
-                <Input
-                  id="editSubtitle"
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Display Subtitle</label>
+                <input
+                  type="text"
                   value={editingSection.subtitle || ""}
                   onChange={(e) => setEditingSection((prev) => (prev ? { ...prev, subtitle: e.target.value } : null))}
                   placeholder="Section Subtitle"
+                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="selectionMode">Product Selection Mode</Label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Product Selection Mode</label>
                 <select
-                  id="selectionMode"
                   value={editingSection.config?.selectionMode || "LATEST"}
                   onChange={(e) =>
                     setEditingSection((prev) =>
@@ -301,7 +319,7 @@ export function HomepageSectionManager() {
                         : null
                     )
                   }
-                  className="w-full h-10 px-3 border border-slate-200 rounded-md text-sm bg-white"
+                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 >
                   <option value="LATEST">LATEST (Newest Arrivals)</option>
                   <option value="BEST_SELLING">BEST_SELLING (Top Volume)</option>
@@ -312,10 +330,9 @@ export function HomepageSectionManager() {
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="productLimit">Product Limit Count</Label>
-                <Input
-                  id="productLimit"
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Product Limit Count</label>
+                <input
                   type="number"
                   min={1}
                   max={24}
@@ -330,16 +347,26 @@ export function HomepageSectionManager() {
                         : null
                     )
                   }
+                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <DialogFooter className="gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsDialogOpen(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+              >
                 Cancel
-              </Button>
-              <Button onClick={handleSaveEdit} disabled={saving} className="bg-black text-white">
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                disabled={saving}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition"
+              >
                 {saving ? "Saving..." : "Save Changes"}
-              </Button>
+              </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -347,29 +374,29 @@ export function HomepageSectionManager() {
 
       {/* Add New Section Modal */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle>Add New Dynamic Section</DialogTitle>
+            <DialogTitle className="text-base font-bold">Add New Dynamic Section</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="newKey">Section Machine Key</Label>
-              <Input
-                id="newKey"
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Section Machine Key</label>
+              <input
+                type="text"
                 value={newSectionKey}
                 onChange={(e) => setNewSectionKey(e.target.value)}
                 placeholder="e.g. summer_promo_carousel"
+                className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="newType">Section Component Type</Label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Section Component Type</label>
               <select
-                id="newType"
                 value={newSectionType}
                 onChange={(e) => setNewSectionType(e.target.value)}
-                className="w-full h-10 px-3 border border-slate-200 rounded-md text-sm bg-white"
+                className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
               >
                 <option value="HERO">HERO (Hero Banner Slider)</option>
                 <option value="BRAND_BANNER">BRAND_BANNER (Brand Marquee)</option>
@@ -383,16 +410,25 @@ export function HomepageSectionManager() {
               </select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddOpen(false)}>
+          <DialogFooter className="gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setIsAddOpen(false)}
+              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+            >
               Cancel
-            </Button>
-            <Button onClick={handleCreateSection} disabled={saving} className="bg-black text-white">
+            </button>
+            <button
+              type="button"
+              onClick={handleCreateSection}
+              disabled={saving}
+              className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition"
+            >
               Create Section
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }

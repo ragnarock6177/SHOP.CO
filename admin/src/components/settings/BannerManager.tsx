@@ -3,12 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Banner, BannerTargetType } from "@/types/settings";
 import { fetchBanners, createBanner, updateBanner, deleteBanner } from "@/lib/settingsApi";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { CheckCircle2, AlertCircle, Plus, Edit, Trash2 } from "lucide-react";
 
 export function BannerManager() {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -84,17 +80,22 @@ export function BannerManager() {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500 font-semibold">Loading Hero & Campaign Banners...</div>;
+    return (
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center text-xs font-medium text-slate-400 shadow-2xs animate-pulse">
+        Loading Promotional & Hero Banners...
+      </div>
+    );
   }
 
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <CardTitle className="text-xl font-bold">Promotional & Hero Banners</CardTitle>
-          <CardDescription>Manage hero carousel slides, campaign poster graphics, scheduling, and click destinations.</CardDescription>
+          <h2 className="text-base font-bold text-slate-900">Promotional & Hero Banners</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Manage hero carousel slides, campaign poster graphics, and click destinations</p>
         </div>
-        <Button
+        <button
+          type="button"
           onClick={() => {
             setEditingBanner({
               targetType: "NONE",
@@ -103,172 +104,180 @@ export function BannerManager() {
             });
             setIsDialogOpen(true);
           }}
-          className="bg-black text-white hover:bg-slate-800"
-          size="sm"
+          className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] cursor-pointer"
         >
-          + Add New Banner
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {message && (
-          <div
-            className={`p-3 text-xs font-semibold rounded-md ${
-              message.type === "success"
-                ? "bg-slate-100 text-slate-900 border border-slate-300"
-                : "bg-red-50 text-red-700 border border-red-200"
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
+          <Plus className="h-3.5 w-3.5" />
+          <span>Add New Banner</span>
+        </button>
+      </div>
 
-        {banners.length === 0 ? (
-          <div className="p-8 text-center border border-dashed border-slate-200 rounded-lg text-slate-500 text-sm">
-            No promotional banners configured yet. Click &quot;Add New Banner&quot; above to create one.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {banners.map((banner) => (
-              <div
-                key={banner.id}
-                className={`border rounded-lg overflow-hidden flex flex-col justify-between transition-all ${
-                  banner.isEnabled ? "border-slate-200 bg-white" : "border-slate-200 bg-slate-50 opacity-60"
-                }`}
-              >
-                <div className="relative h-44 bg-slate-100 border-b border-slate-200">
-                  <img
-                    src={banner.desktopImageUrl}
-                    alt={banner.title || "Banner"}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <Badge variant="secondary" className="bg-black/70 text-white backdrop-blur-xs text-[10px]">
-                      Target: {banner.targetType}
-                    </Badge>
-                  </div>
-                </div>
+      {message && (
+        <div
+          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-xl border ${
+            message.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-rose-50 text-rose-800 border-rose-200"
+          }`}
+        >
+          {message.type === "success" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+          )}
+          <span>{message.text}</span>
+        </div>
+      )}
 
-                <div className="p-4 space-y-2">
-                  <h4 className="font-bold text-slate-900 text-base">{banner.title || "Untitled Banner"}</h4>
-                  {banner.subtitle && <p className="text-xs text-slate-500 line-clamp-2">{banner.subtitle}</p>}
-                  
-                  {banner.buttonText && (
-                    <div className="pt-1">
-                      <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-800 rounded border border-slate-200 inline-block">
-                        Button: &quot;{banner.buttonText}&quot;
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={banner.isEnabled}
-                      onChange={() => handleToggleEnable(banner)}
-                      className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black"
-                    />
-                    <span className="text-xs font-semibold text-slate-600">{banner.isEnabled ? "Active" : "Disabled"}</span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingBanner({ ...banner });
-                        setIsDialogOpen(true);
-                      }}
-                      className="border-slate-200"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDelete(banner.id)}
-                      className="border-red-200 text-red-600 hover:bg-red-50"
-                    >
-                      Delete
-                    </Button>
-                  </div>
+      {banners.length === 0 ? (
+        <div className="p-12 text-center border border-dashed border-slate-200/80 rounded-xl text-slate-500 text-xs">
+          No promotional banners configured yet. Click &quot;Add New Banner&quot; above to create one.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {banners.map((banner) => (
+            <div
+              key={banner.id}
+              className={`border rounded-xl overflow-hidden flex flex-col justify-between transition-all ${
+                banner.isEnabled ? "border-slate-200/80 bg-white shadow-2xs" : "border-slate-200/60 bg-slate-50 opacity-60"
+              }`}
+            >
+              <div className="relative h-44 bg-slate-100 border-b border-slate-200/80">
+                <img
+                  src={banner.desktopImageUrl}
+                  alt={banner.title || "Banner"}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 right-2">
+                  <span className="rounded-full bg-slate-900/80 backdrop-blur-xs text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider font-mono">
+                    {banner.targetType}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
+
+              <div className="p-4 space-y-2">
+                <h4 className="font-bold text-slate-900 text-sm">{banner.title || "Untitled Banner"}</h4>
+                {banner.subtitle && <p className="text-xs text-slate-500 line-clamp-2">{banner.subtitle}</p>}
+                
+                {banner.buttonText && (
+                  <div className="pt-1">
+                    <span className="text-[10px] font-semibold px-2.5 py-1 bg-slate-100 text-slate-800 rounded-lg border border-slate-200 inline-block font-mono">
+                      Button: &quot;{banner.buttonText}&quot;
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3 bg-slate-50/50 border-t border-slate-200/80 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={banner.isEnabled}
+                    onChange={() => handleToggleEnable(banner)}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-slate-600">{banner.isEnabled ? "Active" : "Disabled"}</span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingBanner({ ...banner });
+                      setIsDialogOpen(true);
+                    }}
+                    className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
+                    title="Edit Banner"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(banner.id)}
+                    className="p-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                    title="Delete Banner"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Edit / Create Banner Dialog */}
       {editingBanner && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg rounded-2xl">
             <DialogHeader>
-              <DialogTitle>{editingBanner.id ? "Edit Banner" : "Create New Banner"}</DialogTitle>
+              <DialogTitle className="text-base font-bold">{editingBanner.id ? "Edit Banner" : "Create New Banner"}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto px-1">
-              <div className="space-y-2">
-                <Label htmlFor="bannerTitle">Headline Title</Label>
-                <Input
-                  id="bannerTitle"
+            <div className="space-y-4 py-2 max-h-[65vh] overflow-y-auto px-1 sidebar-scrollbar">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Headline Title</label>
+                <input
+                  type="text"
                   value={editingBanner.title || ""}
                   onChange={(e) => setEditingBanner((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="e.g. URBAN TECHWEAR CAPSULE"
+                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="bannerSubtitle">Subheadline / Description</Label>
-                <Input
-                  id="bannerSubtitle"
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Subheadline / Description</label>
+                <input
+                  type="text"
                   value={editingBanner.subtitle || ""}
                   onChange={(e) => setEditingBanner((prev) => ({ ...prev, subtitle: e.target.value }))}
-                  placeholder="e.g. Engineered for movement and high-contrast aesthetics"
+                  placeholder="Engineered for movement and high-contrast aesthetics"
+                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="desktopImageUrl">Desktop Image URL</Label>
-                <Input
-                  id="desktopImageUrl"
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Desktop Image URL <span className="text-rose-500">*</span></label>
+                <input
+                  type="text"
                   value={editingBanner.desktopImageUrl || ""}
                   onChange={(e) => setEditingBanner((prev) => ({ ...prev, desktopImageUrl: e.target.value }))}
                   placeholder="https://images.unsplash.com/..."
+                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="mobileImageUrl">Mobile Image URL (Optional)</Label>
-                <Input
-                  id="mobileImageUrl"
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700">Mobile Image URL (Optional)</label>
+                <input
+                  type="text"
                   value={editingBanner.mobileImageUrl || ""}
                   onChange={(e) => setEditingBanner((prev) => ({ ...prev, mobileImageUrl: e.target.value }))}
                   placeholder="https://images.unsplash.com/..."
+                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="buttonText">CTA Button Text</Label>
-                  <Input
-                    id="buttonText"
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">CTA Button Text</label>
+                  <input
+                    type="text"
                     value={editingBanner.buttonText || ""}
                     onChange={(e) => setEditingBanner((prev) => ({ ...prev, buttonText: e.target.value }))}
-                    placeholder="e.g. EXPLORE CAPSULE"
+                    placeholder="EXPLORE CAPSULE"
+                    className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="targetType">Navigation Target Type</Label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Navigation Target</label>
                   <select
-                    id="targetType"
                     value={editingBanner.targetType || "NONE"}
                     onChange={(e) =>
                       setEditingBanner((prev) => ({ ...prev, targetType: e.target.value as BannerTargetType }))
                     }
-                    className="w-full h-10 px-3 border border-slate-200 rounded-md text-sm bg-white"
+                    className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                   >
                     <option value="NONE">NONE (No Link)</option>
                     <option value="PRODUCT">PRODUCT (Link to Product)</option>
@@ -279,28 +288,38 @@ export function BannerManager() {
               </div>
 
               {editingBanner.targetType === "URL" && (
-                <div className="space-y-2">
-                  <Label htmlFor="buttonUrl">Custom Target URL</Label>
-                  <Input
-                    id="buttonUrl"
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700">Custom Target URL</label>
+                  <input
+                    type="text"
                     value={editingBanner.buttonUrl || ""}
                     onChange={(e) => setEditingBanner((prev) => ({ ...prev, buttonUrl: e.target.value }))}
                     placeholder="https://airave.com/collections/sale"
+                    className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                   />
                 </div>
               )}
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <DialogFooter className="gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsDialogOpen(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+              >
                 Cancel
-              </Button>
-              <Button onClick={handleSaveBanner} disabled={saving} className="bg-black text-white">
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveBanner}
+                disabled={saving}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition"
+              >
                 {saving ? "Saving..." : "Save Banner"}
-              </Button>
+              </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
-    </Card>
+    </div>
   );
 }

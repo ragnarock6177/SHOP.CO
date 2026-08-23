@@ -3,10 +3,7 @@
 import React, { useState } from "react";
 import { ContactSettings } from "@/types/settings";
 import { updateContactSettings } from "@/lib/settingsApi";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { CheckCircle2, AlertCircle, Save } from "lucide-react";
 
 interface ContactSettingsFormProps {
   initialData?: ContactSettings;
@@ -52,169 +49,215 @@ export function ContactSettingsForm({ initialData, onSaved }: ContactSettingsFor
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">Contact Information Settings</CardTitle>
-          <CardDescription>Centralize phone numbers, emails, physical atelier address, and support hours.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {message && (
-            <div
-              className={`p-3 text-xs font-semibold rounded-md ${
-                message.type === "success"
-                  ? "bg-slate-100 text-slate-900 border border-slate-300"
-                  : "bg-red-50 text-red-700 border border-red-200"
-              }`}
-            >
-              {message.text}
-            </div>
+    <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
+      <div className="border-b border-slate-200/80 pb-4">
+        <h2 className="text-base font-bold text-slate-900">Contact Information Settings</h2>
+        <p className="text-xs text-slate-500 mt-0.5">Centralize concierge numbers, support emails, physical atelier address, and business hours</p>
+      </div>
+
+      {message && (
+        <div
+          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-xl border ${
+            message.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-rose-50 text-rose-800 border-rose-200"
+          }`}
+        >
+          {message.type === "success" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
           )}
+          <span>{message.text}</span>
+        </div>
+      )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Primary Phone Number</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleChange("phone", e.target.value)}
-                placeholder="+91 98765 43210"
-                required
-              />
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="space-y-1.5">
+          <label htmlFor="phone" className="text-xs font-semibold text-slate-700">
+            Primary Phone Number <span className="text-rose-500">*</span>
+          </label>
+          <input
+            id="phone"
+            type="text"
+            value={formData.phone}
+            onChange={(e) => handleChange("phone", e.target.value)}
+            placeholder="+91 98765 43210"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            required
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="secondaryPhone">Secondary Phone (Optional)</Label>
-              <Input
-                id="secondaryPhone"
-                value={formData.secondaryPhone}
-                onChange={(e) => handleChange("secondaryPhone", e.target.value)}
-                placeholder="+91 98765 43211"
-              />
-            </div>
-          </div>
+        <div className="space-y-1.5">
+          <label htmlFor="secondaryPhone" className="text-xs font-semibold text-slate-700">
+            Secondary Phone (Optional)
+          </label>
+          <input
+            id="secondaryPhone"
+            type="text"
+            value={formData.secondaryPhone}
+            onChange={(e) => handleChange("secondaryPhone", e.target.value)}
+            placeholder="+91 98765 43211"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+          />
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Primary Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                placeholder="concierge@airave.com"
-                required
-              />
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="space-y-1.5">
+          <label htmlFor="email" className="text-xs font-semibold text-slate-700">
+            Concierge Primary Email <span className="text-rose-500">*</span>
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+            placeholder="concierge@airave.com"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            required
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="supportEmail">Support Email</Label>
-              <Input
-                id="supportEmail"
-                type="email"
-                value={formData.supportEmail}
-                onChange={(e) => handleChange("supportEmail", e.target.value)}
-                placeholder="support@airave.com"
-              />
-            </div>
-          </div>
+        <div className="space-y-1.5">
+          <label htmlFor="supportEmail" className="text-xs font-semibold text-slate-700">
+            Support Email
+          </label>
+          <input
+            id="supportEmail"
+            type="email"
+            value={formData.supportEmail}
+            onChange={(e) => handleChange("supportEmail", e.target.value)}
+            placeholder="support@airave.com"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+          />
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp Hotline</Label>
-              <Input
-                id="whatsapp"
-                value={formData.whatsapp}
-                onChange={(e) => handleChange("whatsapp", e.target.value)}
-                placeholder="+919876543210"
-              />
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="space-y-1.5">
+          <label htmlFor="whatsapp" className="text-xs font-semibold text-slate-700">
+            WhatsApp Hotline
+          </label>
+          <input
+            id="whatsapp"
+            type="text"
+            value={formData.whatsapp}
+            onChange={(e) => handleChange("whatsapp", e.target.value)}
+            placeholder="+919876543210"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="workingHours">Working Hours</Label>
-              <Input
-                id="workingHours"
-                value={formData.workingHours}
-                onChange={(e) => handleChange("workingHours", e.target.value)}
-                placeholder="Mon - Sat: 10:00 AM - 8:00 PM IST"
-                required
-              />
-            </div>
-          </div>
+        <div className="space-y-1.5">
+          <label htmlFor="workingHours" className="text-xs font-semibold text-slate-700">
+            Working Hours <span className="text-rose-500">*</span>
+          </label>
+          <input
+            id="workingHours"
+            type="text"
+            value={formData.workingHours}
+            onChange={(e) => handleChange("workingHours", e.target.value)}
+            placeholder="Mon - Sat: 10:00 AM - 8:00 PM IST"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            required
+          />
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">Physical Address</Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleChange("address", e.target.value)}
-              placeholder="104 Atelier Boulevard, Fashion District"
-              required
-            />
-          </div>
+      <div className="space-y-1.5">
+        <label htmlFor="address" className="text-xs font-semibold text-slate-700">
+          Physical Address <span className="text-rose-500">*</span>
+        </label>
+        <input
+          id="address"
+          type="text"
+          value={formData.address}
+          onChange={(e) => handleChange("address", e.target.value)}
+          placeholder="104 Atelier Boulevard, Fashion District"
+          className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+          required
+        />
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleChange("city", e.target.value)}
-                placeholder="Mumbai"
-                required
-              />
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="space-y-1.5">
+          <label htmlFor="city" className="text-xs font-semibold text-slate-700">City</label>
+          <input
+            id="city"
+            type="text"
+            value={formData.city}
+            onChange={(e) => handleChange("city", e.target.value)}
+            placeholder="Mumbai"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            required
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
-              <Input
-                id="state"
-                value={formData.state}
-                onChange={(e) => handleChange("state", e.target.value)}
-                placeholder="Maharashtra"
-                required
-              />
-            </div>
+        <div className="space-y-1.5">
+          <label htmlFor="state" className="text-xs font-semibold text-slate-700">State</label>
+          <input
+            id="state"
+            type="text"
+            value={formData.state}
+            onChange={(e) => handleChange("state", e.target.value)}
+            placeholder="Maharashtra"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            required
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                value={formData.country}
-                onChange={(e) => handleChange("country", e.target.value)}
-                placeholder="India"
-                required
-              />
-            </div>
+        <div className="space-y-1.5">
+          <label htmlFor="country" className="text-xs font-semibold text-slate-700">Country</label>
+          <input
+            id="country"
+            type="text"
+            value={formData.country}
+            onChange={(e) => handleChange("country", e.target.value)}
+            placeholder="India"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            required
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="postalCode">Postal Code</Label>
-              <Input
-                id="postalCode"
-                value={formData.postalCode}
-                onChange={(e) => handleChange("postalCode", e.target.value)}
-                placeholder="400001"
-                required
-              />
-            </div>
-          </div>
+        <div className="space-y-1.5">
+          <label htmlFor="postalCode" className="text-xs font-semibold text-slate-700">Postal Code</label>
+          <input
+            id="postalCode"
+            type="text"
+            value={formData.postalCode}
+            onChange={(e) => handleChange("postalCode", e.target.value)}
+            placeholder="400001"
+            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            required
+          />
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="googleMapsUrl">Google Maps URL</Label>
-            <Input
-              id="googleMapsUrl"
-              value={formData.googleMapsUrl}
-              onChange={(e) => handleChange("googleMapsUrl", e.target.value)}
-              placeholder="https://maps.google.com/?q=Airave"
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end border-t border-slate-100 pt-4">
-          <Button type="submit" disabled={saving} className="bg-black text-white hover:bg-slate-800">
-            {saving ? "Saving..." : "Save Contact Information"}
-          </Button>
-        </CardFooter>
-      </Card>
+      <div className="space-y-1.5">
+        <label htmlFor="googleMapsUrl" className="text-xs font-semibold text-slate-700">
+          Google Maps Embed / Pin Link
+        </label>
+        <input
+          id="googleMapsUrl"
+          type="text"
+          value={formData.googleMapsUrl}
+          onChange={(e) => handleChange("googleMapsUrl", e.target.value)}
+          placeholder="https://maps.google.com/?q=Airave"
+          className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+        />
+      </div>
+
+      <div className="flex justify-end pt-3 border-t border-slate-200/80">
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+        >
+          <Save className="h-3.5 w-3.5" />
+          <span>{saving ? "Saving..." : "Save Contact Information"}</span>
+        </button>
+      </div>
     </form>
   );
 }
