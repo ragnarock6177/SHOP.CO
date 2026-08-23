@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse } from "@/types/api";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/";
@@ -110,5 +110,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-[#f8fafc]" />}>
+      <LoginForm />
+    </React.Suspense>
   );
 }

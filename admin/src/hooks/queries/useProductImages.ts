@@ -10,6 +10,8 @@ export interface ProductImage {
   sortOrder: number;
   isPrimary: boolean;
   createdAt: string;
+  variantImages?: Array<{ variantId: string; sortOrder?: number }>;
+  variantIds?: string[];
 }
 
 export interface PresignResult {
@@ -22,10 +24,11 @@ const imageQueryKey = (productId: string) => ["admin", "products", productId, "i
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
-export const useProductImages = (productId: string) =>
+export const useProductImages = (productId?: string) =>
   useQuery({
-    queryKey: imageQueryKey(productId),
+    queryKey: imageQueryKey(productId || ""),
     queryFn: async () => {
+      if (!productId) return [];
       const res = await apiClient.get<ApiResponse<ProductImage[]>>(
         `/admin/products/${productId}/images`
       );
@@ -61,6 +64,8 @@ export const useAddProductImage = (productId: string) => {
       imageUrl: string;
       altText?: string;
       isPrimary?: boolean;
+      sortOrder?: number;
+      variantIds?: string[];
     }) => {
       const res = await apiClient.post<ApiResponse<ProductImage>>(
         `/admin/products/${productId}/images`,
@@ -70,11 +75,12 @@ export const useAddProductImage = (productId: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imageQueryKey(productId) });
+      queryClient.invalidateQueries({ queryKey: ["admin", "products", productId] });
     },
   });
 };
 
-// ── Update image (alt text, primary, sort order) ──────────────────────────────
+// ── Update image (alt text, primary, sort order, variantIds) ──────────────────
 
 export const useUpdateProductImage = (productId: string) => {
   const queryClient = useQueryClient();
@@ -84,7 +90,12 @@ export const useUpdateProductImage = (productId: string) => {
       data,
     }: {
       imageId: string;
-      data: { altText?: string; isPrimary?: boolean; sortOrder?: number };
+      data: {
+        altText?: string;
+        isPrimary?: boolean;
+        sortOrder?: number;
+        variantIds?: string[];
+      };
     }) => {
       const res = await apiClient.patch<ApiResponse<ProductImage>>(
         `/admin/products/${productId}/images/${imageId}`,
@@ -94,6 +105,7 @@ export const useUpdateProductImage = (productId: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imageQueryKey(productId) });
+      queryClient.invalidateQueries({ queryKey: ["admin", "products", productId] });
     },
   });
 };

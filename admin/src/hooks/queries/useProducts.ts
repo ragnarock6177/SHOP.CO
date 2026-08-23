@@ -16,6 +16,7 @@ export interface ProductItem {
   visibility: "PUBLIC" | "PRIVATE" | "HIDDEN";
   metaTitle: string | null;
   metaDescription: string | null;
+  primaryImage?: string | null;
   primaryCategory?: { id: string; name: string };
   images?: Array<{ id: string; imageUrl: string; altText: string | null; sortOrder: number; isPrimary: boolean }>;
   variants?: any[];
@@ -42,6 +43,8 @@ export const useProductDetails = (id: string) => {
       return response.data.data;
     },
     enabled: !!id,
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };
 
@@ -49,13 +52,34 @@ export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: any) => {
-      // Map form field names to API field names
-      const { primaryCategoryId, comparePrice, ...rest } = payload;
+      const { primaryCategoryId, comparePrice, basePrice, images, id, ...rest } = payload;
+      
+      const cleanComparePrice =
+        comparePrice !== undefined && comparePrice !== null && !isNaN(Number(comparePrice))
+          ? Number(comparePrice)
+          : undefined;
+
+      const cleanBasePrice =
+        basePrice !== undefined && basePrice !== null && !isNaN(Number(basePrice))
+          ? Number(basePrice)
+          : 0;
+
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const cleanId = id && typeof id === "string" && uuidRegex.test(id) ? id : undefined;
+
+      const cleanImages = Array.isArray(images)
+        ? images.filter((img: any) => img && img.imageUrl && !img.imageUrl.startsWith("blob:"))
+        : undefined;
+
       const apiPayload = {
         ...rest,
-        ...(primaryCategoryId ? { categoryId: primaryCategoryId } : {}),
-        ...(comparePrice !== undefined ? { compareAtPrice: comparePrice } : {}),
+        ...(cleanId ? { id: cleanId } : {}),
+        basePrice: cleanBasePrice,
+        ...(cleanComparePrice !== undefined ? { compareAtPrice: cleanComparePrice } : {}),
+        ...(primaryCategoryId && uuidRegex.test(primaryCategoryId) ? { categoryId: primaryCategoryId } : {}),
+        ...(cleanImages && cleanImages.length > 0 ? { images: cleanImages } : {}),
       };
+
       const response = await apiClient.post<ApiResponse<ProductItem>>("/admin/products", apiPayload);
       return response.data.data;
     },

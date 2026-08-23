@@ -6,20 +6,19 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
-// Connect to Database & Start Server
-connectDB().then(() => {
-  const server = app.listen(PORT, () => {
-    console.log(`=================================`);
-    console.log(`🚀 AIRAVÉ Node.js API Server`);
-    console.log(`📡 Listening on Port: ${PORT}`);
-    console.log(`🐘 PostgreSQL & Prisma ORM Connected`);
-    console.log(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log(`=================================`);
-  });
+// Start Express API Server immediately so port 5000 is always open
+const server = app.listen(PORT, () => {
+  console.log(`=================================`);
+  console.log(`🚀 AIRAVÉ Node.js API Server`);
+  console.log(`📡 Listening on Port: ${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`=================================`);
+});
 
-  // Handle unhandled rejections
-  process.on("unhandledRejection", (err: Error) => {
-    console.error("Unhandled Rejection Error:", err);
-    server.close(() => process.exit(1));
-  });
+// Asynchronously connect database with retries
+connectDB();
+
+// Handle unhandled rejections without crashing server
+process.on("unhandledRejection", (err: Error) => {
+  console.error("Unhandled Rejection Error:", err);
 });

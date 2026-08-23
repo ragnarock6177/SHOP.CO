@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { X, PackagePlus, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiPaginatedResponse } from "@/types/api";
 import { useCreateProduct } from "@/hooks/queries/useProducts";
 import { ProductForm } from "./ProductForm";
+import { ImageUploader, StagedImageItem } from "./ImageUploader";
 import { ProductFormInput } from "@/validators/product.validator";
 
 interface CategoryItem {
@@ -21,12 +22,35 @@ export interface CreateProductModalProps {
   onSuccess?: () => void;
 }
 
+function generateValidUuid(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    try {
+      return crypto.randomUUID();
+    } catch {}
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export const CreateProductModal: React.FC<CreateProductModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
 }) => {
   const createMutation = useCreateProduct();
+  const [tempProductId, setTempProductId] = useState(() => generateValidUuid());
+  const [stagedImages, setStagedImages] = useState<StagedImageItem[]>([]);
+
+  // Reset temp ID and staged images whenever modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setTempProductId(generateValidUuid());
+      setStagedImages([]);
+    }
+  }, [isOpen]);
 
   // Fetch active categories for the dropdown
   const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
@@ -54,14 +78,29 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
   if (!isOpen) return null;
 
   const handleCreateProduct = (formData: ProductFormInput) => {
-    createMutation.mutate(formData, {
-      onSuccess: () => {
-        onClose();
-        if (onSuccess) {
-          onSuccess();
-        }
+    const formattedImages = stagedImages.map((img, idx) => ({
+      imageUrl: img.imageUrl,
+      altText: img.altText || formData.name || undefined,
+      isPrimary: img.isPrimary,
+      sortOrder: idx,
+      variantIds: img.variantIds || [],
+    }));
+
+    createMutation.mutate(
+      {
+        id: tempProductId,
+        ...formData,
+        images: formattedImages,
       },
-    });
+      {
+        onSuccess: () => {
+          onClose();
+          if (onSuccess) {
+            onSuccess();
+          }
+        },
+      }
+    );
   };
 
   return (
@@ -85,7 +124,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Add a new product with pricing, categorization, and visibility settings
+                Add a new product with pricing, categorization, and high-res photos
               </p>
             </div>
           </div>
@@ -108,6 +147,26 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
             categories={categories}
             onSubmit={handleCreateProduct}
             onCancel={onClose}
+            imageSection={
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-800">Product Images</h3>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                      <Sparkles className="h-2.5 w-2.5" /> High-Res WebP
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Upload images now. The primary photo is highlighted in catalog listings.
+                  </p>
+                </div>
+                <ImageUploader
+                  productId={tempProductId}
+                  stagedImages={stagedImages}
+                  onStagedImagesChange={setStagedImages}
+                />
+              </div>
+            }
           />
         </div>
       </div>

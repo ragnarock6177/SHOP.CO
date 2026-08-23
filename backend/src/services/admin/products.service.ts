@@ -100,13 +100,25 @@ export class AdminProductsService {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        images: { orderBy: { sortOrder: "asc" } },
+        images: {
+          orderBy: { sortOrder: "asc" },
+          include: {
+            variantImages: {
+              select: { variantId: true, sortOrder: true },
+            },
+          },
+        },
         videos: { orderBy: { sortOrder: "asc" } },
         productCategories: { include: { category: true } },
         productCollections: { include: { collection: true } },
         variants: {
           include: {
             inventory: true,
+            variantImages: {
+              include: {
+                image: true,
+              },
+            },
             variantAttributeValues: {
               include: {
                 attributeValue: {
@@ -141,6 +153,7 @@ export class AdminProductsService {
   }
 
   static async createProduct(data: {
+    id?: string;
     name: string;
     slug: string;
     description?: string;
@@ -152,7 +165,17 @@ export class AdminProductsService {
     compareAtPrice?: number;
     careInstructions?: string;
     categoryId?: string;
+    images?: Array<{
+      imageUrl: string;
+      altText?: string;
+      sortOrder?: number;
+      isPrimary?: boolean;
+      variantIds?: string[];
+    }>;
   }) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const validProductId = data.id && uuidRegex.test(data.id) ? data.id : undefined;
+
     const existing = await prisma.product.findUnique({ where: { slug: data.slug } });
     if (existing) {
       throw new ConflictError("A product with this slug already exists");
@@ -161,27 +184,69 @@ export class AdminProductsService {
     const created = await prisma.$transaction(async (tx) => {
       const product = await tx.product.create({
         data: {
+          id: validProductId,
           name: data.name,
           slug: data.slug,
-          description: data.description,
-          shortDescription: data.shortDescription,
-          productType: data.productType,
+          description: data.description || null,
+          shortDescription: data.shortDescription || null,
+          productType: data.productType || null,
           status: data.status || ProductStatus.DRAFT,
           visibility: data.visibility || ProductVisibility.PUBLIC,
-          basePrice: data.basePrice,
-          compareAtPrice: data.compareAtPrice,
-          careInstructions: data.careInstructions,
+          basePrice: data.basePrice !== undefined && !isNaN(Number(data.basePrice)) ? Number(data.basePrice) : 0,
+          compareAtPrice: data.compareAtPrice !== undefined && !isNaN(Number(data.compareAtPrice)) ? Number(data.compareAtPrice) : null,
+          careInstructions: data.careInstructions || null,
         },
       });
 
-      if (data.categoryId) {
-        await tx.productCategory.create({
-          data: {
-            productId: product.id,
-            categoryId: data.categoryId,
-            isPrimary: true,
-          },
-        });
+      if (data.categoryId && uuidRegex.test(data.categoryId)) {
+        const catExists = await tx.category.findUnique({ where: { id: data.categoryId } });
+        if (catExists) {
+          await tx.productCategory.create({
+            data: {
+              productId: product.id,
+              categoryId: data.categoryId,
+              isPrimary: true,
+            },
+          });
+        }
+      }
+
+      if (data.images && data.images.length > 0) {
+        for (let i = 0; i < data.images.length; i++) {
+          const img = data.images[i];
+          if (!img.imageUrl || img.imageUrl.startsWith("blob:")) continue;
+
+          const createdImg = await tx.productImage.create({
+            data: {
+              productId: product.id,
+              imageUrl: img.imageUrl,
+              altText: img.altText || null,
+              sortOrder: img.sortOrder ?? i,
+              isPrimary: img.isPrimary ?? i === 0,
+            },
+          });
+
+          if (img.variantIds && img.variantIds.length > 0) {
+            const validVariantIds = img.variantIds.filter((vId) => uuidRegex.test(vId));
+            if (validVariantIds.length > 0) {
+              const existingVariants = await tx.productVariant.findMany({
+                where: { id: { in: validVariantIds } },
+                select: { id: true },
+              });
+              const existingVariantIds = existingVariants.map((v) => v.id);
+
+              if (existingVariantIds.length > 0) {
+                await tx.variantImage.createMany({
+                  data: existingVariantIds.map((vId, vIdx) => ({
+                    variantId: vId,
+                    imageId: createdImg.id,
+                    sortOrder: vIdx,
+                  })),
+                });
+              }
+            }
+          }
+        }
       }
 
       return product;
@@ -275,6 +340,11 @@ export class AdminProductsService {
     return prisma.productImage.findMany({
       where: { productId },
       orderBy: { sortOrder: "asc" },
+      include: {
+        variantImages: {
+          select: { variantId: true, sortOrder: true },
+        },
+      },
     });
   }
 
@@ -286,61 +356,113 @@ export class AdminProductsService {
       storagePath?: string;
       sortOrder?: number;
       isPrimary?: boolean;
+      variantIds?: string[];
     }
   ) {
     const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw new NotFoundError("Product not found");
 
-    // If this image is primary, demote all others
-    if (data.isPrimary) {
-      await prisma.productImage.updateMany({
-        where: { productId },
-        data: { isPrimary: false },
+    return prisma.$transaction(async (tx) => {
+      // If this image is primary, demote all others
+      if (data.isPrimary) {
+        await tx.productImage.updateMany({
+          where: { productId },
+          data: { isPrimary: false },
+        });
+      }
+
+      // Auto-assign sort order to end if not provided
+      let sortOrder = data.sortOrder;
+      if (sortOrder === undefined) {
+        const count = await tx.productImage.count({ where: { productId } });
+        sortOrder = count;
+      }
+
+      const img = await tx.productImage.create({
+        data: {
+          productId,
+          imageUrl: data.imageUrl,
+          altText: data.altText,
+          sortOrder,
+          isPrimary: data.isPrimary ?? false,
+        },
       });
-    }
 
-    // Auto-assign sort order to end if not provided
-    if (data.sortOrder === undefined) {
-      const count = await prisma.productImage.count({ where: { productId } });
-      data.sortOrder = count;
-    }
+      if (data.variantIds && data.variantIds.length > 0) {
+        await tx.variantImage.createMany({
+          data: data.variantIds.map((vId, idx) => ({
+            variantId: vId,
+            imageId: img.id,
+            sortOrder: idx,
+          })),
+        });
+      }
 
-    return prisma.productImage.create({
-      data: {
-        productId,
-        imageUrl: data.imageUrl,
-        altText: data.altText,
-        sortOrder: data.sortOrder,
-        isPrimary: data.isPrimary ?? false,
-      },
+      return tx.productImage.findUnique({
+        where: { id: img.id },
+        include: {
+          variantImages: {
+            select: { variantId: true, sortOrder: true },
+          },
+        },
+      });
     });
   }
 
   static async updateImage(
     productId: string,
     imageId: string,
-    data: { altText?: string; sortOrder?: number; isPrimary?: boolean }
+    data: {
+      altText?: string;
+      sortOrder?: number;
+      isPrimary?: boolean;
+      variantIds?: string[];
+    }
   ) {
     const image = await prisma.productImage.findFirst({
       where: { id: imageId, productId },
     });
     if (!image) throw new NotFoundError("Image not found");
 
-    // If setting as primary, demote others first
-    if (data.isPrimary) {
-      await prisma.productImage.updateMany({
-        where: { productId, id: { not: imageId } },
-        data: { isPrimary: false },
-      });
-    }
+    return prisma.$transaction(async (tx) => {
+      // If setting as primary, demote others first
+      if (data.isPrimary) {
+        await tx.productImage.updateMany({
+          where: { productId, id: { not: imageId } },
+          data: { isPrimary: false },
+        });
+      }
 
-    return prisma.productImage.update({
-      where: { id: imageId },
-      data: {
-        altText: data.altText,
-        sortOrder: data.sortOrder,
-        isPrimary: data.isPrimary,
-      },
+      await tx.productImage.update({
+        where: { id: imageId },
+        data: {
+          altText: data.altText,
+          sortOrder: data.sortOrder,
+          isPrimary: data.isPrimary,
+        },
+      });
+
+      if (data.variantIds !== undefined) {
+        await tx.variantImage.deleteMany({ where: { imageId } });
+        if (data.variantIds.length > 0) {
+          await tx.variantImage.createMany({
+            data: data.variantIds.map((vId, idx) => ({
+              variantId: vId,
+              imageId,
+              sortOrder: idx,
+            })),
+          });
+        }
+      }
+
+      return tx.productImage.findUnique({
+        where: { id: imageId },
+        include: {
+          variantImages: {
+            select: { variantId: true, sortOrder: true },
+          },
+        },
+      });
     });
   }
 

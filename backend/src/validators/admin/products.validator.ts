@@ -3,6 +3,7 @@ import { ProductStatus, ProductVisibility } from "@prisma/client";
 
 export const CreateProductSchema = z.object({
   body: z.object({
+    id: z.string().uuid("Invalid product ID").optional(),
     name: z.string().min(1, "Product name is required"),
     slug: z.string().min(1, "Product slug is required"),
     description: z.string().optional(),
@@ -14,6 +15,17 @@ export const CreateProductSchema = z.object({
     compareAtPrice: z.number().nonnegative("Compare-at price must be non-negative").optional(),
     careInstructions: z.string().optional(),
     categoryId: z.string().uuid("Invalid category ID").optional(),
+    images: z
+      .array(
+        z.object({
+          imageUrl: z.string().url("Invalid image URL"),
+          altText: z.string().optional(),
+          sortOrder: z.number().int().optional(),
+          isPrimary: z.boolean().optional(),
+          variantIds: z.array(z.string().uuid()).optional(),
+        })
+      )
+      .optional(),
   }),
 });
 

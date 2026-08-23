@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link.js";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import { useProducts, useArchiveProduct, ProductItem } from "../../../hooks/queries/useProducts";
 import { DataTable } from "../../../components/data-table/DataTable";
 import { Pagination } from "../../../components/data-table/Pagination";
@@ -39,6 +39,34 @@ export default function ProductsPage() {
   };
 
   const columns: ColumnDef<ProductItem>[] = [
+    {
+      id: "image",
+      header: "Photo",
+      cell: ({ row }) => {
+        const imageUrl =
+          row.original.primaryImage ||
+          row.original.images?.find((img) => img.isPrimary)?.imageUrl ||
+          row.original.images?.[0]?.imageUrl;
+
+        return (
+          <div className="flex items-center">
+            {imageUrl ? (
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-slate-200/90 bg-slate-50 shadow-2xs group">
+                <img
+                  src={imageUrl}
+                  alt={row.original.name}
+                  className="h-full w-full object-cover object-center transition-transform duration-200 group-hover:scale-110"
+                />
+              </div>
+            ) : (
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-slate-400">
+                <ImageIcon className="h-5 w-5 stroke-[1.5]" />
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "name",
       header: "Product Name",

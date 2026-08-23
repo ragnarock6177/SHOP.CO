@@ -13,6 +13,12 @@ export class ApiError extends Error {
   }
 }
 
+export class DatabaseError extends ApiError {
+  constructor(message = "Database connection temporarily unavailable. Please retry.") {
+    super(503, "DATABASE_ERROR", message);
+  }
+}
+
 export class ValidationError extends ApiError {
   constructor(message = "Invalid input payload or query parameters", details?: any) {
     super(400, "VALIDATION_ERROR", message, details);
