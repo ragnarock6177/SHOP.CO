@@ -17,7 +17,7 @@ app.use(
   })
 );
 
-// CORS Configuration: Allow storefront (3000) and admin panel (3001) origins
+// CORS Configuration: Allow storefront (3000), admin panel (3001), and Vercel production domains
 const defaultAllowedOrigins = ["http://localhost:3000", "http://localhost:3001"];
 const envOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
@@ -27,7 +27,7 @@ const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envOrigi
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
         callback(null, true);
       } else {
         callback(null, true); // Dev fallback
