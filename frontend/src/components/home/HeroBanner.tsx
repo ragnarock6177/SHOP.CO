@@ -69,13 +69,13 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
     if (initialBanners && initialBanners.length > 0) {
       setBanners(initialBanners);
     } else {
-      getStorefrontSettingsApi()
-        .then((res) => {
-          if (res?.home?.banners && res.home.banners.length > 0) {
+    getStorefrontSettingsApi()
+      .then((res) => {
+        if (res?.home?.banners && res.home.banners.length > 0) {
             setBanners(res.home.banners);
-          }
-        })
-        .catch(() => {});
+        }
+      })
+      .catch(() => {});
     }
   }, [initialBanners]);
 
@@ -151,7 +151,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
           return (
             <div
               key={slideItem.id || index}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out ${
+              className={`absolute inset-0 w-full h-full bg-[#F2F0F1] transition-opacity duration-500 ease-in-out ${
                 isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
               }`}
             >
@@ -161,7 +161,14 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
                 alt={altText}
                 fill
                 priority={index === 0}
+                // Explicit fetchPriority="high" fixes the Lighthouse LCP warning —
+                // Next.js priority prop alone isn't enough inside client components
+                // because the preload link is injected after hydration (too late).
+                fetchPriority={index === 0 ? "high" : "auto"}
+                loading={index === 0 ? "eager" : "lazy"}
                 sizes="100vw"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/wAARCAAKABQDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUEB//EACQQAAICAQQBBQAAAAAAAAAAAAECAxEEBSExBhJBUWH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aq9ZQhiNUEqkklJaJOxNnBJFHFHEikFrQ3R3jC5fDU4JKQT2sO66lVBk8ks39hZvN3OyuIbckpaeWEnuPfqP/2Q=="
                 className="object-cover object-center w-full h-full"
               />
 
