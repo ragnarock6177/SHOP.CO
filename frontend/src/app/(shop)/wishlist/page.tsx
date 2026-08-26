@@ -158,7 +158,7 @@ export default function WishlistPage() {
                 </button>
 
                 {/* Product Image Preview: Strict 3:4 Aspect Ratio */}
-                <div className="relative aspect-[3/4] w-full bg-[#F0EEED] rounded-xl overflow-hidden mb-2">
+                <div className="relative aspect-3/4 w-full bg-[#F0EEED] rounded-xl overflow-hidden mb-2">
                   <Image
                     src={product.image}
                     alt={product.title}

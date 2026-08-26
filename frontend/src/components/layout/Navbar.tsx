@@ -437,19 +437,19 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Drawer */}
       <div
-        className={`fixed inset-0 h-[100dvh] z-50 md:hidden flex overflow-hidden transition-all duration-300 ${
+        className={`fixed inset-0 h-dvh z-50 md:hidden flex overflow-hidden transition-all duration-300 ${
           isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
         <div
-          className={`fixed inset-0 h-[100dvh] bg-black/60 transition-opacity duration-300 ${
+          className={`fixed inset-0 h-dvh bg-black/60 transition-opacity duration-300 ${
             isMobileMenuOpen ? "opacity-100" : "opacity-0"
           }`}
           onClick={() => setIsMobileMenuOpen(false)}
         />
 
         <div
-          className={`relative w-80 max-w-[85vw] h-[100dvh] bg-white text-black z-10 flex flex-col shadow-2xl p-6 overflow-y-auto gpu-layer transition-transform duration-300 ease-out transform ${
+          className={`relative w-80 max-w-[85vw] h-dvh bg-white text-black z-10 flex flex-col shadow-2xl p-6 overflow-y-auto gpu-layer transition-transform duration-300 ease-out transform ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >

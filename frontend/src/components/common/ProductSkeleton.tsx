@@ -15,7 +15,7 @@ export const ProductSkeleton: React.FC<ProductSkeletonProps> = ({ count = 6 }) =
           className="space-y-2 animate-pulse bg-white p-1.5 sm:p-2 rounded-2xl border border-gray-100"
         >
           {/* Image Box Placeholder matching 3:4 aspect ratio */}
-          <div className="aspect-[3/4] bg-[#F0EEED] rounded-xl w-full" />
+          <div className="aspect-3/4 bg-[#F0EEED] rounded-xl w-full" />
 
           {/* Title Line Placeholder */}
           <div className="h-3 bg-gray-200 rounded-full w-3/4" />

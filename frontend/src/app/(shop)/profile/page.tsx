@@ -354,7 +354,7 @@ export default function ProfilePage() {
                       <div className="space-y-2.5">
                         {order.items.map((item, idx) => (
                           <div key={idx} className="flex gap-3 items-center">
-                            <div className="w-12 h-16 aspect-[3/4] bg-[#F0EEED] rounded-lg overflow-hidden relative shrink-0 border border-gray-100">
+                            <div className="w-12 h-16 aspect-3/4 bg-[#F0EEED] rounded-lg overflow-hidden relative shrink-0 border border-gray-100">
                               <Image
                                 src={item.image}
                                 alt={item.title}
@@ -389,6 +389,12 @@ export default function ProfilePage() {
                         </span>
 
                         <div className="flex items-center gap-2">
+                          <Link
+                            href={`/orders/${encodeURIComponent(order.id)}`}
+                            className="px-3.5 py-1.5 bg-black text-white rounded-full font-bold hover:bg-neutral-800 transition-colors text-[11px] uppercase cursor-pointer"
+                          >
+                            View Details
+                          </Link>
                           <button
                             onClick={() =>
                               alert(
@@ -399,12 +405,6 @@ export default function ProfilePage() {
                           >
                             Track Package
                           </button>
-                          <Link
-                            href="/product"
-                            className="px-3.5 py-1.5 bg-black text-white rounded-full font-bold hover:bg-neutral-800 transition-colors text-[11px] uppercase cursor-pointer"
-                          >
-                            Buy Again
-                          </Link>
                         </div>
                       </div>
                     </div>
@@ -566,7 +566,7 @@ export default function ProfilePage() {
                       key={prod.id}
                       className="bg-white border border-gray-200/80 rounded-2xl p-2 space-y-2 relative group shadow-2xs"
                     >
-                      <div className="relative aspect-[3/4] bg-[#F0EEED] rounded-xl overflow-hidden">
+                      <div className="relative aspect-3/4 bg-[#F0EEED] rounded-xl overflow-hidden">
                         <Image
                           src={prod.image}
                           alt={prod.title}

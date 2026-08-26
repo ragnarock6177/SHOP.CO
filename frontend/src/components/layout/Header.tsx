@@ -58,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden bg-black text-white"
           >
-            <div className="py-2 px-7 sm:px-12 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-[36px] sm:min-h-[40px]">
+            <div className="py-2 px-7 sm:px-12 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-9 sm:min-h-10">
               <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap">
                 <span className="opacity-90">{announcementText}</span>
                 {announcementLink && (

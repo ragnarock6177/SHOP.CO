@@ -94,7 +94,7 @@ export default function CartPage() {
                   >
                     {/* Image & Details */}
                     <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                      <div className="w-18 h-24 sm:w-22 sm:h-28 aspect-[3/4] bg-[#F0EEED] rounded-xl overflow-hidden relative shrink-0 border border-gray-100">
+                      <div className="w-18 h-24 sm:w-22 sm:h-28 aspect-3/4 bg-[#F0EEED] rounded-xl overflow-hidden relative shrink-0 border border-gray-100">
                         <Image
                           src={item.product.image}
                           alt={item.product.title}

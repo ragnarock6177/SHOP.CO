@@ -1,238 +1,159 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ShieldCheck,
-  CheckCircle2,
   CreditCard,
   Truck,
   ShoppingBag,
   Tag,
-  Download,
-  Package,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
-import { useCart, OrderRecord } from "@/context/CartContext";
+import { useCart } from "@/context/CartContext";
+import {
+  getCheckoutSummaryApi,
+  placeOrderApi,
+  CheckoutSummaryData,
+  CreateOrderPayload,
+} from "@/lib/orderApi";
 
 export default function CheckoutPage() {
-  const { cart, cartSubtotal, clearCart, addOrder } = useCart();
+  const router = useRouter();
+  const { cart, clearCart } = useCart();
 
   const [paymentMethod, setPaymentMethod] = useState<
     "card" | "paypal" | "applepay" | "cod"
   >("card");
-  const [shippingSpeed, setShippingSpeed] = useState<"standard" | "express">(
-    "standard",
+  const [shippingSpeed, setShippingSpeed] = useState<"STANDARD" | "EXPRESS">(
+    "STANDARD"
   );
-  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
-  const [placedOrderDetails, setPlacedOrderDetails] =
-    useState<OrderRecord | null>(null);
 
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
-  const [promoDiscount, setPromoDiscount] = useState(0);
-  const [promoMessage, setPromoMessage] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState("");
 
   // Shipping form state
   const [formData, setFormData] = useState({
     firstName: "Alex",
     lastName: "Morgan",
     email: "alex.morgan@example.com",
-    phone: "+1 (555) 234-5678",
-    address: "742 Evergreen Terrace",
-    city: "Springfield",
-    state: "IL",
-    zip: "62704",
+    phone: "+91 98765 43210",
+    address: "104 Atelier Boulevard",
+    city: "Mumbai",
+    state: "Maharashtra",
+    zip: "400001",
     cardNumber: "4242 8819 9021 4242",
     expDate: "08/28",
     cvv: "921",
   });
 
-  const baseShippingCost = cartSubtotal > 150 || cart.length === 0 ? 0 : 15;
-  const shippingCost =
-    shippingSpeed === "express" ? baseShippingCost + 25 : baseShippingCost;
-  const discountAmount = Math.round(cartSubtotal * promoDiscount * 100) / 100;
-  const estimatedTax =
-    Math.round((cartSubtotal - discountAmount) * 0.08 * 100) / 100;
-  const grandTotal =
-    Math.round(
-      (cartSubtotal - discountAmount + shippingCost + estimatedTax) * 100,
-    ) / 100;
+  // Server calculation states
+  const [summary, setSummary] = useState<CheckoutSummaryData | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  // Order submission state
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Fetch backend calculation summary whenever cart, speed, applied promo, or postal code changes
+  useEffect(() => {
+    if (!cart || cart.length === 0) {
+      setSummary(null);
+      return;
+    }
+
+    setSummaryLoading(true);
+    setSummaryError(null);
+
+    const itemsPayload = cart.map((i) => ({
+      id: i.product.id,
+      quantity: i.quantity,
+      selectedColor: i.selectedColor || undefined,
+      selectedSize: i.selectedSize || undefined,
+    }));
+
+    getCheckoutSummaryApi({
+      items: itemsPayload,
+      couponCode: appliedPromo.trim() || undefined,
+      shippingSpeed,
+      shippingAddress: {
+        postalCode: formData.zip,
+        state: formData.state,
+        city: formData.city,
+      },
+    })
+      .then((res) => {
+        setSummary(res);
+      })
+      .catch((err: any) => {
+        setSummaryError(err.message || "Failed to calculate order totals.");
+      })
+      .finally(() => {
+        setSummaryLoading(false);
+      });
+  }, [cart, shippingSpeed, appliedPromo, formData.zip, formData.state, formData.city]);
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      promoCode.trim().toUpperCase() === "SUMMER2026" ||
-      promoCode.trim().toUpperCase() === "LUMINA30"
-    ) {
-      setPromoDiscount(0.15);
-      setPromoMessage("15% discount applied successfully!");
-    } else {
-      setPromoMessage("Invalid promo code. Use SUMMER2026");
+    if (!promoCode.trim()) return;
+    setAppliedPromo(promoCode.trim());
+  };
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cart.length === 0 || submitting) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const itemsPayload = cart.map((i) => ({
+        id: i.product.id,
+        quantity: i.quantity,
+        selectedColor: i.selectedColor || undefined,
+        selectedSize: i.selectedSize || undefined,
+      }));
+
+      const orderPayload: CreateOrderPayload = {
+        items: itemsPayload,
+        shippingAddress: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          addressLine1: formData.address,
+          city: formData.city,
+          state: formData.state,
+          postalCode: formData.zip,
+          countryCode: "IN",
+        },
+        couponCode: appliedPromo.trim() || undefined,
+        shippingSpeed,
+        paymentMethod: paymentMethod.toUpperCase(),
+      };
+
+      const createdOrder = await placeOrderApi(orderPayload);
+
+      // Clear local cart and redirect to live Order Details page
+      clearCart();
+      router.push(`/orders/${encodeURIComponent(createdOrder.orderNumber)}`);
+    } catch (err: any) {
+      setSubmitError(err.message || "Could not place order. Please try again.");
+      setSubmitting(false);
     }
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cart.length === 0) return;
-
-    const orderRef = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-    const trackingNum = `TRK${Math.floor(10000000 + Math.random() * 90000000)}`;
-    const currentDate = new Date().toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-
-    const newOrderRecord: OrderRecord = {
-      id: orderRef,
-      date: currentDate,
-      status: "Processing",
-      statusColor: "bg-black/10 text-black border border-black/20",
-      total: grandTotal,
-      trackingNum,
-      items: cart.map((i) => ({
-        title: i.product.title,
-        price: i.product.price,
-        color: i.selectedColor || "Standard",
-        size: i.selectedSize || "Medium",
-        quantity: i.quantity,
-        image: i.product.image,
-      })),
-      shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`,
-      paymentMethod:
-        paymentMethod === "card"
-          ? `Credit Card (•••• ${formData.cardNumber.slice(-4)})`
-          : paymentMethod === "paypal"
-            ? "PayPal Express"
-            : paymentMethod === "applepay"
-              ? "Apple Pay 1-Tap"
-              : "Pay on Delivery (COD)",
-    };
-
-    addOrder(newOrderRecord);
-    setPlacedOrderDetails(newOrderRecord);
-    setIsOrderPlaced(true);
-    clearCart();
-  };
-
-  // Order Confirmation Screen
-  if (isOrderPlaced && placedOrderDetails) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:py-16 text-center space-y-6 sm:space-y-8 text-black font-be-vietnam-pro gpu-layer">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto shadow-2xs">
-          <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12" />
-        </div>
-
-        <div className="space-y-1.5">
-          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-4xl font-black uppercase text-black">
-            ORDER CONFIRMED!
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-600 font-medium">
-            Thank you for shopping with AIRAVÉ! We've received your order and
-            sent confirmation to{" "}
-            <strong className="text-black">{formData.email}</strong>.
-          </p>
-        </div>
-
-        {/* Order Details Receipt Box */}
-        <div className="bg-white border border-gray-200/80 rounded-3xl p-5 sm:p-8 text-left space-y-4 shadow-2xs">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3.5">
-            <div>
-              <span className="text-[11px] text-gray-400 block uppercase font-bold">
-                Order Reference
-              </span>
-              <span className="font-extrabold text-sm sm:text-base text-black">
-                {placedOrderDetails.id}
-              </span>
-            </div>
-            <div className="text-right">
-              <span className="text-[11px] text-gray-400 block uppercase font-bold">
-                Tracking Number
-              </span>
-              <span className="font-mono font-bold text-xs text-black">
-                {placedOrderDetails.trackingNum}
-              </span>
-            </div>
-          </div>
-
-          {/* Purchased Items List */}
-          <div className="space-y-2.5 pt-1">
-            <h4 className="font-bold text-[11px] text-gray-500 uppercase tracking-wider">
-              Items Ordered
-            </h4>
-            {placedOrderDetails.items.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3 text-xs">
-                <div className="w-10 h-12 aspect-[3/4] bg-[#F0EEED] rounded-lg overflow-hidden relative shrink-0">
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h5 className="font-bold text-black truncate">
-                    {item.title}
-                  </h5>
-                  <p className="text-gray-400 text-[11px]">
-                    Qty: {item.quantity} &bull; Size: {item.size} &bull; Color:{" "}
-                    {item.color}
-                  </p>
-                </div>
-                <span className="font-black text-black">
-                  ${(item.price * item.quantity).toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <hr className="border-gray-100" />
-
-          {/* Summary Breakdown */}
-          <div className="space-y-2 text-xs text-gray-600 font-medium">
-            <div className="flex justify-between">
-              <span>Delivery Address:</span>
-              <span className="font-bold text-black text-right truncate max-w-[200px] sm:max-w-xs">
-                {placedOrderDetails.shippingAddress}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Payment Method:</span>
-              <span className="font-bold text-black">
-                {placedOrderDetails.paymentMethod}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm sm:text-base font-black text-black pt-2 border-t border-gray-100">
-              <span>Total Paid Amount:</span>
-              <span>${placedOrderDetails.total.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
-          <Link
-            href="/profile"
-            className="w-full sm:w-auto px-7 py-3 bg-black hover:bg-neutral-800 text-white font-extrabold text-xs uppercase rounded-full transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Package className="w-4 h-4" />
-            <span>Track Order in Profile</span>
-          </Link>
-          <button
-            onClick={() =>
-              alert(`Invoice generated for ${placedOrderDetails.id}`)
-            }
-            className="w-full sm:w-auto px-7 py-3 bg-[#F4F4F4] hover:bg-gray-200 text-black font-extrabold text-xs uppercase rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download Invoice</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const subtotal = summary?.subtotal ?? cart.reduce((tot, i) => tot + i.product.price * i.quantity, 0);
+  const discountAmount = summary?.coupon?.applied ? summary.coupon.discountAmount : 0;
+  const shippingAmount = summary?.shipping ? summary.shipping.amount : (subtotal > 1999 ? 0 : 99);
+  const taxAmount = summary?.taxAmount ?? Math.round((subtotal - discountAmount) * 0.18 * 100) / 100;
+  const totalAmount = summary?.totalAmount ?? Math.round((subtotal - discountAmount + shippingAmount + taxAmount) * 100) / 100;
 
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 py-4 sm:py-6 pb-16 text-black font-be-vietnam-pro gpu-layer">
@@ -243,7 +164,7 @@ export default function CheckoutPage() {
             CHECKOUT
           </h1>
           <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Complete your order with 256-bit SSL secure checkout.
+            256-bit SSL backend calculated checkout.
           </p>
         </div>
 
@@ -267,7 +188,7 @@ export default function CheckoutPage() {
             href="/product"
             className="inline-block px-7 py-3 bg-black text-white font-extrabold text-xs uppercase rounded-full"
           >
-            Browse Clothes
+            Browse Collections
           </Link>
         </div>
       ) : (
@@ -277,6 +198,13 @@ export default function CheckoutPage() {
         >
           {/* Left Columns: Delivery & Payment Details */}
           <div className="lg:col-span-7 space-y-4 sm:space-y-6">
+            {submitError && (
+              <div className="flex items-center gap-2 p-3.5 text-xs font-semibold rounded-2xl bg-rose-50 text-rose-800 border border-rose-200 shadow-2xs">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{submitError}</span>
+              </div>
+            )}
+
             {/* Step 1: Shipping Address */}
             <div className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-7 space-y-4 shadow-2xs">
               <h3 className="font-be-vietnam-pro-black text-base sm:text-lg font-black text-black uppercase border-b border-gray-100 pb-3">
@@ -395,7 +323,7 @@ export default function CheckoutPage() {
 
                 <div>
                   <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    ZIP Code
+                    PIN / ZIP Code
                   </label>
                   <input
                     type="text"
@@ -419,9 +347,9 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setShippingSpeed("standard")}
+                  onClick={() => setShippingSpeed("STANDARD")}
                   className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                    shippingSpeed === "standard"
+                    shippingSpeed === "STANDARD"
                       ? "border-black bg-black text-white"
                       : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
                   }`}
@@ -433,17 +361,15 @@ export default function CheckoutPage() {
                     3-5 Business Days
                   </span>
                   <span className="font-black text-xs block mt-1.5">
-                    {baseShippingCost === 0
-                      ? "FREE"
-                      : `$${baseShippingCost.toFixed(2)}`}
+                    {subtotal >= 1999 ? "FREE" : "₹99"}
                   </span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setShippingSpeed("express")}
+                  onClick={() => setShippingSpeed("EXPRESS")}
                   className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                    shippingSpeed === "express"
+                    shippingSpeed === "EXPRESS"
                       ? "border-black bg-black text-white"
                       : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
                   }`}
@@ -455,7 +381,7 @@ export default function CheckoutPage() {
                     1-2 Business Days
                   </span>
                   <span className="font-black text-xs block mt-1.5">
-                    ${(baseShippingCost + 25).toFixed(2)}
+                    {subtotal >= 1999 ? "₹150" : "₹249"}
                   </span>
                 </button>
               </div>
@@ -579,15 +505,20 @@ export default function CheckoutPage() {
           {/* Right Columns: Order Review & Submission */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white border border-gray-200/80 rounded-3xl p-5 sm:p-7 space-y-5 shadow-2xs">
-              <h3 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black text-black border-b border-gray-100 pb-3.5 uppercase tracking-tight">
-                Order Review ({cart.length})
-              </h3>
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3.5">
+                <h3 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black text-black uppercase tracking-tight">
+                  Order Review ({cart.length})
+                </h3>
+                {summaryLoading && (
+                  <Loader2 className="w-4 h-4 text-black animate-spin" />
+                )}
+              </div>
 
               {/* Items Preview List */}
               <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
                 {cart.map((item, idx) => (
                   <div key={idx} className="flex gap-3 items-center text-xs">
-                    <div className="w-10 h-12 aspect-[3/4] bg-[#F0EEED] rounded-xl overflow-hidden relative shrink-0 border border-gray-100">
+                    <div className="w-10 h-12 aspect-3/4 bg-[#F0EEED] rounded-xl overflow-hidden relative shrink-0 border border-gray-100">
                       <Image
                         src={item.product.image}
                         alt={item.product.title}
@@ -605,7 +536,7 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                     <span className="font-black text-black">
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      ₹{(item.product.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
                 ))}
@@ -632,66 +563,77 @@ export default function CheckoutPage() {
                     Apply
                   </button>
                 </div>
-                {promoMessage && (
+
+                {summary?.coupon && (
                   <p
-                    className={`text-[11px] font-semibold pt-0.5 ${promoDiscount > 0 ? "text-green-600" : "text-red-500"}`}
+                    className={`text-[11px] font-semibold pt-1 ${
+                      summary.coupon.applied ? "text-emerald-700" : "text-rose-600"
+                    }`}
                   >
-                    {promoMessage}
+                    {summary.coupon.message}
                   </p>
                 )}
               </div>
 
-              {/* Pricing Breakdown */}
+              {/* Server Calculated Breakdown */}
               <div className="space-y-2 text-xs text-gray-500 font-medium border-t border-gray-100 pt-3.5">
                 <div className="flex justify-between">
                   <span>Items Subtotal</span>
                   <span className="font-bold text-black">
-                    ${cartSubtotal.toFixed(2)}
+                    ₹{subtotal.toLocaleString()}
                   </span>
                 </div>
 
-                {promoDiscount > 0 && (
-                  <div className="flex justify-between text-red-600 font-bold">
-                    <span>Discount (15%)</span>
-                    <span>-${discountAmount.toFixed(2)}</span>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-700 font-bold">
+                    <span>Coupon Discount</span>
+                    <span>-₹{discountAmount.toLocaleString()}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between">
                   <span>Shipping Fee</span>
                   <span className="font-bold text-black">
-                    {shippingCost === 0 ? (
-                      <span className="text-green-600 font-extrabold">FREE</span>
+                    {shippingAmount === 0 ? (
+                      <span className="text-emerald-700 font-extrabold">FREE</span>
                     ) : (
-                      `$${shippingCost.toFixed(2)}`
+                      `₹${shippingAmount.toLocaleString()}`
                     )}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
-                  <span>Estimated Tax (8%)</span>
+                  <span>GST Tax (18%)</span>
                   <span className="font-bold text-black">
-                    ${estimatedTax.toFixed(2)}
+                    ₹{taxAmount.toLocaleString()}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-base font-black text-black pt-2.5 border-t border-gray-100">
                   <span>Grand Total</span>
-                  <span>${grandTotal.toFixed(2)}</span>
+                  <span>₹{totalAmount.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Submit CTA */}
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-full bg-black hover:bg-neutral-800 text-white font-extrabold text-xs uppercase transition-all shadow-md active:scale-98 cursor-pointer"
+                disabled={submitting || summaryLoading}
+                className="w-full py-3.5 rounded-full bg-black hover:bg-neutral-800 disabled:opacity-50 text-white font-extrabold text-xs uppercase transition-all shadow-md active:scale-98 cursor-pointer flex items-center justify-center gap-2"
               >
-                Place Order (${grandTotal.toFixed(2)})
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Placing Order...</span>
+                  </>
+                ) : (
+                  <span>Place Order (₹{totalAmount.toLocaleString()})</span>
+                )}
               </button>
 
               <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 font-medium pt-0.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
-                <span>256-bit SSL Encrypted Guarantee</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Backend Verified 256-bit SSL Security</span>
               </div>
             </div>
           </div>

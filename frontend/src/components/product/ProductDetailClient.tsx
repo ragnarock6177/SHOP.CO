@@ -93,7 +93,7 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
               <button
                 key={idx}
                 onClick={() => setSelectedImage(imgUrl)}
-                className={`relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-[#F0EEED] border-2 transition-all cursor-pointer ${
+                className={`relative aspect-3/4 w-full rounded-2xl overflow-hidden bg-[#F0EEED] border-2 transition-all cursor-pointer ${
                   selectedImage === imgUrl ? 'border-black scale-102 shadow-xs' : 'border-transparent opacity-80 hover:opacity-100'
                 }`}
               >

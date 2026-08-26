@@ -1,8 +1,10 @@
 import { env } from "./env.js";
+import { initializeApp, cert, getApps, type App } from "firebase-admin/app";
+import { getAuth, type Auth } from "firebase-admin/auth";
 
-let firebaseApp: any = null;
+let firebaseApp: App | null = null;
 
-export const initFirebase = (): any => {
+export const initFirebase = (): App | null => {
   if (firebaseApp) return firebaseApp;
 
   const projectId = env.FIREBASE_PROJECT_ID;
@@ -32,8 +34,6 @@ export const initFirebase = (): any => {
   privateKey = privateKey.replace(/\\n/g, "\n");
 
   try {
-    // Dynamic import to prevent CommonJS/ESM bundler collision on Vercel Serverless
-    const { initializeApp, cert, getApps } = require("firebase-admin/app");
     const existingApps = getApps();
     if (existingApps.length > 0) {
       firebaseApp = existingApps[0];
@@ -54,13 +54,13 @@ export const initFirebase = (): any => {
   }
 };
 
-export const getFirebaseAuth = (): any => {
+export const getFirebaseAuth = (): Auth => {
   const app = initFirebase();
   if (!app) {
     throw new Error("Firebase Admin SDK is not initialized.");
   }
-  const { getAuth } = require("firebase-admin/auth");
   return getAuth(app);
 };
 
 export { firebaseApp };
+
