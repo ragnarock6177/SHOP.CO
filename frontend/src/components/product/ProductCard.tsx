@@ -72,7 +72,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   return (
     <div className="group flex flex-col justify-between space-y-1.5 relative select-none w-full">
       {/* Compact 3:4 Aspect Ratio Image Container */}
-      <div className="relative w-full aspect-[3/4] bg-[#F0EEED] rounded-xl overflow-hidden cursor-pointer border border-gray-100 shrink-0">
+      <div className="relative w-full aspect-3/4 bg-[#F0EEED] rounded-xl overflow-hidden cursor-pointer border border-gray-100 shrink-0">
         {/* Primary Image */}
         <Image
           src={product.image}

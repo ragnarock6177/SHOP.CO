@@ -1,5 +1,6 @@
 import { Product, Category } from "@/types/ecommerce";
 import { PRODUCTS, CATEGORIES } from "@/data/mockData";
+import { dedupedFetch } from "@/lib/fetchCache";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
@@ -83,8 +84,7 @@ export function normalizeProduct(apiItem: any): Product {
 }
 
 /**
- * High-performance product fetching with ISR caching (revalidate: 60s)
- * and seamless fallback to local catalog data for 0ms load times.
+ * High-performance product fetching with ISR caching and in-flight request deduplication.
  */
 export async function getProductsApi(options?: {
   category?: string;
@@ -102,80 +102,84 @@ export async function getProductsApi(options?: {
   limit?: number;
   page?: number;
 }): Promise<{ products: Product[]; meta?: any }> {
-  try {
-    const params = new URLSearchParams();
-    if (options?.category) params.append("category", options.category.toLowerCase());
-    if (options?.collection) params.append("collection", options.collection.toLowerCase());
-    if (options?.search) params.append("search", options.search);
-    if (options?.minPrice) params.append("minPrice", String(options.minPrice));
-    if (options?.maxPrice) params.append("maxPrice", String(options.maxPrice));
-    if (options?.colors && options.colors.length > 0) params.append("colors", options.colors.join(","));
-    if (options?.sizes && options.sizes.length > 0) params.append("sizes", options.sizes.join(","));
-    if (options?.sortBy) params.append("sortBy", options.sortBy);
-    if (options?.selectionMode) params.append("selectionMode", options.selectionMode);
-    if (options?.ids && options.ids.length > 0) params.append("ids", options.ids.join(","));
-    if (options?.featured !== undefined) params.append("featured", String(options.featured));
-    if (options?.onSale !== undefined) params.append("onSale", String(options.onSale));
-    if (options?.limit) params.append("limit", String(options.limit));
-    if (options?.page) params.append("page", String(options.page));
+  const cacheKey = `products_${JSON.stringify(options || {})}`;
 
-    const response = await fetch(`${API_BASE_URL}/products?${params.toString()}`, {
-      next: { revalidate: 30, tags: ["products"] },
-    });
+  return dedupedFetch(cacheKey, async () => {
+    try {
+      const params = new URLSearchParams();
+      if (options?.category) params.append("category", options.category.toLowerCase());
+      if (options?.collection) params.append("collection", options.collection.toLowerCase());
+      if (options?.search) params.append("search", options.search);
+      if (options?.minPrice) params.append("minPrice", String(options.minPrice));
+      if (options?.maxPrice) params.append("maxPrice", String(options.maxPrice));
+      if (options?.colors && options.colors.length > 0) params.append("colors", options.colors.join(","));
+      if (options?.sizes && options.sizes.length > 0) params.append("sizes", options.sizes.join(","));
+      if (options?.sortBy) params.append("sortBy", options.sortBy);
+      if (options?.selectionMode) params.append("selectionMode", options.selectionMode);
+      if (options?.ids && options.ids.length > 0) params.append("ids", options.ids.join(","));
+      if (options?.featured !== undefined) params.append("featured", String(options.featured));
+      if (options?.onSale !== undefined) params.append("onSale", String(options.onSale));
+      if (options?.limit) params.append("limit", String(options.limit));
+      if (options?.page) params.append("page", String(options.page));
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
-        const products = data.data.map(normalizeProduct);
-        return { products, meta: data.meta };
+      const response = await fetch(`${API_BASE_URL}/products?${params.toString()}`, {
+        next: { revalidate: 30, tags: ["products"] },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+          const products = data.data.map(normalizeProduct);
+          return { products, meta: data.meta };
+        }
       }
+    } catch (error) {
+      console.warn("Product API fetch warning (using fallback mock data):", error);
     }
-  } catch (error) {
-    console.warn("Product API fetch warning (using fallback mock data):", error);
-  }
 
-  // Fail-Safe Fallback to mock data with live filtering
-  let filtered = [...PRODUCTS];
-  if (options?.ids && options.ids.length > 0) {
-    const idSet = new Set(options.ids.map((id) => id.toLowerCase()));
-    filtered = filtered.filter((p) => idSet.has(p.id.toLowerCase()));
-  }
+    // Fail-Safe Fallback to mock data with live filtering
+    let filtered = [...PRODUCTS];
+    if (options?.ids && options.ids.length > 0) {
+      const idSet = new Set(options.ids.map((id) => id.toLowerCase()));
+      filtered = filtered.filter((p) => idSet.has(p.id.toLowerCase()));
+    }
 
-  if (options?.category) {
-    const catLow = options.category.toLowerCase();
-    filtered = filtered.filter((p) => p.category.toLowerCase().includes(catLow));
-  }
-  if (options?.search) {
-    const searchLow = options.search.toLowerCase();
-    filtered = filtered.filter(
-      (p) =>
-        p.title.toLowerCase().includes(searchLow) ||
-        p.description.toLowerCase().includes(searchLow)
-    );
-  }
-  if (options?.maxPrice) {
-    filtered = filtered.filter((p) => p.price <= options.maxPrice!);
-  }
+    if (options?.category) {
+      const catLow = options.category.toLowerCase();
+      filtered = filtered.filter((p) => p.category.toLowerCase().includes(catLow));
+    }
+    if (options?.search) {
+      const searchLow = options.search.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(searchLow) ||
+          p.description.toLowerCase().includes(searchLow)
+      );
+    }
+    if (options?.maxPrice) {
+      filtered = filtered.filter((p) => p.price <= options.maxPrice!);
+    }
 
-  if (options?.selectionMode === "FEATURED" || options?.featured) {
-    filtered = filtered.filter((p) => p.featured);
-  } else if (options?.selectionMode === "SALE" || options?.onSale) {
-    filtered = filtered.filter((p) => p.discount && p.discount > 0);
-  }
+    if (options?.selectionMode === "FEATURED" || options?.featured) {
+      filtered = filtered.filter((p) => p.featured);
+    } else if (options?.selectionMode === "SALE" || options?.onSale) {
+      filtered = filtered.filter((p) => p.discount && p.discount > 0);
+    }
 
-  if (options?.sortBy === "price-low") {
-    filtered.sort((a, b) => a.price - b.price);
-  } else if (options?.sortBy === "price-high") {
-    filtered.sort((a, b) => b.price - a.price);
-  } else if (options?.sortBy === "rating" || options?.selectionMode === "BEST_SELLING") {
-    filtered.sort((a, b) => b.rating - a.rating);
-  }
+    if (options?.sortBy === "price-low") {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (options?.sortBy === "price-high") {
+      filtered.sort((a, b) => b.price - a.price);
+    } else if (options?.sortBy === "rating" || options?.selectionMode === "BEST_SELLING") {
+      filtered.sort((a, b) => b.rating - a.rating);
+    }
 
-  if (options?.limit) {
-    filtered = filtered.slice(0, options.limit);
-  }
+    if (options?.limit) {
+      filtered = filtered.slice(0, options.limit);
+    }
 
-  return { products: filtered };
+    return { products: filtered };
+  });
 }
 
 /**
@@ -267,25 +271,27 @@ export async function getAllProductSlugsOrIdsApi(): Promise<string[]> {
  * Fetches all categories with 60s ISR caching.
  */
 export async function getCategoriesApi(): Promise<Category[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/categories`, {
-      next: { revalidate: 30, tags: ["categories"] },
-    });
+  return dedupedFetch("categories_all", async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories`, {
+        next: { revalidate: 30, tags: ["categories"] },
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
-        return data.data.map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          image: c.image || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=800",
-          itemCount: c.itemCount || 50,
-          description: c.description || "",
-        }));
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+          return data.data.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            image: c.image || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=800",
+            itemCount: c.itemCount || 50,
+            description: c.description || "",
+          }));
+        }
       }
-    }
-  } catch {}
+    } catch {}
 
-  return CATEGORIES;
+    return CATEGORIES;
+  });
 }

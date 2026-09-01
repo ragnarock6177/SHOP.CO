@@ -5,11 +5,27 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "./Navbar";
+import { StorefrontHeaderAnnouncementBar } from "@/types/settings";
+import { DEFAULT_STOREFRONT_SETTINGS } from "@/lib/settingsApi";
 
-export const Header: React.FC = () => {
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
-  const [announcementText, setAnnouncementText] = useState("Sign up and get 20% off your first order.");
-  const [announcementLink, setAnnouncementLink] = useState("/signup");
+interface HeaderProps {
+  initialAnnouncement?: StorefrontHeaderAnnouncementBar;
+}
+
+export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
+  const defaultText =
+    initialAnnouncement?.text ??
+    DEFAULT_STOREFRONT_SETTINGS.header.announcementBar.text;
+  const defaultLink =
+    initialAnnouncement?.link ??
+    DEFAULT_STOREFRONT_SETTINGS.header.announcementBar.link;
+  const defaultEnabled =
+    initialAnnouncement?.enabled ??
+    DEFAULT_STOREFRONT_SETTINGS.header.announcementBar.enabled;
+
+  const [showAnnouncement, setShowAnnouncement] = useState(defaultEnabled);
+  const [announcementText, setAnnouncementText] = useState(defaultText);
+  const [announcementLink, setAnnouncementLink] = useState(defaultLink);
 
   React.useEffect(() => {
     import("@/lib/settingsApi").then(({ getStorefrontSettingsApi }) => {
@@ -18,6 +34,7 @@ export const Header: React.FC = () => {
           if (!settings.header.announcementBar.enabled) {
             setShowAnnouncement(false);
           } else {
+            setShowAnnouncement(true);
             if (settings.header.announcementBar.text) {
               setAnnouncementText(settings.header.announcementBar.text);
             }
@@ -41,7 +58,7 @@ export const Header: React.FC = () => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden bg-black text-white"
           >
-            <div className="py-2 px-7 sm:px-12 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-[36px] sm:min-h-[40px]">
+            <div className="py-2 px-7 sm:px-12 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-9 sm:min-h-10">
               <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap">
                 <span className="opacity-90">{announcementText}</span>
                 {announcementLink && (

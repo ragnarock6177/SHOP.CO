@@ -11,21 +11,51 @@ export const AddressInputSchema = z.object({
   postalCode: z.string().min(1).max(20),
   countryCode: z.string().length(2).default("IN"),
   phone: z.string().max(30).optional(),
+  email: z.string().email().optional(),
+});
+
+export const ItemInputSchema = z.object({
+  id: z.string().optional(),
+  variantId: z.string().optional(),
+  productId: z.string().optional(),
+  quantity: z.number().int().min(1, "Quantity must be at least 1"),
+  selectedColor: z.string().optional(),
+  selectedSize: z.string().optional(),
+  unitPrice: z.number().optional(),
+  title: z.string().optional(),
+  image: z.string().optional(),
+});
+
+export const CheckoutSummarySchema = z.object({
+  body: z.object({
+    items: z
+      .array(ItemInputSchema)
+      .min(1, "Checkout requires at least one item"),
+    couponId: z.string().optional(),
+    couponCode: z.string().optional(),
+    shippingSpeed: z.enum(["STANDARD", "EXPRESS"]).optional().default("STANDARD"),
+    shippingAddress: z
+      .object({
+        postalCode: z.string().optional(),
+        state: z.string().optional(),
+        city: z.string().optional(),
+        countryCode: z.string().optional(),
+      })
+      .optional(),
+  }),
 });
 
 export const CreateOrderSchema = z.object({
   body: z.object({
     items: z
-      .array(
-        z.object({
-          variantId: z.string().uuid("Invalid variant ID"),
-          quantity: z.number().int().min(1, "Quantity must be at least 1"),
-        })
-      )
+      .array(ItemInputSchema)
       .min(1, "Order must contain at least one item"),
     shippingAddress: AddressInputSchema,
     billingAddress: AddressInputSchema.optional(),
+    couponId: z.string().optional(),
     couponCode: z.string().optional(),
+    shippingSpeed: z.enum(["STANDARD", "EXPRESS"]).optional().default("STANDARD"),
+    paymentMethod: z.string().optional().default("COD"),
     notes: z.string().optional(),
   }),
 });

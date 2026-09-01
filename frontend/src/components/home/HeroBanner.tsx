@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ShoppingBag, Eye, Check } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { PRODUCTS } from "@/data/mockData";
 import { formatShortSize } from "@/components/product/ProductCard";
 import { StorefrontBanner } from "@/types/settings";
 import { getStorefrontSettingsApi } from "@/lib/settingsApi";
@@ -66,18 +65,24 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
   const { addToCart } = useCart();
 
   useEffect(() => {
-    if (initialBanners && initialBanners.length > 0) {
-      setBanners(initialBanners);
-    } else {
-      getStorefrontSettingsApi()
-        .then((res) => {
-          if (res?.home?.banners && res.home.banners.length > 0) {
-            setBanners(res.home.banners);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [initialBanners]);
+    // useState is already initialized with initialBanners — calling setBanners here
+    // again is redundant and causes an extra re-render + image reload (blink).
+    // Only fetch from the API when no banners were passed from the parent.
+    if (initialBanners && initialBanners.length > 0) return;
+
+    getStorefrontSettingsApi()
+      .then((res) => {
+        if (res?.home?.banners && res.home.banners.length > 0) {
+          setBanners((prev) => {
+            const prevIds = prev.map((b) => b.id).join(",");
+            const nextIds = res.home.banners.map((b: any) => b.id).join(",");
+            return prevIds === nextIds ? prev : res.home.banners;
+          });
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount only
 
   // Prevent background page scrolling when hotspot popover is open
   useEffect(() => {
@@ -141,7 +146,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
       )}
 
       {/* Horizontal Full-Width Campaign Poster Container */}
-      <div className="relative w-full h-[480px] sm:h-[560px] lg:h-[650px] overflow-hidden">
+      <div className="relative w-full h-120 sm:h-140 lg:h-162.5 overflow-hidden">
         {banners.map((slideItem, index) => {
           const isActive = currentSlide === index;
           const imageUrl = slideItem.desktopImageUrl || slideItem.image;
@@ -151,7 +156,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
           return (
             <div
               key={slideItem.id || index}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out ${
+              className={`absolute inset-0 w-full h-full bg-[#F2F0F1] transition-opacity duration-500 ease-in-out ${
                 isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
               }`}
             >
@@ -161,7 +166,14 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
                 alt={altText}
                 fill
                 priority={index === 0}
+                // Explicit fetchPriority="high" fixes the Lighthouse LCP warning —
+                // Next.js priority prop alone isn't enough inside client components
+                // because the preload link is injected after hydration (too late).
+                fetchPriority={index === 0 ? "high" : "auto"}
+                loading={index === 0 ? "eager" : "lazy"}
                 sizes="100vw"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/wAARCAAKABQDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUEB//EACQQAAICAQQBBQAAAAAAAAAAAAECAxEEBSExBhJBUWH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aq9ZQhiNUEqkklJaJOxNnBJFHFHEikFrQ3R3jC5fDU4JKQT2sO66lVBk8ks39hZvN3OyuIbckpaeWEnuPfqP/2Q=="
                 className="object-cover object-center w-full h-full"
               />
 
@@ -186,14 +198,15 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
                   {/* Normal Inline Interactive Product Popover Card */}
                   <AnimatePresence>
                     {isActive && isHotspotOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute bottom-12 -left-28 sm:-left-32 w-60 sm:w-64 bg-white text-black rounded-3xl p-3.5 sm:p-4 shadow-2xl border border-gray-100 z-50 pointer-events-auto"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <LazyMotion features={domAnimation}>
+                        <m.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute bottom-12 -left-28 sm:-left-32 w-60 sm:w-64 bg-white text-black rounded-3xl p-3.5 sm:p-4 shadow-2xl border border-gray-100 z-50 pointer-events-auto"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                         <div className="flex gap-2.5 items-center mb-2.5">
                           <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0 border border-gray-200">
                             <Image
@@ -262,7 +275,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners: initialBanners 
                             <Eye className="w-3.5 h-3.5" />
                           </Link>
                         </div>
-                      </motion.div>
+                        </m.div>
+                      </LazyMotion>
                     )}
                   </AnimatePresence>
                 </div>

@@ -37,6 +37,12 @@ export function NewArrivals({ section, initialProducts = [] }: NewArrivalsProps)
   const displaySubtitle = section?.subtitle || "LATEST SEASONAL ARRIVALS";
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setAllProducts(initialProducts);
+      setFilteredProducts(initialProducts.slice(0, limit));
+      return;
+    }
+
     getProductsApi({ limit: 12, selectionMode })
       .then(({ products }) => {
         if (products.length > 0) {

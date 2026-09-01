@@ -96,7 +96,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
                 </button>
 
                 {/* Main Large Image */}
-                <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden mb-4 bg-white border border-gray-200/60 shadow-xs">
+                <div className="relative w-full aspect-3/4 rounded-2xl overflow-hidden mb-4 bg-white border border-gray-200/60 shadow-xs">
                   <Image
                     src={selectedImage || product.image}
                     alt={product.title}

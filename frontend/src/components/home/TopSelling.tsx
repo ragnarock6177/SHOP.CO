@@ -26,6 +26,11 @@ export function TopSelling({ section, initialProducts = [] }: TopSellingProps) {
   const displaySubtitle = section?.subtitle || "MOST-COVETED PIECES";
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setProducts(initialProducts.slice(0, limit));
+      return;
+    }
+
     getProductsApi({ limit, selectionMode, sortBy: "rating" })
       .then(({ products: fetched }) => {
         if (fetched.length > 0) {

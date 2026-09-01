@@ -28,14 +28,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (storedToken) {
           setToken(storedToken);
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
+          if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
+            try {
+              setUser(JSON.parse(storedUser));
+            } catch (e) {
+              console.warn("Invalid stored user in localStorage, clearing:", e);
+              localStorage.removeItem("user");
+            }
           }
           // Validate and fetch fresh profile from backend
           try {
             const { user: freshUser } = await getMeApi(storedToken);
-            setUser(freshUser);
-            localStorage.setItem("user", JSON.stringify(freshUser));
+            if (freshUser) {
+              setUser(freshUser);
+              localStorage.setItem("user", JSON.stringify(freshUser));
+            }
           } catch {
             // Token expired or invalid
             localStorage.removeItem("accessToken");
@@ -58,13 +65,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(authData.accessToken);
     setUser(authData.user);
     localStorage.setItem("accessToken", authData.accessToken);
-    localStorage.setItem("user", JSON.stringify(authData.user));
+    if (authData.user) {
+      localStorage.setItem("user", JSON.stringify(authData.user));
+    } else {
+      localStorage.removeItem("user");
+    }
 
     // Call /me API once to fetch fresh profile details
     getMeApi(authData.accessToken)
       .then(({ user: freshUser }) => {
-        setUser(freshUser);
-        localStorage.setItem("user", JSON.stringify(freshUser));
+        if (freshUser) {
+          setUser(freshUser);
+          localStorage.setItem("user", JSON.stringify(freshUser));
+        }
       })
       .catch((err) => {
         console.warn("Failed to fetch fresh user profile on login:", err);
@@ -85,8 +98,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return;
     try {
       const { user: freshUser } = await getMeApi(token);
-      setUser(freshUser);
-      localStorage.setItem("user", JSON.stringify(freshUser));
+      if (freshUser) {
+        setUser(freshUser);
+        localStorage.setItem("user", JSON.stringify(freshUser));
+      }
     } catch (err) {
       console.error("Failed to refresh user profile:", err);
     }

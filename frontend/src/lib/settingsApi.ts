@@ -1,4 +1,5 @@
 import { StorefrontSettingsResponse } from "@/types/settings";
+import { dedupedFetch } from "@/lib/fetchCache";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
@@ -90,24 +91,25 @@ export const DEFAULT_STOREFRONT_SETTINGS: StorefrontSettingsResponse = {
 };
 
 /**
- * Fetches Storefront Settings from public API with Next.js ISR tag caching.
- * Falls back safely to DEFAULT_STOREFRONT_SETTINGS if API lookups fail.
+ * Fetches Storefront Settings with in-flight request deduplication.
  */
 export async function getStorefrontSettingsApi(): Promise<StorefrontSettingsResponse> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/settings/storefront`, {
-      next: { revalidate: 30, tags: ["settings", "storefront-settings"] },
-    });
+  return dedupedFetch("storefront_settings", async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/settings/storefront`, {
+        next: { revalidate: 30, tags: ["settings", "storefront-settings"] },
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data.success && data.data) {
-        return data.data as StorefrontSettingsResponse;
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.success && data.data) {
+          return data.data as StorefrontSettingsResponse;
+        }
       }
+    } catch (error) {
+      console.warn("Storefront Settings API fetch warning (using default fallback settings):", error);
     }
-  } catch (error) {
-    console.warn("Storefront Settings API fetch warning (using default fallback settings):", error);
-  }
 
-  return DEFAULT_STOREFRONT_SETTINGS;
+    return DEFAULT_STOREFRONT_SETTINGS;
+  });
 }

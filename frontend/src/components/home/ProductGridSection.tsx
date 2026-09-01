@@ -26,6 +26,12 @@ export function ProductGridSection({ section, initialProducts = [] }: ProductGri
   const selectedProductIds = section.config?.selectedProductIds;
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setProducts(initialProducts);
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
     setLoading(true);
 
@@ -66,7 +72,7 @@ export function ProductGridSection({ section, initialProducts = [] }: ProductGri
       {loading ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
           {Array.from({ length: limit }).map((_, idx) => (
-            <div key={idx} className="aspect-[3/4] bg-gray-100 animate-pulse rounded-lg" />
+            <div key={idx} className="aspect-3/4 bg-gray-100 animate-pulse rounded-lg" />
           ))}
         </div>
       ) : products.length === 0 ? (

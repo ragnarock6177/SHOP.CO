@@ -31,8 +31,14 @@ export default function RootLayout({
         "font-be-vietnam-pro",
       )}
     >
+      <head>
+        {/* Preconnect to external origins used for images and API — reduces critical path latency */}
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://nnuzjdapofveowjrxtkp.supabase.co" />
+        <link rel="dns-prefetch" href="https://backend-rho-umber-75.vercel.app" />
+      </head>
       <body
-        className={`${beVietnamPro.className} font-be-vietnam-pro bg-white text-black min-h-[100dvh] flex flex-col antialiased selection:bg-black selection:text-white`}
+        className={`${beVietnamPro.className} font-be-vietnam-pro bg-white text-black min-h-dvh flex flex-col antialiased selection:bg-black selection:text-white`}
       >
         <Toaster position="top-right" richColors />
         <AuthProvider>{children}</AuthProvider>
