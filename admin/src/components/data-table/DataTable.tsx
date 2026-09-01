@@ -13,6 +13,7 @@ export interface DataTableProps<TData, TValue> {
   data: TData[];
   isLoading?: boolean;
   emptyMessage?: string;
+  onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -20,6 +21,7 @@ export function DataTable<TData, TValue>({
   data,
   isLoading = false,
   emptyMessage = "No records found.",
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -138,7 +140,17 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="transition-colors hover:bg-slate-50/70"
+                  onClick={(e) => {
+                    if (!onRowClick) return;
+                    const target = e.target as HTMLElement;
+                    if (target.closest("button, a, input, select, textarea, [role='button']")) {
+                      return;
+                    }
+                    onRowClick(row.original);
+                  }}
+                  className={`transition-colors hover:bg-slate-50/70 ${
+                    onRowClick ? "cursor-pointer" : ""
+                  }`}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3.5 align-middle text-slate-700 font-medium">

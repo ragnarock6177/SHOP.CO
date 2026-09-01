@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link.js";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import { useProducts, useArchiveProduct, ProductItem } from "../../../hooks/queries/useProducts";
@@ -15,6 +16,7 @@ import { CustomSelect } from "@/components/ui/select";
 import { CreateProductModal } from "../../../components/forms/CreateProductModal";
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -169,7 +171,12 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={data?.data || []}
+        isLoading={isLoading}
+        onRowClick={(product) => router.push(`/products/${product.id}`)}
+      />
 
       <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
 
