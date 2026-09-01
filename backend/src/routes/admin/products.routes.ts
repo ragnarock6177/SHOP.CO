@@ -3,7 +3,12 @@ import { AdminProductsController } from "../../controllers/admin/products.contro
 import { requireAdminAuth } from "../../middleware/adminAuth.js";
 import { requirePermission } from "../../middleware/rbac.js";
 import { validateRequest } from "../../middleware/validate.js";
-import { CreateProductSchema, UpdateProductSchema } from "../../validators/admin/products.validator.js";
+import {
+  CreateProductSchema,
+  UpdateProductSchema,
+  CreateVariantSchema,
+  UpdateVariantSchema,
+} from "../../validators/admin/products.validator.js";
 
 const router = Router();
 
@@ -33,5 +38,25 @@ router.patch("/:id/images/:imageId", requirePermission("products:update"), Admin
 router.delete("/:id/images/:imageId", requirePermission("products:update"), AdminProductsController.deleteImage);
 router.put("/:id/images/reorder", requirePermission("products:update"), AdminProductsController.reorderImages);
 
+// ── Product Variant CRUD ──────────────────────────────────────────────────────
+router.post(
+  "/:id/variants",
+  requirePermission("products:update"),
+  validateRequest(CreateVariantSchema),
+  AdminProductsController.addVariant
+);
+router.put(
+  "/:id/variants/:variantId",
+  requirePermission("products:update"),
+  validateRequest(UpdateVariantSchema),
+  AdminProductsController.updateVariant
+);
+router.delete(
+  "/:id/variants/:variantId",
+  requirePermission("products:update"),
+  AdminProductsController.deleteVariant
+);
+
 export default router;
+
 

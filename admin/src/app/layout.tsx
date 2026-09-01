@@ -10,7 +10,7 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "AIRAVE | Admin Panel",
+  title: "AIRAVÉ | Admin Panel",
   description: "E-Commerce Admin Panel for AIRAVE",
 };
 

@@ -105,5 +105,39 @@ export class AdminProductsController {
       next(error);
     }
   }
+
+  // ── Variant CRUD ──────────────────────────────────────────
+
+  static async addVariant(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const product = await AdminProductsService.addVariant(req.params.id, req.body);
+      sendAdminSuccess(res, product, "Product variant added successfully.", 201);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateVariant(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const product = await AdminProductsService.updateVariant(
+        req.params.id,
+        req.params.variantId,
+        req.body
+      );
+      sendAdminSuccess(res, product, "Product variant updated successfully.", 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteVariant(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AdminProductsService.deleteVariant(req.params.id, req.params.variantId);
+      sendAdminSuccess(res, result, "Product variant deleted successfully.", 200);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+
 

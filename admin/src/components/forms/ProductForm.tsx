@@ -4,28 +4,37 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
-import { ProductFormSchema, ProductFormInput } from "@/validators/product.validator";
+import { ProductFormSchema, ProductFormInput, ProductVariantInput } from "@/validators/product.validator";
 import { FormField } from "./FormField";
 import { CustomSelect } from "@/components/ui/select";
+import { VariantBuilder } from "./VariantBuilder";
+
+import { ImageUploader, StagedImageItem } from "./ImageUploader";
 
 export interface ProductFormProps {
+  productId?: string;
   initialValues?: Partial<ProductFormInput>;
   isLoading?: boolean;
   categories?: Array<{ id: string; name: string }>;
-  imageSection?: React.ReactNode;
+  stagedImages?: StagedImageItem[];
+  onStagedImagesChange?: (images: StagedImageItem[]) => void;
   onSubmit: (data: ProductFormInput) => void;
   onCancel: () => void;
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({
+  productId,
   initialValues,
   isLoading = false,
   categories = [],
-  imageSection,
+  stagedImages = [],
+  onStagedImagesChange,
   onSubmit,
   onCancel,
 }) => {
   const [seoOpen, setSeoOpen] = useState(false);
+  const [variants, setVariants] = useState<ProductVariantInput[]>(initialValues?.variants || []);
+
 
   const {
     register,
@@ -44,6 +53,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       productType: initialValues?.productType || "",
       basePrice: initialValues?.basePrice || 0,
       comparePrice: initialValues?.comparePrice || undefined,
+      stockQuantity: (initialValues as any)?.totalStockOnHand ?? (initialValues as any)?.stockQuantity ?? 0,
+      reorderLevel: (initialValues as any)?.reorderLevel ?? 5,
       primaryCategoryId: initialValues?.primaryCategoryId || (categories[0]?.id || ""),
       status: initialValues?.status || "DRAFT",
       visibility: initialValues?.visibility || "PUBLIC",
@@ -72,7 +83,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   }, [nameVal, setValue, initialValues]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form
+      onSubmit={handleSubmit((formData) => {
+        onSubmit({
+          ...formData,
+          variants,
+        });
+      })}
+      className="space-y-5"
+    >
 
       {/* ── Core Identity ───────────────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-2">
@@ -95,8 +114,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </FormField>
       </div>
 
-      {/* ── Pricing ─────────────────────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* ── Pricing & Dynamic Inventory Stock ────────────────── */}
+      <div className="grid gap-4 sm:grid-cols-4">
         <FormField label="Base Price (₹)" required error={errors.basePrice?.message}>
           <input
             type="number"
@@ -117,6 +136,30 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               setValueAs: (v) => (v === "" || v === null || isNaN(Number(v)) ? undefined : Number(v)),
             })}
             placeholder="3999.00"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10 focus:outline-none"
+          />
+        </FormField>
+
+        <FormField label="Stock Quantity (Units)" required error={errors.stockQuantity?.message}>
+          <input
+            type="number"
+            step="1"
+            {...register("stockQuantity", {
+              setValueAs: (v) => (v === "" || v === null || isNaN(Number(v)) ? 0 : Number(v)),
+            })}
+            placeholder="50"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-emerald-700 shadow-2xs placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10 focus:outline-none"
+          />
+        </FormField>
+
+        <FormField label="Reorder Level Alert" error={errors.reorderLevel?.message}>
+          <input
+            type="number"
+            step="1"
+            {...register("reorderLevel", {
+              setValueAs: (v) => (v === "" || v === null || isNaN(Number(v)) ? 5 : Number(v)),
+            })}
+            placeholder="5"
             className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-900/10 focus:outline-none"
           />
         </FormField>
@@ -247,12 +290,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         )}
       </div>
 
-      {/* ── Optional Embedded Images Section ─────────────────── */}
-      {imageSection && (
-        <div className="pt-3 border-t border-slate-100">
-          {imageSection}
-        </div>
-      )}
+      {/* ── Dynamic Product Variants (Color & Size Matrix) ──── */}
+      <VariantBuilder
+        productId={productId}
+        productName={watch("name")}
+        basePrice={watch("basePrice")}
+        variants={variants}
+        onChange={setVariants}
+        stagedImages={stagedImages}
+        onStagedImagesChange={onStagedImagesChange}
+      />
 
       {/* ── Actions ─────────────────────────────────────────── */}
       <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">

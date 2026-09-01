@@ -113,8 +113,8 @@ export class AuthController {
         : [
             ...new Set(
               dbUser.userRoles.flatMap((ur) =>
-                ur.role.rolePermissions.map((rp) => rp.permission.name)
-              )
+                ur.role.rolePermissions.map((rp) => rp.permission.name),
+              ),
             ),
           ];
 
@@ -133,7 +133,6 @@ export class AuthController {
       next(error);
     }
   }
-
 
   /**
    * POST /api/v1/auth/logout

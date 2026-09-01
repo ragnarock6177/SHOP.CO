@@ -162,7 +162,7 @@ export default function ProductsPage() {
             }}
             options={[
               { value: "", label: "All Statuses" },
-              { value: "PUBLISHED", label: "Published" },
+              { value: "ACTIVE", label: "Published" },
               { value: "DRAFT", label: "Draft" },
               { value: "ARCHIVED", label: "Archived" },
             ]}

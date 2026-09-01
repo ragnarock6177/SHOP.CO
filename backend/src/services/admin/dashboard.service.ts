@@ -1,5 +1,10 @@
 import prisma from "../../lib/prisma.js";
-import { OrderStatus, ReturnStatus, RefundStatus, UserStatus } from "@prisma/client";
+import {
+  OrderStatus,
+  ReturnStatus,
+  RefundStatus,
+  UserStatus,
+} from "@prisma/client";
 
 export class DashboardService {
   static async getDashboardMetrics(fromDate?: string, toDate?: string) {
@@ -39,10 +44,18 @@ export class DashboardService {
           totalAmount: true,
         },
       }),
-      prisma.order.count({ where: { status: OrderStatus.PENDING, ...dateFilter } }),
-      prisma.order.count({ where: { status: OrderStatus.PROCESSING, ...dateFilter } }),
-      prisma.order.count({ where: { status: OrderStatus.SHIPPED, ...dateFilter } }),
-      prisma.order.count({ where: { status: OrderStatus.DELIVERED, ...dateFilter } }),
+      prisma.order.count({
+        where: { status: OrderStatus.PENDING, ...dateFilter },
+      }),
+      prisma.order.count({
+        where: { status: OrderStatus.PROCESSING, ...dateFilter },
+      }),
+      prisma.order.count({
+        where: { status: OrderStatus.SHIPPED, ...dateFilter },
+      }),
+      prisma.order.count({
+        where: { status: OrderStatus.DELIVERED, ...dateFilter },
+      }),
     ]);
 
     const grossRevenue = Number(ordersAggregate._sum.totalAmount || 0);
@@ -89,20 +102,27 @@ export class DashboardService {
       .filter((inv) => inv.isLowStock);
 
     const lowStockCount = lowStockAlerts.length;
-    const outOfStockCount = lowStockAlerts.filter((inv) => inv.isOutOfStock).length;
+    const outOfStockCount = lowStockAlerts.filter(
+      (inv) => inv.isOutOfStock,
+    ).length;
 
     // 3. After Sales & Customer Metrics
-    const [pendingReturnsCount, processingRefundsCount, activeCustomersCount] = await Promise.all([
-      prisma.return.count({
-        where: { status: { in: [ReturnStatus.REQUESTED, ReturnStatus.APPROVED] } },
-      }),
-      prisma.refund.count({
-        where: { status: { in: [RefundStatus.PENDING, RefundStatus.PROCESSING] } },
-      }),
-      prisma.user.count({
-        where: { status: UserStatus.ACTIVE },
-      }),
-    ]);
+    const [pendingReturnsCount, processingRefundsCount, activeCustomersCount] =
+      await Promise.all([
+        prisma.return.count({
+          where: {
+            status: { in: [ReturnStatus.REQUESTED, ReturnStatus.APPROVED] },
+          },
+        }),
+        prisma.refund.count({
+          where: {
+            status: { in: [RefundStatus.PENDING, RefundStatus.PROCESSING] },
+          },
+        }),
+        prisma.user.count({
+          where: { status: UserStatus.ACTIVE },
+        }),
+      ]);
 
     // 4. Recent Orders Feed (Last 10)
     const rawRecentOrders = await prisma.order.findMany({

@@ -31,7 +31,7 @@ import {
 
 // ── Client-side image compression ────────────────────────────────────────────
 // Converts any image to WebP at 0.85 quality and caps dimensions at 2048px.
-async function compressImage(file: File, maxPx = 2048, quality = 0.85): Promise<File> {
+export async function compressImage(file: File, maxPx = 2048, quality = 0.85): Promise<File> {
   const bitmap = await createImageBitmap(file);
 
   let { width, height } = bitmap;
@@ -78,6 +78,8 @@ export interface VariantItem {
       attribute?: { name: string; slug: string };
     };
   }>;
+  colorName?: string;
+  colorHex?: string | null;
 }
 
 export interface StagedImageItem {
@@ -181,6 +183,22 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     return null;
   }, []);
 
+  // Extract unique colors to group by color instead of per-variant
+  const uniqueColors = useMemo(() => {
+    const map = new Map<string, { label: string; hex: string; variantIds: string[] }>();
+    variants.forEach((v) => {
+      const label = v.colorName || getVariantLabel(v);
+      const hex = v.colorHex || getVariantColor(v) || "#000000";
+      if (label && v.id) {
+        if (!map.has(label)) {
+          map.set(label, { label, hex, variantIds: [] });
+        }
+        map.get(label)!.variantIds.push(v.id);
+      }
+    });
+    return Array.from(map.values());
+  }, [variants, getVariantLabel, getVariantColor]);
+
   // Filtered images based on current filter selection
   const filteredImages = useMemo(() => {
     if (filterVariantId === "ALL") return images;
@@ -191,11 +209,15 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         return !vIds || vIds.length === 0;
       });
     }
-    return images.filter((img) => {
-      const vIds = "variantIds" in img ? img.variantIds : img.variantImages?.map((vi) => vi.variantId) || [];
-      return vIds?.includes(filterVariantId);
-    });
-  }, [images, filterVariantId]);
+    const activeColor = uniqueColors.find((c) => c.label === filterVariantId);
+    if (activeColor) {
+      return images.filter((img) => {
+        const vIds = "variantIds" in img ? img.variantIds : img.variantImages?.map((vi) => vi.variantId) || [];
+        return vIds?.some((id) => activeColor.variantIds.includes(id));
+      });
+    }
+    return images;
+  }, [images, filterVariantId, uniqueColors]);
 
   // ── Upload Handlers ─────────────────────────────────────────────────────────
 
@@ -212,6 +234,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       try {
         // 0. Compress: WebP, max 2048px, 0.85
         const compressed = await compressImage(file);
+
+        // Check if we are currently inside a specific color tab to auto-assign variantIds
+        const activeColor = uniqueColors.find((c) => c.label === filterVariantId);
+        const autoVariantIds = activeColor ? activeColor.variantIds : [];
 
         if (isStagedMode) {
           // In staged mode, if productId exists (pre-generated UUID), we can presign and upload immediately to Supabase
@@ -240,7 +266,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               altText: file.name.replace(/\.[^.]+$/, ""),
               isPrimary: isFirst,
               sortOrder: stagedImages?.length || 0,
-              variantIds: [],
+              variantIds: autoVariantIds,
             };
 
             onStagedImagesChange?.([...(stagedImages || []), newStagedItem]);
@@ -254,7 +280,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               altText: file.name.replace(/\.[^.]+$/, ""),
               isPrimary: isFirst,
               sortOrder: stagedImages?.length || 0,
-              variantIds: [],
+              variantIds: autoVariantIds,
             };
             onStagedImagesChange?.([...(stagedImages || []), newStagedItem]);
           }
@@ -299,9 +325,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           altText: file.name.replace(/\.[^.]+$/, ""),
           isPrimary: isFirst,
           sortOrder: images.length,
-          variantIds: filterVariantId !== "ALL" && filterVariantId !== "PRIMARY" && filterVariantId !== "UNASSIGNED"
-            ? [filterVariantId]
-            : [],
+          variantIds: autoVariantIds,
         });
 
         setUploading((prev) =>
@@ -514,36 +538,32 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             General / Unassigned
           </button>
 
-          {variants.map((v) => {
-            const label = getVariantLabel(v);
-            const colorHex = getVariantColor(v);
+          {uniqueColors.map((c) => {
             const count = images.filter((img) => {
               const vIds = "variantIds" in img ? img.variantIds : img.variantImages?.map((vi) => vi.variantId) || [];
-              return vIds?.includes(v.id);
+              return vIds?.some((id) => c.variantIds.includes(id));
             }).length;
 
             return (
               <button
-                key={v.id}
+                key={c.label}
                 type="button"
-                onClick={() => setFilterVariantId(v.id)}
+                onClick={() => setFilterVariantId(c.label)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
-                  filterVariantId === v.id
+                  filterVariantId === c.label
                     ? "bg-slate-900 text-white shadow-xs"
                     : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/70"
                 }`}
               >
-                {colorHex && (
-                  <span
-                    className="h-2.5 w-2.5 rounded-full border border-slate-300 shadow-2xs"
-                    style={{ backgroundColor: colorHex }}
-                  />
-                )}
-                <span>{label}</span>
+                <span
+                  className="h-2.5 w-2.5 rounded-full border border-slate-300 shadow-2xs"
+                  style={{ backgroundColor: c.hex }}
+                />
+                <span>{c.label}</span>
                 {count > 0 && (
                   <span
                     className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                      filterVariantId === v.id ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+                      filterVariantId === c.label ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
                     }`}
                   >
                     {count}

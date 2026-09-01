@@ -1,4 +1,9 @@
 import express, { Express, Request, Response } from "express";
+
+// Patch BigInt serialization for JSON.stringify across all API responses
+(BigInt.prototype as any).toJSON = function () {
+  return Number(this);
+};
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";

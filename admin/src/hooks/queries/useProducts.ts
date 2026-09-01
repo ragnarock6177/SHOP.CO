@@ -78,6 +78,7 @@ export const useCreateProduct = () => {
         ...(cleanComparePrice !== undefined ? { compareAtPrice: cleanComparePrice } : {}),
         ...(primaryCategoryId && uuidRegex.test(primaryCategoryId) ? { categoryId: primaryCategoryId } : {}),
         ...(cleanImages && cleanImages.length > 0 ? { images: cleanImages } : {}),
+        ...(payload.variants && payload.variants.length > 0 ? { variants: payload.variants } : {}),
       };
 
       const response = await apiClient.post<ApiResponse<ProductItem>>("/admin/products", apiPayload);
@@ -115,3 +116,46 @@ export const useArchiveProduct = () => {
     },
   });
 };
+
+export const useAddVariant = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ productId, data }: { productId: string; data: any }) => {
+      const response = await apiClient.post<ApiResponse<ProductItem>>(`/admin/products/${productId}/variants`, data);
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
+    },
+  });
+};
+
+export const useUpdateVariant = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ productId, variantId, data }: { productId: string; variantId: string; data: any }) => {
+      const response = await apiClient.put<ApiResponse<ProductItem>>(`/admin/products/${productId}/variants/${variantId}`, data);
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
+    },
+  });
+};
+
+export const useDeleteVariant = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ productId, variantId }: { productId: string; variantId: string }) => {
+      const response = await apiClient.delete<ApiResponse<any>>(`/admin/products/${productId}/variants/${variantId}`);
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
+    },
+  });
+};
+

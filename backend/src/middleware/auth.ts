@@ -3,7 +3,11 @@ import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
 import { firebaseApp, getFirebaseAuth } from "../config/firebase.js";
 import { env } from "../config/env.js";
-import { UnauthorizedError, ForbiddenError, DatabaseError } from "../utils/errors.js";
+import {
+  UnauthorizedError,
+  ForbiddenError,
+  DatabaseError,
+} from "../utils/errors.js";
 import { AuthUser } from "../types/express.js";
 
 const JWT_SECRET = env.JWT_SECRET || "airave@123454321@airave";
@@ -42,12 +46,14 @@ function isPrismaDbConnectionError(err: any): boolean {
 export async function authenticate(
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new UnauthorizedError("Authentication token is missing or malformed");
+      throw new UnauthorizedError(
+        "Authentication token is missing or malformed",
+      );
     }
 
     const token = authHeader.split(" ")[1];
@@ -117,13 +123,20 @@ export async function authenticate(
               });
             }
           } catch (dbErr: any) {
-            console.error("[AuthMiddleware] Database query error during JWT auth:", dbErr.message || dbErr);
+            console.error(
+              "[AuthMiddleware] Database query error during JWT auth:",
+              dbErr.message || dbErr,
+            );
             if (isPrismaDbConnectionError(dbErr)) {
               if (cached && cached.staleUntil > Date.now()) {
-                console.warn(`[AuthMiddleware] Database temporary connection failure. Serving cached auth user for ${decoded.userId}.`);
+                console.warn(
+                  `[AuthMiddleware] Database temporary connection failure. Serving cached auth user for ${decoded.userId}.`,
+                );
                 user = cached.user;
               } else {
-                databaseFailure = new DatabaseError("Database server connection timed out. Please retry.");
+                databaseFailure = new DatabaseError(
+                  "Database server connection timed out. Please retry.",
+                );
               }
             } else {
               throw dbErr;
@@ -205,12 +218,17 @@ export async function authenticate(
               });
             }
           } catch (dbErr: any) {
-            console.error("[AuthMiddleware] Database query error during Firebase auth:", dbErr.message || dbErr);
+            console.error(
+              "[AuthMiddleware] Database query error during Firebase auth:",
+              dbErr.message || dbErr,
+            );
             if (isPrismaDbConnectionError(dbErr)) {
               if (cached && cached.staleUntil > Date.now()) {
                 user = cached.user;
               } else {
-                throw new DatabaseError("Database server connection timed out. Please retry.");
+                throw new DatabaseError(
+                  "Database server connection timed out. Please retry.",
+                );
               }
             } else {
               throw dbErr;
@@ -228,8 +246,14 @@ export async function authenticate(
     }
 
     // 3. User Account Status Guard
-    if (user.status === "SUSPENDED" || user.status === "BLOCKED" || user.status === "DEACTIVATED") {
-      throw new ForbiddenError(`Your account is currently ${user.status.toLowerCase()}. Access denied.`);
+    if (
+      user.status === "SUSPENDED" ||
+      user.status === "BLOCKED" ||
+      user.status === "DEACTIVATED"
+    ) {
+      throw new ForbiddenError(
+        `Your account is currently ${user.status.toLowerCase()}. Access denied.`,
+      );
     }
 
     req.user = user;
@@ -242,7 +266,7 @@ export async function authenticate(
 export async function optionalAuth(
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   const authHeader = req.headers.authorization;
   const guestHeader = req.headers["x-guest-token"];

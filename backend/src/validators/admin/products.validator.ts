@@ -1,6 +1,18 @@
 import { z } from "zod";
 import { ProductStatus, ProductVisibility } from "@prisma/client";
 
+export const VariantInputSchema = z.object({
+  id: z.string().uuid("Invalid variant ID").optional(),
+  sku: z.string().min(1, "SKU is required"),
+  colorName: z.string().min(1, "Color name is required"),
+  colorHex: z.string().optional().nullable(),
+  sizeName: z.string().min(1, "Size name is required"),
+  price: z.number().nonnegative("Price must be non-negative"),
+  compareAtPrice: z.number().nonnegative("Compare-at price must be non-negative").optional().nullable(),
+  stock: z.number().int().nonnegative("Stock must be non-negative").optional().default(0),
+  isActive: z.boolean().optional().default(true),
+});
+
 export const CreateProductSchema = z.object({
   body: z.object({
     id: z.string().uuid("Invalid product ID").optional(),
@@ -13,6 +25,8 @@ export const CreateProductSchema = z.object({
     visibility: z.nativeEnum(ProductVisibility).optional().default(ProductVisibility.PUBLIC),
     basePrice: z.number().nonnegative("Base price must be non-negative").optional(),
     compareAtPrice: z.number().nonnegative("Compare-at price must be non-negative").optional(),
+    stockQuantity: z.number().int().nonnegative().optional().default(0),
+    reorderLevel: z.number().int().nonnegative().optional().default(5),
     careInstructions: z.string().optional(),
     categoryId: z.string().uuid("Invalid category ID").optional(),
     images: z
@@ -26,6 +40,7 @@ export const CreateProductSchema = z.object({
         })
       )
       .optional(),
+    variants: z.array(VariantInputSchema).optional(),
   }),
 });
 
@@ -43,7 +58,35 @@ export const UpdateProductSchema = z.object({
     visibility: z.nativeEnum(ProductVisibility).optional(),
     basePrice: z.number().nonnegative("Base price must be non-negative").optional(),
     compareAtPrice: z.number().nonnegative("Compare-at price must be non-negative").optional(),
+    stockQuantity: z.number().int().nonnegative().optional(),
+    reorderLevel: z.number().int().nonnegative().optional(),
     careInstructions: z.string().optional(),
     categoryId: z.string().uuid("Invalid category ID").optional(),
+    variants: z.array(VariantInputSchema).optional(),
   }),
 });
+
+export const CreateVariantSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Invalid product ID"),
+  }),
+  body: VariantInputSchema,
+});
+
+export const UpdateVariantSchema = z.object({
+  params: z.object({
+    id: z.string().uuid("Invalid product ID"),
+    variantId: z.string().uuid("Invalid variant ID"),
+  }),
+  body: z.object({
+    sku: z.string().min(1, "SKU is required").optional(),
+    colorName: z.string().min(1, "Color name is required").optional(),
+    colorHex: z.string().optional().nullable(),
+    sizeName: z.string().min(1, "Size name is required").optional(),
+    price: z.number().nonnegative("Price must be non-negative").optional(),
+    compareAtPrice: z.number().nonnegative("Compare-at price must be non-negative").optional().nullable(),
+    stock: z.number().int().nonnegative("Stock must be non-negative").optional(),
+    isActive: z.boolean().optional(),
+  }),
+});
+
