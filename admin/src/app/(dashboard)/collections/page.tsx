@@ -74,11 +74,7 @@ export default function CollectionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Marketing Collections</h1>
-          <p className="text-xs text-slate-500">Curate promotional campaigns and featured product groupings</p>
-        </div>
+      <div className="flex justify-end gap-4">
         <PermissionGate permission="collections:create">
           <button
             onClick={() => setIsModalOpen(true)}

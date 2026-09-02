@@ -79,11 +79,8 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Payment Gateway Transactions</h1>
-          <p className="text-xs text-slate-500">Read-only oversight of gateway payment attempts and authorization statuses</p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+        
         <div className="flex justify-end">
           <CustomSelect
             value={statusFilter}

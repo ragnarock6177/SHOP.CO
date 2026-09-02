@@ -102,29 +102,23 @@ export default function ReturnsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">After-Sales Return Requests</h1>
-          <p className="text-xs text-slate-500">Inspect customer return submissions, item inspect states, and approval flows</p>
-        </div>
-        <div className="flex justify-end">
-          <CustomSelect
-            value={statusFilter}
-            onChange={(val) => {
-              setStatusFilter(val);
-              setPage(1);
-            }}
-            options={[
-              { value: "", label: "All Return Statuses" },
-              { value: "REQUESTED", label: "Requested" },
-              { value: "APPROVED", label: "Approved" },
-              { value: "RECEIVED", label: "Received" },
-              { value: "COMPLETED", label: "Completed" },
-              { value: "REJECTED", label: "Rejected" },
-            ]}
-            triggerClassName="w-44"
-          />
-        </div>
+      <div className="flex justify-end">
+        <CustomSelect
+          value={statusFilter}
+          onChange={(val) => {
+            setStatusFilter(val);
+            setPage(1);
+          }}
+          options={[
+            { value: "", label: "All Return Statuses" },
+            { value: "REQUESTED", label: "Requested" },
+            { value: "APPROVED", label: "Approved" },
+            { value: "RECEIVED", label: "Received" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "REJECTED", label: "Rejected" },
+          ]}
+          triggerClassName="w-44"
+        />
       </div>
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />

@@ -156,23 +156,6 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Product Catalog</h1>
-          <p className="text-xs text-slate-500">Manage ecommerce products, pricing, and variants</p>
-        </div>
-        <PermissionGate permission="products:create">
-          <button
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create Product</span>
-          </button>
-        </PermissionGate>
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <SearchInput
           value={search}
@@ -183,7 +166,8 @@ export default function ProductsPage() {
           placeholder="Search products by name or slug..."
           className="w-full sm:w-72"
         />
-        <div className="flex items-center space-x-2">
+        
+        <div className="flex items-center gap-3">
           <CustomSelect
             value={statusFilter}
             onChange={(val) => {
@@ -198,6 +182,16 @@ export default function ProductsPage() {
             ]}
             triggerClassName="w-36"
           />
+          <PermissionGate permission="products:create">
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] cursor-pointer h-9"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Product</span>
+            </button>
+          </PermissionGate>
         </div>
       </div>
 

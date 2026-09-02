@@ -129,7 +129,7 @@ export default function OrderDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.push("/orders")}
@@ -137,10 +137,7 @@ export default function OrderDetailsPage() {
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Order #{order.orderNumber}</h1>
-            <p className="text-xs text-slate-500">Placed on {new Date(order.createdAt).toLocaleString()}</p>
-          </div>
+          
         </div>
 
         <div className="flex items-center space-x-3">

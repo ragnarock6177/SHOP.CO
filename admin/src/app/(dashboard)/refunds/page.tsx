@@ -70,11 +70,8 @@ export default function RefundsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Transactional Refunds Log</h1>
-          <p className="text-xs text-slate-500">View payment gateway refund transactions and issue manual refunds</p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+        
         <PermissionGate permission="refunds:process">
           <button
             onClick={() => setIsModalOpen(true)}

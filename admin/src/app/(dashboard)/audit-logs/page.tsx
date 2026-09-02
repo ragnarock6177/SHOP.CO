@@ -72,10 +72,7 @@ export default function AuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">System Audit Logs Stream</h1>
-        <p className="text-xs text-slate-500">Immutable record of admin actions, status shifts, and entity mutations</p>
-      </div>
+      
 
       <SearchInput
         value={search}

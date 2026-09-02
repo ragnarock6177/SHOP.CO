@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Search, Bell, LogOut, User } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
@@ -16,6 +17,30 @@ import { Input } from "@/components/ui/input";
 
 export function Header() {
   const { user, logout } = useAuth();
+  const pathname = usePathname();
+
+  const getPageInfo = () => {
+    if (!pathname) return { title: "Dashboard", subtitle: "Overview of your store" };
+    
+    if (pathname.startsWith("/products")) {
+      if (pathname === "/products") return { title: "Product Catalog", subtitle: "Manage ecommerce products, pricing, and variants" };
+      return { title: "Product Details", subtitle: "View and edit product" };
+    }
+    if (pathname.startsWith("/categories")) return { title: "Categories", subtitle: "Manage product categories" };
+    if (pathname.startsWith("/collections")) return { title: "Collections", subtitle: "Manage product collections" };
+    if (pathname.startsWith("/attributes")) return { title: "Attributes", subtitle: "Manage product attributes" };
+    if (pathname.startsWith("/orders")) return { title: "Orders", subtitle: "Manage customer orders" };
+    if (pathname.startsWith("/customers")) return { title: "Customers", subtitle: "Manage customers and their data" };
+    if (pathname.startsWith("/inventory")) return { title: "Inventory", subtitle: "Manage stock levels" };
+    if (pathname.startsWith("/staff")) return { title: "Staff", subtitle: "Manage team members and roles" };
+    if (pathname.startsWith("/settings")) return { title: "Settings", subtitle: "Store configurations" };
+    if (pathname.startsWith("/coupons")) return { title: "Coupons", subtitle: "Manage discount codes" };
+    if (pathname.startsWith("/roles")) return { title: "Roles", subtitle: "Manage staff roles and permissions" };
+    if (pathname.startsWith("/audit-logs")) return { title: "Audit Logs", subtitle: "View system activities" };
+    return { title: "Dashboard", subtitle: "Overview of your store" };
+  };
+
+  const { title, subtitle } = getPageInfo();
 
   const getInitials = () => {
     if (!user) return "A";
@@ -33,8 +58,18 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/85 backdrop-blur-md px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/85 backdrop-blur-md px-4 sm:px-6 lg:px-8 gap-4">
+      
+      {/* Title Section - Left */}
       <div className="flex flex-1 items-center gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
+          <p className="text-xs text-slate-500 hidden sm:block">{subtitle}</p>
+        </div>
+      </div>
+
+      {/* Global Search - Middle */}
+      <div className="flex flex-1 items-center justify-center">
         <form className="hidden w-full max-w-md lg:flex" onSubmit={(e) => e.preventDefault()}>
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -50,7 +85,8 @@ export function Header() {
         </form>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* User Actions - Right */}
+      <div className="flex flex-1 items-center justify-end gap-3">
         <button
           className="relative rounded-md border border-slate-200/80 bg-white p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-2xs transition-all"
           title="Notifications"

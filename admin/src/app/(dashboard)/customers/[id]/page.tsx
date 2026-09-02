@@ -82,7 +82,7 @@ export default function CustomerDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.push("/customers")}
@@ -90,10 +90,7 @@ export default function CustomerDetailPage() {
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">{getDisplayName()}</h1>
-            <p className="text-xs text-slate-500">Customer Account Details & Saved Address Book</p>
-          </div>
+          
         </div>
 
         <PermissionGate permission="customers:update">

@@ -76,11 +76,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Category Directory</h1>
-          <p className="text-xs text-slate-500">Organize product hierarchy and storefront taxonomy</p>
-        </div>
+      <div className="flex justify-end gap-4">
         <PermissionGate permission="categories:create">
           <button
             onClick={() => setIsModalOpen(true)}

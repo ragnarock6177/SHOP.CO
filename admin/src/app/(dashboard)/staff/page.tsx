@@ -78,11 +78,8 @@ export default function StaffUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Staff Accounts Management</h1>
-          <p className="text-xs text-slate-500">Provision admin panel staff accounts, assign roles, and revoke access</p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+        
         <PermissionGate permission="staff:create">
           <button
             onClick={() => setIsModalOpen(true)}

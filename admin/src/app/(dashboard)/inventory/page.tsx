@@ -84,22 +84,6 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Stock Inventory Balances</h1>
-          <p className="text-xs text-slate-500">Monitor stock on hand, reservations, and execute balance adjustments</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Link
-            href="/inventory/movements"
-            className="flex items-center space-x-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-          >
-            <ArrowLeftRight className="h-3.5 w-3.5" />
-            <span>Movements Log</span>
-          </Link>
-        </div>
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <SearchInput
           value={search}
@@ -110,7 +94,7 @@ export default function InventoryPage() {
           placeholder="Search by SKU, barcode, or product name..."
           className="w-full sm:w-72"
         />
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-3">
           <CustomSelect
             value={statusFilter}
             onChange={(val) => {
@@ -125,6 +109,13 @@ export default function InventoryPage() {
             ]}
             triggerClassName="w-40"
           />
+          <Link
+            href="/inventory/movements"
+            className="flex items-center space-x-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 h-9"
+          >
+            <ArrowLeftRight className="h-3.5 w-3.5" />
+            <span>Movements Log</span>
+          </Link>
         </div>
       </div>
 

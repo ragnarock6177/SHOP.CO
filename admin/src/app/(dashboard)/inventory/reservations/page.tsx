@@ -43,10 +43,7 @@ export default function InventoryReservationsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Active Inventory Reservations</h1>
-        <p className="text-xs text-slate-500">View active cart stock locks and order reservations</p>
-      </div>
+      
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 

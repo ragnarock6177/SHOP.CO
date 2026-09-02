@@ -100,10 +100,7 @@ export default function ReviewsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Customer Product Reviews</h1>
-        <p className="text-xs text-slate-500">Moderate customer feedback, ratings, and public visibility</p>
-      </div>
+      
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 

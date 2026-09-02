@@ -82,10 +82,7 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Billing Invoices Directory</h1>
-        <p className="text-xs text-slate-500">View and print customer tax invoices and order receipts</p>
-      </div>
+      
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 

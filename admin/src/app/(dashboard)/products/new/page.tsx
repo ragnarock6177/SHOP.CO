@@ -72,15 +72,12 @@ export default function CreateProductPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/products"
-              className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+              className="group inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              <span>Back to Products</span>
             </Link>
-            <h1 className="text-xl font-bold text-slate-900">Create New Product</h1>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5 ml-6">
-            Configure product identity, pricing, SEO metadata, and upload high-resolution product photos.
-          </p>
         </div>
       </div>
 

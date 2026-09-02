@@ -87,31 +87,26 @@ export default function CouponsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Promotional Coupons & Discounts</h1>
-          <p className="text-xs text-slate-500">Configure promotional voucher codes, discount rules, and redemption limits</p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <SearchInput
+          value={search}
+          onChange={(val) => {
+            setSearch(val);
+            setPage(1);
+          }}
+          placeholder="Search by coupon code..."
+          className="w-full sm:w-72"
+        />
         <PermissionGate permission="coupons:create">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
+            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] h-9"
           >
             <Plus className="h-4 w-4" />
             <span>Create Coupon</span>
           </button>
         </PermissionGate>
       </div>
-
-      <SearchInput
-        value={search}
-        onChange={(val) => {
-          setSearch(val);
-          setPage(1);
-        }}
-        placeholder="Search by coupon code..."
-        className="w-full sm:w-72"
-      />
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 

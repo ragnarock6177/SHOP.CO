@@ -55,10 +55,7 @@ export default function AttributesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Product Attributes & Swatches</h1>
-        <p className="text-xs text-slate-500">Configure size, color, material, and variant swatches</p>
-      </div>
+
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
     </div>

@@ -116,11 +116,8 @@ export default function RolesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Roles & Permission Matrix</h1>
-          <p className="text-xs text-slate-500">Configure access control levels and granular domain permissions</p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+        
         <PermissionGate permission="roles:manage">
           <button
             onClick={() => setIsModalOpen(true)}
