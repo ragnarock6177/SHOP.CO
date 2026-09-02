@@ -251,7 +251,7 @@ export const ImportValidationTable: React.FC<ImportValidationTableProps> = ({
 
       {/* VIEW 1: MODERN AIRTABLE/SPREADSHEET GRID */}
       {viewMode === "GRID" && (
-        <div className="flex flex-col flex-1 min-h-[320px] h-full rounded-md border border-slate-200 bg-white overflow-hidden shadow-2xs">
+        <div className="flex flex-col flex-1 min-h-80 h-full rounded-md border border-slate-200 bg-white overflow-hidden shadow-2xs">
           <div className="flex-1 overflow-auto sidebar-scrollbar">
             <table className="w-full text-left text-xs border-collapse">
               <thead className="sticky top-0 z-20 bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600 select-none">
@@ -262,14 +262,14 @@ export const ImportValidationTable: React.FC<ImportValidationTableProps> = ({
                   <th className="sticky left-14 z-30 bg-slate-50 py-2.5 px-3 w-24 text-center border-r border-slate-200">
                     Status
                   </th>
-                  <th className="py-2.5 px-3 min-w-[220px] border-r border-slate-200">Product Name *</th>
-                  <th className="py-2.5 px-3 min-w-[160px] border-r border-slate-200">SKU *</th>
-                  <th className="py-2.5 px-3 min-w-[160px] border-r border-slate-200">Handle (Slug)</th>
-                  <th className="py-2.5 px-3 min-w-[160px] border-r border-slate-200">Category</th>
-                  <th className="py-2.5 px-3 min-w-[110px] border-r border-slate-200">Price (₹) *</th>
-                  <th className="py-2.5 px-3 min-w-[100px] border-r border-slate-200">Stock *</th>
-                  <th className="py-2.5 px-3 min-w-[130px] border-r border-slate-200">Color</th>
-                  <th className="py-2.5 px-3 min-w-[90px] border-r border-slate-200">Size</th>
+                  <th className="py-2.5 px-3 min-w-55 border-r border-slate-200">Product Name *</th>
+                  <th className="py-2.5 px-3 min-w-40 border-r border-slate-200">SKU *</th>
+                  <th className="py-2.5 px-3 min-w-40 border-r border-slate-200">Handle (Slug)</th>
+                  <th className="py-2.5 px-3 min-w-40 border-r border-slate-200">Category</th>
+                  <th className="py-2.5 px-3 min-w-27.5 border-r border-slate-200">Price (₹) *</th>
+                  <th className="py-2.5 px-3 min-w-25 border-r border-slate-200">Stock *</th>
+                  <th className="py-2.5 px-3 min-w-32.5 border-r border-slate-200">Color</th>
+                  <th className="py-2.5 px-3 min-w-22.5 border-r border-slate-200">Size</th>
                   <th className="py-2.5 px-2 w-12 text-center">Action</th>
                 </tr>
               </thead>
@@ -467,7 +467,7 @@ export const ImportValidationTable: React.FC<ImportValidationTableProps> = ({
 
       {/* VIEW 2: DETAILED DIAGNOSTIC LOGS */}
       {viewMode === "DIAGNOSTICS" && (
-        <div className="flex-1 min-h-[320px] h-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-2xs sidebar-scrollbar">
+        <div className="flex-1 min-h-80 h-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-2xs sidebar-scrollbar">
           {allDiagnostics.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-center">
               <CheckCircle2 className="h-8 w-8 text-emerald-600 mb-2" />
@@ -502,7 +502,7 @@ export const ImportValidationTable: React.FC<ImportValidationTableProps> = ({
                         </span>
                       )}
                     </td>
-                    <td className="py-2 px-2 text-slate-900 font-medium truncate max-w-[160px]">
+                    <td className="py-2 px-2 text-slate-900 font-medium truncate max-w-40">
                       {item.sku || item.handle || "—"}
                     </td>
                     <td className="py-2 px-2 text-slate-500 font-medium">{item.field || "—"}</td>
