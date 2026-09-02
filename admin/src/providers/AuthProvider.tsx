@@ -20,6 +20,7 @@ export interface AuthContextType {
   permissions: string[];
   isAuthenticated: boolean;
   isLoading: boolean;
+  isHydrated: boolean;
   login: (token: string, user: AdminUser) => void;
   logout: () => Promise<void>;
   refetchUser: () => Promise<void>;
@@ -27,13 +28,42 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function readCachedAuth(): {
+  user: AdminUser | null;
+  permissions: string[];
+  isLoading: boolean;
+} {
+  const token =
+    localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
+
+  if (!token) {
+    return { user: null, permissions: [], isLoading: false };
+  }
+
+  try {
+    const cached = localStorage.getItem("airave_admin_user");
+    if (cached) {
+      const parsed = JSON.parse(cached) as AdminUser;
+      return {
+        user: parsed,
+        permissions: parsed.permissions || [],
+        isLoading: false,
+      };
+    }
+  } catch {
+    // Ignore invalid cache
+  }
+
+  return { user: null, permissions: [], isLoading: true };
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const restoreSession = useCallback(async () => {
-    if (typeof window === "undefined") return;
     const token =
       localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
 
@@ -45,7 +75,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // Get authenticated user details directly from /auth/me
       const meResp = await apiClient.get<{ success: boolean; message: string; data?: any }>(
         "/auth/me"
       );
@@ -77,7 +106,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("airave_admin_user", JSON.stringify(fullUser));
     } catch (error: any) {
       console.warn("Auth session validation error:", error?.message || error);
-      // Only wipe session if server explicitly returns 401 Unauthorized
       if (error?.response?.status === 401) {
         localStorage.removeItem("airave_admin_token");
         localStorage.removeItem("token");
@@ -91,22 +119,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    try {
-      const cached = localStorage.getItem("airave_admin_user");
-      const token =
-        localStorage.getItem("airave_admin_token") || localStorage.getItem("token");
-      if (cached && token) {
-        const parsed = JSON.parse(cached);
-        setUser(parsed);
-        setPermissions(parsed.permissions || []);
-        setIsLoading(false);
-      } else if (!token) {
-        setIsLoading(false);
-      }
-    } catch {
-      // Ignore parse error
-    }
-
+    const cached = readCachedAuth();
+    setUser(cached.user);
+    setPermissions(cached.permissions);
+    setIsLoading(cached.isLoading);
+    setIsHydrated(true);
     restoreSession();
   }, [restoreSession]);
 
@@ -128,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPermissions(enriched.permissions);
     localStorage.setItem("airave_admin_user", JSON.stringify(enriched));
     setIsLoading(false);
+    setIsHydrated(true);
   }, []);
 
   const logout = useCallback(async () => {
@@ -154,6 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         permissions,
         isAuthenticated: !!user,
         isLoading,
+        isHydrated,
         login,
         logout,
         refetchUser: restoreSession,

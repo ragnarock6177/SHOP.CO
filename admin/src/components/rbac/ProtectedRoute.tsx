@@ -10,42 +10,24 @@ export interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredPermission }) => {
-  const { isAuthenticated, isLoading, user, permissions } = useAuth();
+  const { isAuthenticated, isLoading, isHydrated, user, permissions } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [mounted, setMounted] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
-    // Only redirect AFTER mounted & loading is complete and user is definitely not authenticated
-    if (mounted && !isLoading && !isAuthenticated) {
+    if (!isHydrated) return;
+    if (!isLoading && !isAuthenticated) {
       const redirectUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
       router.replace(redirectUrl);
     }
-  }, [mounted, isLoading, isAuthenticated, router, pathname]);
+  }, [isHydrated, isLoading, isAuthenticated, router, pathname]);
 
-  // While mounting or loading session, render matching shell
-  if (!mounted || isLoading) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#f8fafc] text-slate-900">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-9 w-9 animate-spin rounded-md border-2 border-slate-200 border-t-slate-900 shadow-xs" />
-          <p className="text-xs font-semibold text-slate-500">Verifying session...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // After loading, if still not authenticated, render nothing (redirect is in-flight)
-  if (!isAuthenticated) {
+  // After auth resolves with no session, hide UI while redirecting to login
+  if (isHydrated && !isLoading && !isAuthenticated) {
     return null;
   }
 
-  // Permission gate
-  if (requiredPermission && !user?.isSuperAdmin) {
+  if (isHydrated && user && requiredPermission && !user.isSuperAdmin) {
     const hasPerm = permissions.includes(requiredPermission);
     if (!hasPerm) {
       return (
