@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Banner, BannerTargetType } from "@/types/settings";
 import { fetchBanners, createBanner, updateBanner, deleteBanner } from "@/lib/settingsApi";
 import apiClient from "@/lib/apiClient";
-import { compressBannerImage } from "@/utils/imageCompressor";
+import { compressBannerImage, validateImageFile } from "@/utils/imageCompressor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CheckCircle2, AlertCircle, Plus, Edit, Trash2, Tag, Upload, ImageIcon, Loader2 } from "lucide-react";
 
@@ -121,12 +121,18 @@ export function BannerManager() {
   };
 
   const handleFileUpload = async (file: File, isDesktop: boolean) => {
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
     const setUploading = isDesktop ? setUploadingDesktop : setUploadingMobile;
     const setStats = isDesktop ? setDesktopCompressionStats : setMobileCompressionStats;
 
     try {
       setUploading(true);
-      // 1. Quality-preserving WebP Compression (0.85 ratio, 1920x1080 max)
+      // Quality-preserving WebP Compression
       const compressed = await compressBannerImage(file);
       setStats(
         `Compressed: ${compressed.originalSizeKb} KB → ${compressed.compressedSizeKb} KB (-${compressed.reductionPercentage}%)`

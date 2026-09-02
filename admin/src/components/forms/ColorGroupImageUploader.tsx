@@ -4,7 +4,7 @@ import React, { useRef, useState, useMemo } from "react";
 import { ImagePlus, Loader2, Trash2, Plus } from "lucide-react";
 import { usePresignUpload, useAddProductImage, useDeleteProductImage, useProductImages } from "@/hooks/queries/useProductImages";
 import { StagedImageItem } from "./ImageUploader";
-import { compressImage } from "@/utils/imageCompressor";
+import { compressImage, validateImageFile } from "@/utils/imageCompressor";
 
 interface ColorGroupImageUploaderProps {
   productId?: string;
@@ -51,7 +51,20 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
   const otherImages = colorImages.slice(1);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const rawFiles = Array.from(e.target.files || []);
+    if (!rawFiles.length) return;
+
+    // Filter and validate 2MB restriction
+    const files: File[] = [];
+    for (const f of rawFiles) {
+      const validation = validateImageFile(f);
+      if (!validation.valid) {
+        alert(validation.error);
+        continue;
+      }
+      files.push(f);
+    }
+
     if (!files.length) return;
 
     setIsUploading(true);

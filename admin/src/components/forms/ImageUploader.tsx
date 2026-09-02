@@ -28,7 +28,7 @@ import {
   useReorderProductImages,
   ProductImage,
 } from "@/hooks/queries/useProductImages";
-import { compressImage } from "@/utils/imageCompressor";
+import { compressImage, validateImageFile } from "@/utils/imageCompressor";
 
 export interface VariantItem {
   id: string;
@@ -320,11 +320,18 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   );
 
   const handleFiles = (files: FileList | File[]) => {
-    const valid = Array.from(files).filter((f) => {
-      if (!f.type.startsWith("image/")) return false;
-      if (f.size > 10 * 1024 * 1024) return false;
-      return true;
+    const fileList = Array.from(files);
+    const valid: File[] = [];
+
+    fileList.forEach((f) => {
+      const validation = validateImageFile(f);
+      if (!validation.valid) {
+        alert(validation.error);
+        return;
+      }
+      valid.push(f);
     });
+
     valid.forEach(uploadFile);
   };
 
@@ -566,7 +573,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             <span className="text-slate-950 font-bold underline underline-offset-2">browse files</span>
           </p>
           <p className="text-xs text-slate-400 mt-1">
-            Auto-converted to optimized WebP • High Quality (2048px) • JPEG, PNG, WebP, AVIF up to 10 MB
+            Auto-converted to ~100KB WebP • High Quality (1800px) • JPEG, PNG, WebP up to 2 MB
           </p>
         </div>
         <input

@@ -1,4 +1,4 @@
-import { compressImage, compressImageWithStats, CompressedImageResult, ImageCompressionOptions } from "@/utils/imageCompressor";
+import { compressImage, compressImageWithStats, CompressedImageResult, ImageCompressionOptions, validateImageFile } from "@/utils/imageCompressor";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse } from "@/types/api";
 import { PresignResult } from "@/hooks/queries/useProductImages";
@@ -26,6 +26,12 @@ export async function compressAndUploadImage({
   options,
   onProgress,
 }: UploadImageParams): Promise<UploadImageResult> {
+  // Validate 2MB limit
+  const validation = validateImageFile(file);
+  if (!validation.valid) {
+    throw new Error(validation.error);
+  }
+
   // 1. Stage: Compressing
   onProgress?.("compressing");
   const stats = await compressImageWithStats(file, options);
