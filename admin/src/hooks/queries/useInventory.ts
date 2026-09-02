@@ -26,6 +26,8 @@ export const useInventory = (params?: AdminQueryParams) => {
   return usePaginatedQuery<InventoryItem>("inventory", "/admin/inventory", params);
 };
 
+import { toast } from "@/lib/toast";
+
 export const useAdjustInventory = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -35,7 +37,9 @@ export const useAdjustInventory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "inventory"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+      toast.success("Stock Adjusted", "Inventory levels updated successfully.");
     },
   });
 };

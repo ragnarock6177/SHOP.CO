@@ -28,6 +28,8 @@ export const useStaffUsers = (params?: AdminQueryParams) => {
   return usePaginatedQuery<StaffUserItem>("staff", "/admin/admin-users", params);
 };
 
+import { toast } from "@/lib/toast";
+
 export const useCreateStaffUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -37,6 +39,8 @@ export const useCreateStaffUser = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "staff"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "staff"] });
+      toast.success("Staff Member Created", "Staff user provisioned successfully.");
     },
   });
 };
@@ -60,6 +64,7 @@ export const useCreateRole = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "roles"] });
+      toast.success("Role Created", "Security role created successfully.");
     },
   });
 };
@@ -73,6 +78,7 @@ export const useUpdateRolePermissions = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "roles"] });
+      toast.success("Permissions Updated", "Role permissions updated successfully.");
     },
   });
 };

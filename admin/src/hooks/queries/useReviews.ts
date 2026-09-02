@@ -21,6 +21,8 @@ export const useReviews = (params?: AdminQueryParams) => {
   return usePaginatedQuery<ReviewItem>("reviews", "/admin/reviews", params);
 };
 
+import { toast } from "@/lib/toast";
+
 export const useToggleReviewPublish = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -28,8 +30,10 @@ export const useToggleReviewPublish = () => {
       const response = await apiClient.patch<ApiResponse<ReviewItem>>(`/admin/reviews/${id}/publish`, { isPublished });
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "reviews"] });
+      toast.success(variables.isPublished ? "Review Published" : "Review Hidden");
     },
   });
 };
@@ -43,6 +47,8 @@ export const useDeleteReview = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "reviews"] });
+      toast.success("Review Deleted", "Customer review was removed.");
     },
   });
 };

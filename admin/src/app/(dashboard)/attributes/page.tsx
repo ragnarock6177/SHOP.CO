@@ -57,9 +57,7 @@ export default function AttributesPage() {
   ];
 
   return (
-    <div className="space-y-6">
-
-
+    <div className="flex flex-1 flex-col min-h-0 space-y-4">
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
     </div>
   );

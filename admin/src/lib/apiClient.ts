@@ -29,18 +29,33 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response Interceptor: Standardized error parsing & 401 Unauthorized handling
+import { toast } from "./toast";
+
+// Response Interceptor: Standardized error parsing & 401 Unauthorized handling & Global Toast Errors
 apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const data = error.response?.data;
+    const message =
+      data?.message ||
+      data?.error ||
+      error.message ||
+      "An unexpected server error occurred.";
+
+    if (status === 401) {
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
         localStorage.removeItem("airave_admin_token");
         localStorage.removeItem("token");
         localStorage.removeItem("airave_admin_user");
         window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      }
+    } else {
+      // Show error toast for all other errors when running in the browser
+      if (typeof window !== "undefined" && !(error.config as any)?.__skipGlobalErrorToast) {
+        toast.error(message);
       }
     }
     return Promise.reject(error);

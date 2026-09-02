@@ -19,6 +19,8 @@ export const useReturns = (params?: AdminQueryParams) => {
   return usePaginatedQuery<ReturnRequestItem>("returns", "/admin/returns", params);
 };
 
+import { toast } from "@/lib/toast";
+
 export const useUpdateReturnStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -26,9 +28,11 @@ export const useUpdateReturnStatus = () => {
       const response = await apiClient.patch<ApiResponse<ReturnRequestItem>>(`/admin/returns/${id}/status`, { status, notes });
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin", "returns"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "returns"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+      toast.success("Return Updated", `Status changed to ${variables.status}`);
     },
   });
 };
@@ -46,8 +50,10 @@ export const useProcessRefund = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "refunds"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "refunds"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+      toast.success("Refund Processed", "Refund recorded successfully.");
     },
   });
 };

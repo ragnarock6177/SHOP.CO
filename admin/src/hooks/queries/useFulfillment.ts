@@ -20,6 +20,8 @@ export const useShipments = (params?: AdminQueryParams) => {
   return usePaginatedQuery<ShipmentItem>("fulfillment", "/admin/fulfillment", params);
 };
 
+import { toast } from "@/lib/toast";
+
 export const useCreateShipment = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -29,7 +31,9 @@ export const useCreateShipment = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "fulfillment"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "fulfillment"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      toast.success("Shipment Created", "Tracking information recorded.");
     },
   });
 };
@@ -41,9 +45,11 @@ export const useUpdateShipmentStatus = () => {
       const response = await apiClient.patch<ApiResponse<ShipmentItem>>(`/admin/fulfillment/${id}/status`, { status });
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin", "fulfillment"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "fulfillment"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      toast.success("Shipment Updated", `Shipment marked as ${variables.status}`);
     },
   });
 };

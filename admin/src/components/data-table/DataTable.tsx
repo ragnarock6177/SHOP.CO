@@ -8,7 +8,6 @@ import {
   useReactTable,
   RowData,
 } from "@tanstack/react-table";
-import { Loader2 } from "lucide-react";
 import { TableSkeletonRows } from "./TableSkeletonRows";
 import {
   DEFAULT_TABLE_SKELETON_ROWS,
@@ -34,7 +33,11 @@ export interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
   /** When true, renders without outer card border (for use inside a parent card with pagination). */
   embedded?: boolean;
+  className?: string;
+  containerClassName?: string;
 }
+
+import { TableEmptyState } from "./TableEmptyState";
 
 export function DataTable<TData, TValue>({
   columns,
@@ -45,6 +48,8 @@ export function DataTable<TData, TValue>({
   skeletonRowCount = DEFAULT_TABLE_SKELETON_ROWS,
   onRowClick,
   embedded = false,
+  className = "",
+  containerClassName = "",
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -56,27 +61,21 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const showInitialSkeleton = isLoading && data.length === 0;
-  const showPageChangeSpinner = isFetching && !showInitialSkeleton && data.length > 0;
+  const showSkeleton = isLoading || (isFetching && data.length === 0);
+  const isTransitioningPage = isFetching && data.length > 0;
   const hasRows = table.getRowModel().rows.length > 0;
 
   return (
     <div
       className={
         embedded
-          ? "w-full relative"
-          : "w-full overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs relative"
+          ? `w-full flex-1 min-h-0 flex flex-col relative ${containerClassName}`
+          : `w-full flex-1 min-h-0 flex flex-col overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs relative ${containerClassName}`
       }
     >
-      {showPageChangeSpinner && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-500" aria-label="Loading" />
-        </div>
-      )}
-
-      <div className="w-full overflow-x-auto overscroll-x-contain">
-        <table className="w-full min-w-[36rem] table-auto text-left text-xs text-slate-700">
-          <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+      <div className="w-full flex-1 min-h-0 overflow-auto overscroll-contain table-scrollbar flex flex-col">
+        <table className={`w-full min-w-[36rem] table-auto text-left text-xs text-slate-700 ${className}`}>
+          <thead className="sticky top-0 z-10 border-b border-slate-200/80 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -93,7 +92,7 @@ export function DataTable<TData, TValue>({
                   return (
                     <th
                       key={header.id}
-                      className={`px-3 py-3.5 font-bold sm:px-4 ${hideClass} ${meta?.className ?? ""}`}
+                      className={`px-3 py-3.5 font-bold sm:px-4 bg-slate-50 ${hideClass} ${meta?.className ?? ""}`}
                     >
                       {header.isPlaceholder
                         ? null
@@ -108,7 +107,7 @@ export function DataTable<TData, TValue>({
             ))}
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {showInitialSkeleton ? (
+            {showSkeleton || isTransitioningPage ? (
               <TableSkeletonRows<TData, TValue> columns={columns} rowCount={skeletonRowCount} />
             ) : hasRows ? (
               table.getRowModel().rows.map((row) => (
@@ -148,19 +147,18 @@ export function DataTable<TData, TValue>({
                   })}
                 </tr>
               ))
-            ) : (
-              <tr>
-                <td colSpan={columns.length} className="p-0">
-                  <div
-                    className={`flex items-center justify-center px-4 text-center text-xs font-medium text-slate-400 ${TABLE_EMPTY_MIN_HEIGHT_CLASS}`}
-                  >
-                    {emptyMessage}
-                  </div>
-                </td>
-              </tr>
-            )}
+            ) : null}
           </tbody>
         </table>
+
+        {!showSkeleton && !isTransitioningPage && !hasRows && (
+          <div className="flex-1 flex items-center justify-center min-h-[260px] w-full">
+            <TableEmptyState
+              title={emptyMessage}
+              description="No entries found in this table. Try clearing your filters or check back later."
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -22,6 +22,8 @@ export const useCoupons = (params?: AdminQueryParams) => {
   return usePaginatedQuery<CouponItem>("coupons", "/admin/coupons", params);
 };
 
+import { toast } from "@/lib/toast";
+
 export const useCreateCoupon = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -31,6 +33,8 @@ export const useCreateCoupon = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "coupons"] });
+      toast.success("Coupon Created", "New coupon code created successfully.");
     },
   });
 };
@@ -42,8 +46,10 @@ export const useToggleCouponStatus = () => {
       const response = await apiClient.patch<ApiResponse<CouponItem>>(`/admin/coupons/${id}/status`, { isActive });
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin", "coupons"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "coupons"] });
+      toast.success(variables.isActive ? "Coupon Activated" : "Coupon Deactivated");
     },
   });
 };

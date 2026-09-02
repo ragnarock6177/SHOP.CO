@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
 import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
+import { toast } from "@/lib/toast";
 
 export interface ProductItem {
   id: string;
@@ -80,6 +81,7 @@ export const useCreateProduct = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
+      toast.success("Product Created", "Product was successfully created.");
     },
   });
 };
@@ -94,6 +96,7 @@ export const useUpdateProduct = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.id] });
+      toast.success("Product Updated", "Product changes saved successfully.");
     },
   });
 };
@@ -107,6 +110,7 @@ export const useArchiveProduct = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
+      toast.success("Product Archived", "Product was archived successfully.");
     },
   });
 };
@@ -121,6 +125,7 @@ export const useAddVariant = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
+      toast.success("Variant Added", "New variant added to product.");
     },
   });
 };
@@ -135,6 +140,7 @@ export const useUpdateVariant = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
+      toast.success("Variant Updated", "Variant details updated successfully.");
     },
   });
 };
@@ -149,6 +155,7 @@ export const useDeleteVariant = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
+      toast.success("Variant Deleted", "Variant was removed from product.");
     },
   });
 };

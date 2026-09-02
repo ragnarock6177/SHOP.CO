@@ -10,11 +10,11 @@ export default function DashboardLayout({
 }) {
   return (
     <ProtectedRoute>
-      <div className="flex min-h-[100dvh] w-full bg-[#f8fafc] text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
+      <div className="flex h-[100dvh] w-full overflow-hidden bg-[#f8fafc] text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
         <Sidebar />
-        <div className="flex flex-1 flex-col sm:pl-64">
+        <div className="flex flex-1 flex-col sm:pl-64 h-full min-w-0 overflow-hidden">
           <Header />
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto flex flex-col">
             {children}
           </main>
         </div>

@@ -36,6 +36,9 @@ export interface CommonTableProps<TData, TValue> {
   className?: string;
 }
 
+import { TableSkeletonRows } from '@/components/data-table/TableSkeletonRows';
+import { TableEmptyState } from '@/components/data-table/TableEmptyState';
+
 export function CommonTable<TData, TValue>({
   columns,
   data,
@@ -71,9 +74,9 @@ export function CommonTable<TData, TValue>({
   });
 
   return (
-    <div className={cn('w-full flex flex-col bg-white rounded-md border border-slate-200/80 shadow-xs overflow-hidden', className)}>
+    <div className={cn('w-full flex-1 min-h-0 flex flex-col bg-white rounded-md border border-slate-200/80 shadow-xs overflow-hidden', className)}>
       {/* Toolbar / Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 border-b border-slate-200/80 bg-slate-50/50">
+      <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 border-b border-slate-200/80 bg-slate-50/50">
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
@@ -87,13 +90,13 @@ export function CommonTable<TData, TValue>({
       </div>
 
       {/* Table Container */}
-      <div className="relative w-full overflow-x-auto">
+      <div className="relative w-full flex-1 min-h-0 overflow-auto overscroll-contain table-scrollbar flex flex-col">
         <Table>
-          <TableHeader className="bg-slate-50/80 border-b border-slate-200/80">
+          <TableHeader className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-slate-200/80 hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="text-slate-500 font-bold text-[11px] uppercase tracking-wider py-3.5 px-4">
+                  <TableHead key={header.id} className="text-slate-500 bg-slate-50 font-bold text-[11px] uppercase tracking-wider py-3.5 px-4">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -107,73 +110,7 @@ export function CommonTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: 6 }).map((_, idx) => (
-                <TableRow key={idx} className="border-slate-100">
-                  {columns.map((col: any, colIdx) => {
-                    const isFirst = colIdx === 0;
-                    const isLast = colIdx === columns.length - 1;
-                    const headerStr = typeof col.header === 'string' ? col.header.toLowerCase() : '';
-                    const isBadge = headerStr.includes('status') || col.accessorKey === 'status';
-                    const isPrice = headerStr.includes('price') || headerStr.includes('inventory') || headerStr.includes('stock');
-
-                    if (isFirst) {
-                      return (
-                        <TableCell key={colIdx} className="py-3.5 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-md animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
-                            <div className="space-y-1.5 flex-1 min-w-0">
-                              <div
-                                className="h-3.5 rounded-md animate-shimmer bg-slate-100"
-                                style={{ width: `${Math.min(150, 90 + ((idx * 17) % 60))}px` }}
-                              />
-                              <div
-                                className="h-2.5 rounded-md animate-shimmer bg-slate-100"
-                                style={{ width: `${Math.min(100, 55 + ((idx * 13) % 40))}px` }}
-                              />
-                            </div>
-                          </div>
-                        </TableCell>
-                      );
-                    }
-
-                    if (isBadge) {
-                      return (
-                        <TableCell key={colIdx} className="py-3.5 px-4">
-                          <div className="h-5 w-20 rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
-                        </TableCell>
-                      );
-                    }
-
-                    if (isLast) {
-                      return (
-                        <TableCell key={colIdx} className="py-3.5 px-4">
-                          <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
-                        </TableCell>
-                      );
-                    }
-
-                    if (isPrice) {
-                      return (
-                        <TableCell key={colIdx} className="py-3.5 px-4 text-right">
-                          <div
-                            className="h-3.5 rounded-md animate-shimmer bg-slate-100 ml-auto"
-                            style={{ width: `${Math.min(75, 45 + ((idx * 11) % 30))}px` }}
-                          />
-                        </TableCell>
-                      );
-                    }
-
-                    return (
-                      <TableCell key={colIdx} className="py-3.5 px-4">
-                        <div
-                          className="h-3.5 rounded-md animate-shimmer bg-slate-100"
-                          style={{ width: `${Math.min(120, 65 + (((idx + colIdx) * 19) % 55))}px` }}
-                        />
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
+              <TableSkeletonRows columns={columns} rowCount={6} />
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
@@ -188,23 +125,23 @@ export function CommonTable<TData, TValue>({
                   ))}
                 </TableRow>
               ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-36 text-center">
-                  <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
-                    <Inbox className="h-8 w-8 stroke-[1.5]" />
-                    <span className="text-xs font-medium">{emptyText}</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
+            ) : null}
           </TableBody>
         </Table>
+
+        {!isLoading && !table.getRowModel().rows?.length && (
+          <div className="flex-1 flex items-center justify-center min-h-[260px] w-full">
+            <TableEmptyState
+              title={emptyText}
+              description="No records found. Try adjusting your filters or search keywords."
+            />
+          </div>
+        )}
       </div>
 
       {/* Pagination Footer - Only shown when more than 10 rows */}
       {table.getFilteredRowModel().rows.length > 10 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200/80 bg-slate-50/40 text-xs text-slate-500">
+        <div className="shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200/80 bg-slate-50/40 text-xs text-slate-500">
           <div>
             Showing <span className="font-bold text-slate-900">{table.getRowModel().rows.length > 0 ? table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1 : 0}</span> to{' '}
             <span className="font-bold text-slate-900">

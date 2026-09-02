@@ -81,9 +81,8 @@ export default function StaffUsersPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
-        
+    <div className="flex flex-1 flex-col min-h-0 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 shrink-0">
         <PermissionGate permission="staff:create">
           <button
             onClick={() => setIsModalOpen(true)}
@@ -95,9 +94,13 @@ export default function StaffUsersPage() {
         </PermissionGate>
       </div>
 
-      <DataTable columns={columns} data={staffData?.data || []} isLoading={isLoading} />
+      <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs">
+        <DataTable columns={columns} data={staffData?.data || []} isLoading={isLoading} embedded />
 
-      <Pagination pagination={staffData?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+        <div className="shrink-0">
+          <Pagination pagination={staffData?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+        </div>
+      </div>
 
       <StaffFormModal
         isOpen={isModalOpen}

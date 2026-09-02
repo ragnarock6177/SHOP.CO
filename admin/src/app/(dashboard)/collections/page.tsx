@@ -76,8 +76,8 @@ export default function CollectionsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-end gap-4">
+    <div className="flex flex-1 flex-col min-h-0 space-y-4">
+      <div className="flex justify-end gap-4 shrink-0">
         <PermissionGate permission="collections:create">
           <button
             onClick={() => setIsModalOpen(true)}

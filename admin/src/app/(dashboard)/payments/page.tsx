@@ -76,9 +76,8 @@ export default function PaymentsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
-        
+    <div className="flex flex-1 flex-col min-h-0 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 shrink-0">
         <div className="flex justify-end">
           <CustomSelect
             value={statusFilter}
@@ -99,15 +98,19 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} />
+      <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs">
+        <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} embedded />
 
-      <Pagination
-        pagination={data?.pagination}
-        currentPage={page}
-        isLoading={isPending && !data}
-        isFetching={isFetching}
-        onPageChange={setPage}
-      />
+        <div className="shrink-0">
+          <Pagination
+            pagination={data?.pagination}
+            currentPage={page}
+            isLoading={isPending && !data}
+            isFetching={isFetching}
+            onPageChange={setPage}
+          />
+        </div>
+      </div>
     </div>
   );
 }

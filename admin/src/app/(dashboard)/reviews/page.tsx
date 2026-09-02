@@ -104,12 +104,14 @@ export default function ReviewsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      
+    <div className="flex flex-1 flex-col min-h-0 space-y-4">
+      <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs">
+        <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} embedded />
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} />
-
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
+        <div className="shrink-0">
+          <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
+        </div>
+      </div>
 
       <ConfirmDialog
         isOpen={!!deleteId}

@@ -186,8 +186,8 @@ export default function ProductsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="flex flex-1 flex-col min-h-0 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <SearchInput
           value={search}
           onChange={handleSearchChange}
@@ -205,7 +205,7 @@ export default function ProductsPage() {
               { value: "DRAFT", label: "Draft" },
               { value: "ARCHIVED", label: "Archived" },
             ]}
-            triggerClassName="w-36"
+            triggerClassName="w-40 sm:w-44"
           />
           <PermissionGate permission="products:create">
             <button
@@ -230,13 +230,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <div className="w-full overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs">
-        {isError && (
-          <div className="border-b border-rose-100 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700">
-            Failed to load products. {(error as Error)?.message || "Please try again."}
-          </div>
-        )}
-
+      <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs">
         <DataTable
           columns={columns}
           data={data?.data ?? []}
@@ -246,13 +240,15 @@ export default function ProductsPage() {
           embedded
         />
 
-        <Pagination
-          pagination={data?.pagination}
-          currentPage={page}
-          isLoading={isPending && !data}
-          isFetching={isFetching}
-          onPageChange={handlePageChange}
-        />
+        <div className="shrink-0">
+          <Pagination
+            pagination={data?.pagination}
+            currentPage={page}
+            isLoading={isPending && !data}
+            isFetching={isFetching}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
 
       <CreateProductModal

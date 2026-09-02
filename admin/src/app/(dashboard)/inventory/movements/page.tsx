@@ -48,12 +48,14 @@ export default function StockMovementsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      
+    <div className="flex flex-1 flex-col min-h-0 space-y-4">
+      <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs">
+        <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} embedded />
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
-
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+        <div className="shrink-0">
+          <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+        </div>
+      </div>
     </div>
   );
 }

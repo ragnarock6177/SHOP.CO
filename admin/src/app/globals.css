@@ -106,6 +106,31 @@ body {
   background-color: #94a3b8 !important; /* Slate-400 on hover */
 }
 
+/* Sleek Ultra-Thin Scrollbar for Data Tables */
+.table-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.table-scrollbar::-webkit-scrollbar {
+  display: block !important;
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.table-scrollbar::-webkit-scrollbar-track {
+  background: #f8fafc !important;
+}
+
+.table-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;
+  border-radius: 9999px !important;
+}
+
+.table-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8 !important;
+}
+
 /* Infinite Marquee Train Animation */
 @keyframes marquee {
   0% {
