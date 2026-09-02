@@ -17,9 +17,9 @@ description: "Task list for Bulk Product & Variant Import implementation"
 
 **Purpose**: Install required spreadsheet parsing libraries and setup shared types
 
-- [ ] T001 Install `xlsx` (SheetJS), `csv-parse`, and `multer` dependencies in `backend/package.json`
-- [ ] T002 [P] Create bulk import TypeScript interfaces and schemas in `backend/src/types/bulkImport.ts`
-- [ ] T003 [P] Create frontend bulk import TypeScript interfaces in `admin/src/types/bulkImport.ts`
+- [x] T001 Install `xlsx` (SheetJS), `csv-parse`, and `multer` dependencies in `backend/package.json`
+- [x] T002 [P] Create bulk import TypeScript interfaces and schemas in `backend/src/types/bulkImport.ts`
+- [x] T003 [P] Create frontend bulk import TypeScript interfaces in `admin/src/types/bulkImport.ts`
 
 ---
 
@@ -27,10 +27,10 @@ description: "Task list for Bulk Product & Variant Import implementation"
 
 **Purpose**: Core spreadsheet parsing, validation rules, and template generator services
 
-- [ ] T004 Implement multi-format spreadsheet buffer parser (CSV, XLSX) in `backend/src/services/spreadsheetParser.service.ts`
-- [ ] T005 [P] Implement template generator service with sample fashion data in `backend/src/services/templateGenerator.service.ts`
-- [ ] T006 [P] Implement validation schema and options in `backend/src/validators/admin/bulkImport.validator.ts`
-- [ ] T007 Configure multer upload middleware for memory buffer handling in `backend/src/middleware/upload.ts`
+- [x] T004 Implement multi-format spreadsheet buffer parser (CSV, XLSX) in `backend/src/services/spreadsheetParser.service.ts`
+- [x] T005 [P] Implement template generator service with sample fashion data in `backend/src/services/templateGenerator.service.ts`
+- [x] T006 [P] Implement validation schema and options in `backend/src/validators/admin/bulkImport.validator.ts`
+- [x] T007 Configure multer upload middleware for memory buffer handling in `backend/src/middleware/upload.ts`
 
 ---
 
@@ -40,9 +40,9 @@ description: "Task list for Bulk Product & Variant Import implementation"
 
 **Independent Test**: Requesting `GET /api/v1/admin/products/import/template?format=csv` downloads a properly formatted CSV with all standard product & variant column headers.
 
-- [ ] T008 [US1] Implement template download endpoint in `backend/src/controllers/admin/bulkImport.controller.ts`
-- [ ] T009 [US1] Mount `/import/template` route in `backend/src/routes/admin/products.routes.ts`
-- [ ] T010 [P] [US1] Implement template download helper in `admin/src/lib/productsApi.ts`
+- [x] T008 [US1] Implement template download endpoint in `backend/src/controllers/admin/bulkImport.controller.ts`
+- [x] T009 [US1] Mount `/import/template` route in `backend/src/routes/admin/products.routes.ts`
+- [x] T010 [P] [US1] Implement template download helper in `admin/src/lib/productsApi.ts`
 
 ---
 
@@ -52,10 +52,10 @@ description: "Task list for Bulk Product & Variant Import implementation"
 
 **Independent Test**: Uploading a file with invalid rows returns row-by-row error diagnostics without altering database state.
 
-- [ ] T011 [US2] Implement dry-run validation engine (duplicate SKU check, price/stock checks, category detection) in `backend/src/services/bulkImport.service.ts`
-- [ ] T012 [US2] Implement `/import/validate` controller handler in `backend/src/controllers/admin/bulkImport.controller.ts`
-- [ ] T013 [US2] Mount `/import/validate` route in `backend/src/routes/admin/products.routes.ts`
-- [ ] T014 [P] [US2] Build `ImportValidationTable.tsx` component in `admin/src/components/products/ImportValidationTable.tsx`
+- [x] T011 [US2] Implement dry-run validation engine (duplicate SKU check, price/stock checks, category detection) in `backend/src/services/bulkImport.service.ts`
+- [x] T012 [US2] Implement `/import/validate` controller handler in `backend/src/controllers/admin/bulkImport.controller.ts`
+- [x] T013 [US2] Mount `/import/validate` route in `backend/src/routes/admin/products.routes.ts`
+- [x] T014 [P] [US2] Build `ImportValidationTable.tsx` component in `admin/src/components/products/ImportValidationTable.tsx`
 
 ---
 
@@ -65,13 +65,13 @@ description: "Task list for Bulk Product & Variant Import implementation"
 
 **Independent Test**: Uploading 50 products creates parent records, variants, stock balances, and ledger logs cleanly.
 
-- [ ] T015 [US3] Implement chunked transactional product/variant upsert execution logic in `backend/src/services/bulkImport.service.ts`
-- [ ] T016 [US3] Implement initial stock balance creation and inventory movement logging in `backend/src/services/bulkImport.service.ts`
-- [ ] T017 [US3] Implement `/import/execute` controller handler and audit logging in `backend/src/controllers/admin/bulkImport.controller.ts`
-- [ ] T018 [US3] Mount `/import/execute` route in `backend/src/routes/admin/products.routes.ts`
-- [ ] T019 [US3] Create `useBulkProductImport.ts` React Query mutation hook in `admin/src/hooks/queries/useBulkProductImport.ts`
-- [ ] T020 [US3] Build `BulkImportDialog.tsx` modal workflow in `admin/src/components/products/BulkImportDialog.tsx`
-- [ ] T021 [US3] Integrate "Import Products" trigger button in `admin/src/app/(dashboard)/products/page.tsx`
+- [x] T015 [US3] Implement chunked transactional product/variant upsert execution logic in `backend/src/services/bulkImport.service.ts`
+- [x] T016 [US3] Implement initial stock balance creation and inventory movement logging in `backend/src/services/bulkImport.service.ts`
+- [x] T017 [US3] Implement `/import/execute` controller handler and audit logging in `backend/src/controllers/admin/bulkImport.controller.ts`
+- [x] T018 [US3] Mount `/import/execute` route in `backend/src/routes/admin/products.routes.ts`
+- [x] T019 [US3] Create `useBulkProductImport.ts` React Query mutation hook in `admin/src/hooks/queries/useBulkProductImport.ts`
+- [x] T020 [US3] Build `BulkImportDialog.tsx` modal workflow in `admin/src/components/products/BulkImportDialog.tsx`
+- [x] T021 [US3] Integrate "Import Products" trigger button in `admin/src/app/(dashboard)/products/page.tsx`
 
 ---
 
@@ -81,9 +81,9 @@ description: "Task list for Bulk Product & Variant Import implementation"
 
 **Independent Test**: A 6-row CSV with 1 handle generates 1 parent Product with 6 distinct variants and mapped attributes.
 
-- [ ] T022 [US4] Implement multi-variant handle grouping algorithm in `backend/src/services/bulkImport.service.ts`
-- [ ] T023 [US4] Implement dynamic attribute value creation and join table linking in `backend/src/services/bulkImport.service.ts`
-- [ ] T024 [P] [US4] Implement image URL fetching and registration for parent/variant images in `backend/src/services/bulkImport.service.ts`
+- [x] T022 [US4] Implement multi-variant handle grouping algorithm in `backend/src/services/bulkImport.service.ts`
+- [x] T023 [US4] Implement dynamic attribute value creation and join table linking in `backend/src/services/bulkImport.service.ts`
+- [x] T024 [P] [US4] Implement image URL fetching and registration for parent/variant images in `backend/src/services/bulkImport.service.ts`
 
 ---
 
@@ -93,8 +93,8 @@ description: "Task list for Bulk Product & Variant Import implementation"
 
 **Independent Test**: Clicking "Download Error Rows" exports a CSV with an added `_error_reason` column for failed rows.
 
-- [ ] T025 [US5] Implement error CSV generator for failed rows in `backend/src/services/templateGenerator.service.ts`
-- [ ] T026 [US5] Implement client-side error export download in `admin/src/components/products/BulkImportDialog.tsx`
+- [x] T025 [US5] Implement error CSV generator for failed rows in `backend/src/services/templateGenerator.service.ts`
+- [x] T026 [US5] Implement client-side error export download in `admin/src/components/products/BulkImportDialog.tsx`
 
 ---
 
@@ -102,10 +102,10 @@ description: "Task list for Bulk Product & Variant Import implementation"
 
 **Purpose**: Aesthetics, font conformance, and end-to-end quickstart validation
 
-- [ ] T027 [P] Enforce strict Be Vietnam Pro typography and monochrome styling (`rounded-md`, neutral palette) in `admin/src/components/products/BulkImportDialog.tsx`
-- [ ] T028 [P] Enforce 2MB file upload guard and image URL validation in `admin/src/components/products/BulkImportDialog.tsx`
-- [ ] T029 Execute full end-to-end verification following `specs/006-bulk-product-import/quickstart.md`
-- [ ] T030 Validate production builds with `npm run build` in both `backend` and `admin`
+- [x] T027 [P] Enforce strict Be Vietnam Pro typography and monochrome styling (`rounded-md`, neutral palette) in `admin/src/components/products/BulkImportDialog.tsx`
+- [x] T028 [P] Enforce 2MB file upload guard and image URL validation in `admin/src/components/products/BulkImportDialog.tsx`
+- [x] T029 Execute full end-to-end verification following `specs/006-bulk-product-import/quickstart.md`
+- [x] T030 Validate production builds with `npm run build` in both `backend` and `admin`
 
 ---
 

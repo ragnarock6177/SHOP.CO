@@ -5,7 +5,7 @@ import Link from "next/link.js";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Image as ImageIcon, FileSpreadsheet } from "lucide-react";
 import { useProducts, useArchiveProduct, ProductItem } from "../../../hooks/queries/useProducts";
 import { DataTable } from "../../../components/data-table/DataTable";
 import { Pagination } from "../../../components/data-table/Pagination";
@@ -15,6 +15,7 @@ import { ConfirmDialog } from "../../../components/feedback/ConfirmDialog";
 import { PermissionGate } from "../../../components/rbac/PermissionGate";
 import { CustomSelect } from "@/components/ui/select";
 import { CreateProductModal } from "../../../components/forms/CreateProductModal";
+import { BulkImportDialog } from "../../../components/products/BulkImportDialog";
 
 function getProductPrimaryImage(product: ProductItem): string | null {
   const images =
@@ -40,6 +41,7 @@ export default function ProductsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [archiveId, setArchiveId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
   const { data, isLoading } = useProducts({
     page,
@@ -161,16 +163,29 @@ export default function ProductsPage() {
           <h1 className="text-xl font-bold text-slate-900">Product Catalog</h1>
           <p className="text-xs text-slate-500">Manage ecommerce products, pricing, and variants</p>
         </div>
-        <PermissionGate permission="products:create">
-          <button
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create Product</span>
-          </button>
-        </PermissionGate>
+        <div className="flex items-center gap-2">
+          <PermissionGate permission="products:create">
+            <button
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center space-x-1.5 rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 shadow-2xs transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-slate-600" />
+              <span>Import Products</span>
+            </button>
+          </PermissionGate>
+
+          <PermissionGate permission="products:create">
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Product</span>
+            </button>
+          </PermissionGate>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -213,6 +228,11 @@ export default function ProductsPage() {
       <CreateProductModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      <BulkImportDialog
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
       />
 
       <ConfirmDialog

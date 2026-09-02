@@ -1,0 +1,168 @@
+openapi: 3.0.3
+info:
+  title: AIRAVÉ Admin Bulk Product Import API
+  version: 1.0.0
+  description: API endpoints for bulk catalog, variant, and stock spreadsheet ingestion.
+paths:
+  /api/v1/admin/products/import/template:
+    get:
+      summary: Download bulk import template (CSV or Excel)
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [csv, xlsx]
+            default: csv
+      responses:
+        '200':
+          description: Template spreadsheet file with sample rows
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /api/v1/admin/products/import/validate:
+    post:
+      summary: Dry-run validate spreadsheet data before database commit
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                autoCreateCategories:
+                  type: boolean
+                  default: true
+                importMode:
+                  type: string
+                  enum: [INSERT_ONLY, UPSERT]
+                  default: UPSERT
+      responses:
+        '200':
+          description: Validation diagnostic summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ImportValidationSummary'
+
+  /api/v1/admin/products/import/execute:
+    post:
+      summary: Execute validated bulk product import
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                autoCreateCategories:
+                  type: boolean
+                  default: true
+                importMode:
+                  type: string
+                  enum: [INSERT_ONLY, UPSERT]
+                  default: UPSERT
+                skipInvalidRows:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Import execution result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ImportExecutionResult'
+
+components:
+  schemas:
+    ImportValidationSummary:
+      type: object
+      properties:
+        totalRows:
+          type: integer
+        totalProducts:
+          type: integer
+        totalVariants:
+          type: integer
+        newCategories:
+          type: array
+          items:
+            type: string
+        existingSkusCount:
+          type: integer
+        newSkusCount:
+          type: integer
+        isValid:
+          type: boolean
+        warnings:
+          type: array
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+              sku:
+                type: string
+              field:
+                type: string
+              message:
+                type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+              sku:
+                type: string
+              field:
+                type: string
+              message:
+                type: string
+
+    ImportExecutionResult:
+      type: object
+      properties:
+        jobId:
+          type: string
+        totalProductsCreated:
+          type: integer
+        totalProductsUpdated:
+          type: integer
+        totalVariantsCreated:
+          type: integer
+        totalVariantsUpdated:
+          type: integer
+        totalStockUnitsAdded:
+          type: integer
+        failedCount:
+          type: integer
+        failedRows:
+          type: array
+          items:
+            type: object
