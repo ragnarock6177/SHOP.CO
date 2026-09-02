@@ -110,17 +110,33 @@ export const VariantBuilder: React.FC<VariantBuilderProps> = ({
   const { data: rawAttributes } = useQuery({
     queryKey: ["admin", "attributes"],
     queryFn: async () => {
-      const res = await apiClient.get<any>("/admin/attributes");
-      const list = res.data?.data || res.data || [];
-      return Array.isArray(list) ? (list as AttributeItem[]) : [];
+      try {
+        const res = await apiClient.get<any>("/admin/attributes");
+        const list = res.data?.data?.data || res.data?.data || res.data || [];
+        return Array.isArray(list) ? (list as AttributeItem[]) : [];
+      } catch {
+        return [];
+      }
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
 
+  // Safe attributes list
+  const attributesList: AttributeItem[] = useMemo(() => {
+    if (Array.isArray(rawAttributes)) return rawAttributes;
+    if (rawAttributes && Array.isArray((rawAttributes as any).data)) {
+      return (rawAttributes as any).data;
+    }
+    if (rawAttributes && Array.isArray((rawAttributes as any).data?.data)) {
+      return (rawAttributes as any).data.data;
+    }
+    return [];
+  }, [rawAttributes]);
+
   // Extract Colors from API attributes
   const apiColors = useMemo(() => {
-    const colorAttr = (rawAttributes || []).find(
+    const colorAttr = attributesList.find(
       (a) => a.slug === "color" || a.name?.toLowerCase() === "color",
     );
     if (colorAttr && colorAttr.values && colorAttr.values.length > 0) {
@@ -130,18 +146,18 @@ export const VariantBuilder: React.FC<VariantBuilderProps> = ({
       }));
     }
     return DEFAULT_FALLBACK_COLORS;
-  }, [rawAttributes]);
+  }, [attributesList]);
 
   // Extract Sizes from API attributes
   const apiSizes = useMemo(() => {
-    const sizeAttr = (rawAttributes || []).find(
+    const sizeAttr = attributesList.find(
       (a) => a.slug === "size" || a.name?.toLowerCase() === "size",
     );
     if (sizeAttr && sizeAttr.values && sizeAttr.values.length > 0) {
       return sizeAttr.values.map((v) => v.value);
     }
     return DEFAULT_FALLBACK_SIZES;
-  }, [rawAttributes]);
+  }, [attributesList]);
 
   // Options for CustomSelect dropdowns
   const colorSelectOptions: SelectOption[] = useMemo(() => {

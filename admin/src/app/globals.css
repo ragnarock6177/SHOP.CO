@@ -145,11 +145,12 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-be-vietnam), system-ui, sans-serif !important;
-    overflow-x: hidden;
+    overflow: hidden;
   }
   html {
     @apply font-sans;
     font-family: var(--font-be-vietnam), system-ui, sans-serif !important;
+    overflow: hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
