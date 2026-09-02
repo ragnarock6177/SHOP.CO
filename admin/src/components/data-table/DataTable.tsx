@@ -74,7 +74,7 @@ export function DataTable<TData, TValue>({
       }
     >
       <div className="w-full flex-1 min-h-0 overflow-auto overscroll-contain table-scrollbar flex flex-col">
-        <table className={`w-full min-w-[36rem] table-auto text-left text-xs text-slate-700 ${className}`}>
+        <table className={`w-full min-w-xl table-auto text-left text-xs text-slate-700 ${className}`}>
           <thead className="sticky top-0 z-10 border-b border-slate-200/80 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -152,7 +152,7 @@ export function DataTable<TData, TValue>({
         </table>
 
         {!showSkeleton && !isTransitioningPage && !hasRows && (
-          <div className="flex-1 flex items-center justify-center min-h-[260px] w-full">
+          <div className="flex-1 flex items-center justify-center min-h-65 w-full">
             <TableEmptyState
               title={emptyMessage}
               description="No entries found in this table. Try clearing your filters or check back later."

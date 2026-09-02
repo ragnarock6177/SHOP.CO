@@ -73,7 +73,7 @@ export default function InventoryPage() {
     {
       id: "actions",
       header: "Actions",
-      meta: { skeleton: <div className="h-7 w-[68px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
+      meta: { skeleton: <div className="h-7 w-17 rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="inventory:adjust">
           <button

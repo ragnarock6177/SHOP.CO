@@ -62,7 +62,7 @@ export default function AuditLogsPage() {
     {
       id: "actions",
       header: "Diff Payload",
-      meta: { skeleton: <div className="h-7 w-[96px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
+      meta: { skeleton: <div className="h-7 w-24 rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <button
           onClick={() => setSelectedLog(row.original)}

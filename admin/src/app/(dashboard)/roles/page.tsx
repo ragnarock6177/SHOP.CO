@@ -176,7 +176,7 @@ export default function RolesPage() {
                 </PermissionGate>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-h-[500px] overflow-y-auto pr-2">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-h-125 overflow-y-auto pr-2">
                 {AVAILABLE_PERMISSIONS.map((perm) => {
                   const isChecked = activePermissions.includes(perm);
                   return (

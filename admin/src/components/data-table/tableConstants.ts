@@ -2,4 +2,4 @@
 export const DEFAULT_TABLE_SKELETON_ROWS = 6;
 
 /** Min body height matching DEFAULT_TABLE_SKELETON_ROWS (~58px per row) */
-export const TABLE_EMPTY_MIN_HEIGHT_CLASS = "min-h-[21.75rem]";
+export const TABLE_EMPTY_MIN_HEIGHT_CLASS = "min-h-87";

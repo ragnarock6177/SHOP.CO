@@ -70,7 +70,7 @@ export default function OrdersPage() {
     {
       id: "actions",
       header: "Actions",
-      meta: { skeleton: <div className="h-7 w-[76px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
+      meta: { skeleton: <div className="h-7 w-19 rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="orders:read">
           <Link

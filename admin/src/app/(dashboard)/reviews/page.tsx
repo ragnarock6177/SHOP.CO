@@ -78,7 +78,7 @@ export default function ReviewsPage() {
     {
       id: "actions",
       header: "Actions",
-      meta: { skeleton: <div className="flex items-center space-x-2"><div className="h-7 w-[68px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /><div className="h-7 w-7 rounded animate-shimmer bg-slate-100 border border-slate-200/60" /></div> },
+      meta: { skeleton: <div className="flex items-center space-x-2"><div className="h-7 w-17 rounded animate-shimmer bg-slate-100 border border-slate-200/60" /><div className="h-7 w-7 rounded animate-shimmer bg-slate-100 border border-slate-200/60" /></div> },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <PermissionGate permission="reviews:publish">

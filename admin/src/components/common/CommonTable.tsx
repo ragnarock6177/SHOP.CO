@@ -130,7 +130,7 @@ export function CommonTable<TData, TValue>({
         </Table>
 
         {!isLoading && !table.getRowModel().rows?.length && (
-          <div className="flex-1 flex items-center justify-center min-h-[260px] w-full">
+          <div className="flex-1 flex items-center justify-center min-h-65 w-full">
             <TableEmptyState
               title={emptyText}
               description="No records found. Try adjusting your filters or search keywords."

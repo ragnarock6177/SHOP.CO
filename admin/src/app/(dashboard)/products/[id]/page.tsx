@@ -53,7 +53,7 @@ function InfoField({
   return (
     <div className={cn("space-y-1", className)}>
       <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
-      <div className="text-xs font-medium text-slate-800 bg-slate-50 border border-slate-100 rounded-md px-3 py-2 min-h-[34px] flex items-center">
+      <div className="text-xs font-medium text-slate-800 bg-slate-50 border border-slate-100 rounded-md px-3 py-2 min-h-8.5 flex items-center">
         {value ?? <span className="text-slate-400">—</span>}
       </div>
     </div>
@@ -351,7 +351,7 @@ export default function EditProductPage() {
             <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
               {/* Image */}
               <div className="shrink-0 space-y-3 sm:w-48 md:w-56">
-                <div className="relative aspect-square w-full max-w-[224px] mx-auto sm:mx-0 overflow-hidden rounded-lg border border-slate-200/80 bg-slate-50 group">
+                <div className="relative aspect-square w-full max-w-56 mx-auto sm:mx-0 overflow-hidden rounded-lg border border-slate-200/80 bg-slate-50 group">
                   {displayImageUrl ? (
                     <img
                       src={displayImageUrl}
@@ -370,7 +370,7 @@ export default function EditProductPage() {
                   )}
                 </div>
                 {productImages.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto p-1 sidebar-scrollbar max-w-[224px] mx-auto sm:mx-0">
+                  <div className="flex items-center gap-2 overflow-x-auto p-1 sidebar-scrollbar max-w-56 mx-auto sm:mx-0">
                     {productImages.map((img: any, idx: number) => (
                       <button
                         key={img.id || idx}
@@ -713,7 +713,7 @@ export default function EditProductPage() {
               </div>
 
               <div className="overflow-x-auto sidebar-scrollbar">
-                <table className="w-full text-left text-xs min-w-[600px]">
+                <table className="w-full text-left text-xs min-w-150">
                   <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200/60">
                     <tr>
                       <th className="px-3 py-2.5">Variant</th>
