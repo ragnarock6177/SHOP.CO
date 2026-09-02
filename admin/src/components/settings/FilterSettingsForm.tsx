@@ -122,7 +122,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
+    <form onSubmit={handleSubmit} className="rounded-md border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
       <div className="border-b border-slate-200/80 pb-4">
         <h2 className="text-base font-bold text-slate-900">Catalog Filter Customization</h2>
         <p className="text-xs text-slate-500 mt-0.5">Control storefront filter visibility, price bounds, color palettes, sizes, and dress styles</p>
@@ -130,7 +130,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
 
       {message && (
         <div
-          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-xl border ${
+          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
             message.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-rose-50 text-rose-800 border-rose-200"
@@ -149,7 +149,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
       <div className="space-y-3">
         <span className="text-xs font-bold text-slate-900 block">Filter Facet Toggles</span>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-md bg-white shadow-2xs">
             <span className="text-xs font-semibold text-slate-800">Price Range Filter</span>
             <input
               type="checkbox"
@@ -159,7 +159,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-md bg-white shadow-2xs">
             <span className="text-xs font-semibold text-slate-800">Category Filter</span>
             <input
               type="checkbox"
@@ -169,7 +169,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-md bg-white shadow-2xs">
             <span className="text-xs font-semibold text-slate-800">Color Swatch Filter</span>
             <input
               type="checkbox"
@@ -179,7 +179,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-md bg-white shadow-2xs">
             <span className="text-xs font-semibold text-slate-800">Size Chips Filter</span>
             <input
               type="checkbox"
@@ -189,7 +189,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl bg-white shadow-2xs">
+          <div className="flex items-center justify-between p-3 border border-slate-200/80 rounded-md bg-white shadow-2xs">
             <span className="text-xs font-semibold text-slate-800">Dress Style Filter</span>
             <input
               type="checkbox"
@@ -213,7 +213,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
           max={100000}
           value={formData.maxPrice}
           onChange={(e) => setFormData((prev) => ({ ...prev, maxPrice: parseFloat(e.target.value) || 500 }))}
-          className="w-full sm:w-64 h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+          className="w-full sm:w-64 h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
           required
         />
       </div>
@@ -224,8 +224,8 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
         
         <div className="flex flex-wrap gap-2">
           {formData.availableColors.map((color, idx) => (
-            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200/80 bg-white text-xs shadow-2xs">
-              <span className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs" style={{ backgroundColor: color.hex }} />
+            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200/80 bg-white text-xs shadow-2xs">
+              <span className="w-3.5 h-3.5 rounded-md border border-slate-300 shadow-2xs" style={{ backgroundColor: color.hex }} />
               <span className="font-semibold text-slate-800">{color.name}</span>
               <button
                 type="button"
@@ -244,18 +244,18 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
             placeholder="Color Name (e.g. Navy)"
             value={newColorName}
             onChange={(e) => setNewColorName(e.target.value)}
-            className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none w-40"
+            className="h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none w-40"
           />
           <input
             type="color"
             value={newColorHex}
             onChange={(e) => setNewColorHex(e.target.value)}
-            className="h-9 w-10 rounded-xl border border-slate-200 p-0.5 bg-white cursor-pointer"
+            className="h-9 w-10 rounded-md border border-slate-200 p-0.5 bg-white cursor-pointer"
           />
           <button
             type="button"
             onClick={handleAddColor}
-            className="h-9 px-3 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+            className="h-9 px-3 rounded-md border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Add Color</span>
@@ -269,7 +269,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
         
         <div className="flex flex-wrap gap-2">
           {formData.availableSizes.map((size, idx) => (
-            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200/80 bg-white text-xs shadow-2xs">
+            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200/80 bg-white text-xs shadow-2xs">
               <span className="font-semibold text-slate-800">{size}</span>
               <button
                 type="button"
@@ -288,12 +288,12 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
             placeholder="Size Label (e.g. XX-Large)"
             value={newSize}
             onChange={(e) => setNewSize(e.target.value)}
-            className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none w-48"
+            className="h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none w-48"
           />
           <button
             type="button"
             onClick={handleAddSize}
-            className="h-9 px-3 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+            className="h-9 px-3 rounded-md border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Add Size</span>
@@ -307,9 +307,9 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
         
         <div className="flex flex-wrap gap-2">
           {formData.dressStyles.map((style, idx) => (
-            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200/80 bg-white text-xs shadow-2xs">
+            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-200/80 bg-white text-xs shadow-2xs">
               <span className="font-bold text-slate-900">{style.name}</span>
-              <span className="text-[10px] text-slate-400 font-mono">({style.slug})</span>
+              <span className="text-[10px] text-slate-400">({style.slug})</span>
               <button
                 type="button"
                 onClick={() => handleRemoveStyle(idx)}
@@ -327,19 +327,19 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
             placeholder="Style Name (e.g. Casual)"
             value={newStyleName}
             onChange={(e) => setNewStyleName(e.target.value)}
-            className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none w-40"
+            className="h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none w-40"
           />
           <input
             type="text"
             placeholder="Slug (optional)"
             value={newStyleSlug}
             onChange={(e) => setNewStyleSlug(e.target.value)}
-            className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none w-36 font-mono"
+            className="h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none w-36"
           />
           <button
             type="button"
             onClick={handleAddStyle}
-            className="h-9 px-3 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+            className="h-9 px-3 rounded-md border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Add Style</span>
@@ -351,7 +351,7 @@ export function FilterSettingsForm({ initialData, onSaved }: FilterSettingsFormP
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
         >
           <Save className="h-3.5 w-3.5" />
           <span>{saving ? "Saving..." : "Save Catalog Filters"}</span>

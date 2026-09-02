@@ -30,7 +30,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
+    <div className="w-full overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs text-slate-700">
           <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -79,7 +79,7 @@ export function DataTable<TData, TValue>({
                       return (
                         <td key={colIdx} className="px-4 py-3.5">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
+                            <div className="h-9 w-9 rounded-md animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
                             <div className="space-y-1.5 flex-1 min-w-0">
                               <div
                                 className="h-3.5 rounded-md animate-shimmer bg-slate-100"
@@ -107,8 +107,8 @@ export function DataTable<TData, TValue>({
                       return (
                         <td key={colIdx} className="px-4 py-3.5">
                           <div className="flex items-center space-x-2">
-                            <div className="h-7 w-7 rounded-lg animate-shimmer bg-slate-100 border border-slate-200/60" />
-                            <div className="h-7 w-7 rounded-lg animate-shimmer bg-slate-100 border border-slate-200/60" />
+                            <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
+                            <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
                           </div>
                         </td>
                       );

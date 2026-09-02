@@ -41,7 +41,7 @@ export function Header() {
             <Input
               type="search"
               placeholder="Search orders, SKUs, customers..."
-              className="w-full h-9 appearance-none rounded-xl border-slate-200 bg-slate-50/80 pl-9 pr-12 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus-visible:ring-2 focus-visible:ring-slate-900/10 focus-visible:border-slate-400 transition-all"
+              className="w-full h-9 appearance-none rounded-md border-slate-200 bg-slate-50/80 pl-9 pr-12 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus-visible:ring-2 focus-visible:ring-slate-900/10 focus-visible:border-slate-400 transition-all"
             />
             <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 shadow-2xs">
               <span className="text-[11px]">⌘</span>K
@@ -52,7 +52,7 @@ export function Header() {
 
       <div className="flex items-center gap-3">
         <button
-          className="relative rounded-xl border border-slate-200/80 bg-white p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-2xs transition-all"
+          className="relative rounded-md border border-slate-200/80 bg-white p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-2xs transition-all"
           title="Notifications"
         >
           <span className="sr-only">View notifications</span>
@@ -73,7 +73,7 @@ export function Header() {
               </Avatar>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-60 rounded-2xl border-slate-200 bg-white p-1.5 text-slate-900 shadow-xl">
+          <DropdownMenuContent align="end" className="w-60 rounded-md border-slate-200 bg-white p-1.5 text-slate-900 shadow-xl">
             <DropdownMenuLabel className="flex flex-col space-y-1 p-2.5">
               <span className="text-xs font-bold text-slate-900">{getDisplayName()}</span>
               <span className="text-[11px] text-slate-500 font-normal">{user?.email}</span>
@@ -84,14 +84,14 @@ export function Header() {
               )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-slate-100 my-1" />
-            <DropdownMenuItem className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer">
+            <DropdownMenuItem className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer">
               <User className="h-4 w-4 text-slate-400" />
               <span>Staff Profile</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-slate-100 my-1" />
             <DropdownMenuItem
               onClick={() => logout()}
-              className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer"
+              className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer"
             >
               <LogOut className="h-4 w-4 text-rose-500" />
               <span>Log Out</span>

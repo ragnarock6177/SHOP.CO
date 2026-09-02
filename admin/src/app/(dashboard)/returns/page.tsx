@@ -30,7 +30,7 @@ export default function ReturnsPage() {
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <RotateCcw className="h-4 w-4 text-slate-500" />
-          <span className="font-mono text-xs font-semibold text-slate-900">{row.original.returnNumber}</span>
+          <span className="text-xs font-semibold text-slate-900">{row.original.returnNumber}</span>
         </div>
       ),
     },

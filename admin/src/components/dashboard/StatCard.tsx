@@ -22,7 +22,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 }) => {
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border p-5 sm:p-6 shadow-xs transition-all duration-200 hover:shadow-md group ${
+      className={`relative overflow-hidden rounded-md border p-5 sm:p-6 shadow-xs transition-all duration-200 hover:shadow-md group ${
         isAlert
           ? "border-rose-200 bg-rose-50/40 text-slate-900 hover:border-rose-300"
           : "border-slate-200/80 bg-white text-slate-900 hover:border-slate-300"
@@ -31,7 +31,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{title}</span>
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 ${
+          className={`flex h-10 w-10 items-center justify-center rounded-md transition-all duration-200 ${
             isAlert
               ? "bg-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white"
               : "bg-slate-100 text-slate-700 group-hover:bg-slate-900 group-hover:text-white shadow-2xs"

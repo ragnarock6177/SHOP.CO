@@ -51,7 +51,7 @@ export default function AuditLogsPage() {
       cell: ({ row }) => (
         <div>
           <span className="text-xs font-semibold text-slate-700 uppercase">{row.original.entityType}</span>
-          <p className="text-[10px] text-slate-500 font-mono">#{row.original.entityId.slice(0, 8)}</p>
+          <p className="text-[10px] text-slate-500">#{row.original.entityId.slice(0, 8)}</p>
         </div>
       ),
     },

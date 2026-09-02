@@ -47,7 +47,7 @@ export default function PaymentsPage() {
           <CreditCard className="h-4 w-4 text-slate-500" />
           <div>
             <span className="font-semibold text-slate-900">{row.original.provider}</span>
-            <p className="text-[10px] text-slate-500 font-mono">{row.original.providerPaymentId || "COD / Direct"}</p>
+            <p className="text-[10px] text-slate-500">{row.original.providerPaymentId || "COD / Direct"}</p>
           </div>
         </div>
       ),

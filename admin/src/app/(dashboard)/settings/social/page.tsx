@@ -34,7 +34,7 @@ export default function SocialSettingsPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center text-xs font-medium text-slate-400 shadow-2xs animate-pulse">
+        <div className="rounded-md border border-slate-200/80 bg-white p-12 text-center text-xs font-medium text-slate-400 shadow-2xs animate-pulse">
           Loading Social Media Channels...
         </div>
       ) : (

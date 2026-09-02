@@ -39,7 +39,7 @@ export const CouponFormModal: React.FC<CouponFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+      <div className="w-full max-w-md space-y-4 rounded-md border border-slate-200/80 bg-white p-6 shadow-xs">
         <h3 className="text-base font-semibold text-slate-900">Create Promotional Coupon</h3>
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
@@ -50,7 +50,7 @@ export const CouponFormModal: React.FC<CouponFormModalProps> = ({
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="e.g. SUMMER20"
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-900 uppercase focus:outline-none"
+              className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-slate-900 uppercase focus:outline-none"
               required
             />
           </div>
@@ -76,7 +76,7 @@ export const CouponFormModal: React.FC<CouponFormModalProps> = ({
                 type="number"
                 value={discountValue}
                 onChange={(e) => setDiscountValue(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+                className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
                 required
               />
             </div>
@@ -90,7 +90,7 @@ export const CouponFormModal: React.FC<CouponFormModalProps> = ({
                 value={minOrderSubtotal}
                 onChange={(e) => setMinOrderSubtotal(Number(e.target.value))}
                 placeholder="0"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+                className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               />
             </div>
 
@@ -101,7 +101,7 @@ export const CouponFormModal: React.FC<CouponFormModalProps> = ({
                 value={usageLimit}
                 onChange={(e) => setUsageLimit(e.target.value ? Number(e.target.value) : "")}
                 placeholder="Unlimited"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+                className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               />
             </div>
           </div>
@@ -112,7 +112,7 @@ export const CouponFormModal: React.FC<CouponFormModalProps> = ({
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+              className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               required
             />
           </div>
@@ -122,14 +122,14 @@ export const CouponFormModal: React.FC<CouponFormModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+              className="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !code}
-              className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
+              className="rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
             >
               {isLoading ? "Creating..." : "Save Coupon"}
             </button>

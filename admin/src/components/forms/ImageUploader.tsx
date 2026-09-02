@@ -503,7 +503,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           <button
             type="button"
             onClick={() => setFilterVariantId("ALL")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition cursor-pointer shrink-0 ${
               filterVariantId === "ALL"
                 ? "bg-slate-900 text-white shadow-xs"
                 : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/70"
@@ -516,7 +516,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           <button
             type="button"
             onClick={() => setFilterVariantId("PRIMARY")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition cursor-pointer shrink-0 ${
               filterVariantId === "PRIMARY"
                 ? "bg-slate-900 text-white shadow-xs"
                 : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/70"
@@ -529,7 +529,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           <button
             type="button"
             onClick={() => setFilterVariantId("UNASSIGNED")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition cursor-pointer shrink-0 ${
               filterVariantId === "UNASSIGNED"
                 ? "bg-slate-900 text-white shadow-xs"
                 : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/70"
@@ -549,7 +549,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 key={c.label}
                 type="button"
                 onClick={() => setFilterVariantId(c.label)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition cursor-pointer shrink-0 ${
                   filterVariantId === c.label
                     ? "bg-slate-900 text-white shadow-xs"
                     : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/70"
@@ -562,7 +562,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 <span>{c.label}</span>
                 {count > 0 && (
                   <span
-                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                    className={`rounded-md px-1.5 py-0.2 text-[10px] font-bold ${
                       filterVariantId === c.label ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
                     }`}
                   >
@@ -581,13 +581,13 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         onDragOver={onDragOver}
         onDragLeave={() => setIsDraggingOver(false)}
         onClick={() => !disabled && fileInputRef.current?.click()}
-        className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-200 py-9 px-6 select-none ${
+        className={`relative flex flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed cursor-pointer transition-all duration-200 py-9 px-6 select-none ${
           isDraggingOver
             ? "border-slate-800 bg-slate-100/70 scale-[1.008] shadow-sm"
             : "border-slate-200/90 hover:border-slate-400 hover:bg-slate-50/70 bg-slate-50/30"
         } ${disabled ? "opacity-50 pointer-events-none" : ""}`}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-xs border border-slate-200/80 text-slate-700">
+        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-xs border border-slate-200/80 text-slate-700">
           <ImagePlus className="h-6 w-6" />
         </div>
         <div className="text-center">
@@ -616,12 +616,12 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           {uploading.map((u) => (
             <div
               key={u.id}
-              className="flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white p-3 shadow-xs animate-in fade-in-0 duration-200"
+              className="flex items-center gap-3 rounded-md border border-slate-200/90 bg-white p-3 shadow-xs animate-in fade-in-0 duration-200"
             >
               <img
                 src={u.preview}
                 alt=""
-                className="h-12 w-12 rounded-xl object-cover shrink-0 border border-slate-100"
+                className="h-12 w-12 rounded-md object-cover shrink-0 border border-slate-100"
               />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-slate-800 truncate">{u.file.name}</p>
@@ -642,11 +642,11 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 {u.progress === "compressing" || u.progress === "uploading" || u.progress === "registering" ? (
                   <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
                 ) : u.progress === "done" ? (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 text-emerald-600">
                     <Check className="h-3.5 w-3.5" />
                   </div>
                 ) : (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-rose-50 text-rose-600">
                     <AlertCircle className="h-3.5 w-3.5" />
                   </div>
                 )}
@@ -669,7 +669,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       {!isStagedMode && isRemoteLoading && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="aspect-square rounded-2xl bg-slate-100 animate-pulse border border-slate-200" />
+            <div key={i} className="aspect-square rounded-md bg-slate-100 animate-pulse border border-slate-200" />
           ))}
         </div>
       )}
@@ -726,7 +726,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       )}
 
       {filteredImages.length === 0 && images.length > 0 && (
-        <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center bg-slate-50/50">
+        <div className="rounded-md border border-dashed border-slate-200 p-8 text-center bg-slate-50/50">
           <p className="text-xs font-semibold text-slate-600">No images matched the selected filter.</p>
           <button
             type="button"
@@ -748,10 +748,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       {variantModalImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in-0">
           <div className="fixed inset-0" onClick={() => setVariantModalImage(null)} />
-          <div className="relative z-10 w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200">
+          <div className="relative z-10 w-full max-w-md rounded-md border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-xs">
+                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-900 text-white shadow-xs">
                   <Tags className="h-4 w-4" />
                 </div>
                 <div>
@@ -762,18 +762,18 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               <button
                 type="button"
                 onClick={() => setVariantModalImage(null)}
-                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Thumbnail Preview */}
-            <div className="flex items-center gap-3 my-4 p-2.5 rounded-2xl bg-slate-50 border border-slate-100">
+            <div className="flex items-center gap-3 my-4 p-2.5 rounded-md bg-slate-50 border border-slate-100">
               <img
                 src={variantModalImage.imageUrl}
                 alt=""
-                className="h-12 w-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                className="h-12 w-12 rounded-md object-cover border border-slate-200 shrink-0"
               />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-slate-800 truncate">
@@ -796,7 +796,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                   value={variantSearch}
                   onChange={(e) => setVariantSearch(e.target.value)}
                   placeholder="Filter variants..."
-                  className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                  className="w-full rounded-md border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
                 />
               </div>
             )}
@@ -829,7 +829,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                     <label
                       key={v.id}
                       onClick={() => toggleVariantSelection(v.id)}
-                      className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition select-none ${
+                      className={`flex items-center justify-between p-2.5 rounded-md border cursor-pointer transition select-none ${
                         isChecked
                           ? "border-slate-800 bg-slate-50/80 shadow-2xs"
                           : "border-slate-200/80 hover:bg-slate-50/50"
@@ -845,13 +845,13 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                         </div>
                         {colorHex && (
                           <span
-                            className="h-3 w-3 rounded-full border border-slate-300 shadow-2xs shrink-0"
+                            className="h-3 w-3 rounded-md border border-slate-300 shadow-2xs shrink-0"
                             style={{ backgroundColor: colorHex }}
                           />
                         )}
                         <span className="text-xs font-semibold text-slate-800 truncate">{label}</span>
                       </div>
-                      {v.sku && <span className="text-[10px] font-mono text-slate-400 shrink-0">{v.sku}</span>}
+                      {v.sku && <span className="text-[10px] text-slate-400 shrink-0">{v.sku}</span>}
                     </label>
                   );
                 })}
@@ -862,14 +862,14 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               <button
                 type="button"
                 onClick={() => setVariantModalImage(null)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                className="rounded-md border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={saveVariantAssociations}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 shadow-xs transition cursor-pointer active:scale-[0.98]"
+                className="rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 shadow-xs transition cursor-pointer active:scale-[0.98]"
               >
                 Save Associations
               </button>
@@ -882,7 +882,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       {previewImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in-0">
           <div className="fixed inset-0" onClick={() => setPreviewImage(null)} />
-          <div className="relative z-10 flex flex-col items-center max-w-4xl max-h-[90vh] rounded-3xl bg-white overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="relative z-10 flex flex-col items-center max-w-4xl max-h-[90vh] rounded-md bg-white overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex w-full items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-white">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-900 truncate">
@@ -893,7 +893,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 <button
                   type="button"
                   onClick={() => copyToClipboard(previewImage.url)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
                 >
                   <Copy className="h-3 w-3" />
                   {copiedUrl ? "Copied URL!" : "Copy URL"}
@@ -901,7 +901,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 <button
                   type="button"
                   onClick={() => setPreviewImage(null)}
-                  className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+                  className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -911,7 +911,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               <img
                 src={previewImage.url}
                 alt={previewImage.alt || "Product preview"}
-                className="max-h-[70vh] max-w-full rounded-2xl object-contain shadow-lg"
+                className="max-h-[70vh] max-w-full rounded-md object-contain shadow-lg"
               />
             </div>
           </div>
@@ -985,7 +985,7 @@ function ImageCard({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`group relative rounded-2xl border overflow-hidden bg-white shadow-2xs transition-all duration-200 ${
+      className={`group relative rounded-md border overflow-hidden bg-white shadow-2xs transition-all duration-200 ${
         isDragOver
           ? "border-slate-800 ring-2 ring-slate-800/30 scale-[1.02] shadow-md"
           : "border-slate-200/90 hover:border-slate-300 hover:shadow-xs"
@@ -1007,7 +1007,7 @@ function ImageCard({
           className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white"
           title="Click to view full preview"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-xs text-white shadow">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-black/60 backdrop-blur-xs text-white shadow">
             <Maximize2 className="h-4 w-4" />
           </div>
         </button>
@@ -1016,7 +1016,7 @@ function ImageCard({
       {/* Primary Badge */}
       {image.isPrimary && (
         <div className="absolute top-2 left-2 z-10 pointer-events-none">
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/90 px-2 py-0.5 text-[9px] font-bold text-white shadow-md backdrop-blur-xs">
+          <span className="inline-flex items-center gap-1 rounded-md bg-slate-900/90 px-2 py-0.5 text-[9px] font-bold text-white shadow-md backdrop-blur-xs">
             <Star className="h-2.5 w-2.5" fill="currentColor" />
             Primary
           </span>
@@ -1025,7 +1025,7 @@ function ImageCard({
 
       {/* Drag Handle */}
       <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-        <div className="rounded-lg bg-white/90 p-1 shadow-md backdrop-blur-xs text-slate-600 hover:text-slate-900">
+        <div className="rounded-md bg-white/90 p-1 shadow-md backdrop-blur-xs text-slate-600 hover:text-slate-900">
           <GripVertical className="h-3.5 w-3.5" />
         </div>
       </div>
@@ -1069,7 +1069,7 @@ function ImageCard({
                 onClick={onSetPrimary}
                 disabled={isUpdating}
                 title="Set as catalog primary image"
-                className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-slate-100 hover:bg-slate-200/80 py-1 text-[10px] font-bold text-slate-700 transition cursor-pointer disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-1 rounded-md bg-slate-100 hover:bg-slate-200/80 py-1 text-[10px] font-bold text-slate-700 transition cursor-pointer disabled:opacity-50"
               >
                 <Star className="h-3 w-3" />
                 Primary
@@ -1081,7 +1081,7 @@ function ImageCard({
                 type="button"
                 onClick={onOpenVariants}
                 title="Link with variants"
-                className={`flex-1 flex items-center justify-center gap-1 rounded-lg py-1 text-[10px] font-bold transition cursor-pointer ${
+                className={`flex-1 flex items-center justify-center gap-1 rounded-md py-1 text-[10px] font-bold transition cursor-pointer ${
                   linkedVariants.length > 0
                     ? "bg-slate-900 text-white hover:bg-slate-800 shadow-2xs"
                     : "border border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -1096,7 +1096,7 @@ function ImageCard({
               type="button"
               onClick={onStartAltEdit}
               title="Edit image alt text"
-              className="flex items-center justify-center rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+              className="flex items-center justify-center rounded-md border border-slate-200 px-2 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
             >
               Alt
             </button>
@@ -1105,7 +1105,7 @@ function ImageCard({
               type="button"
               onClick={onDeleteRequest}
               title="Delete image"
-              className="flex items-center justify-center rounded-lg border border-rose-100 bg-rose-50 px-2 py-1 text-rose-600 hover:bg-rose-100 transition cursor-pointer"
+              className="flex items-center justify-center rounded-md border border-rose-100 bg-rose-50 px-2 py-1 text-rose-600 hover:bg-rose-100 transition cursor-pointer"
             >
               <Trash2 className="h-3 w-3" />
             </button>
@@ -1125,21 +1125,21 @@ function ImageCard({
                 if (e.key === "Escape") onCancelAlt();
               }}
               placeholder="Enter descriptive alt text…"
-              className="w-full rounded-lg border border-slate-300 px-2 py-1 text-[10px] font-medium text-slate-900 focus:border-slate-500 focus:outline-none"
+              className="w-full rounded-md border border-slate-300 px-2 py-1 text-[10px] font-medium text-slate-900 focus:border-slate-500 focus:outline-none"
             />
             <div className="flex gap-1">
               <button
                 type="button"
                 onClick={onSaveAlt}
                 disabled={isUpdating}
-                className="flex-1 rounded-lg bg-slate-900 py-1 text-[10px] font-bold text-white hover:bg-slate-800 transition cursor-pointer"
+                className="flex-1 rounded-md bg-slate-900 py-1 text-[10px] font-bold text-white hover:bg-slate-800 transition cursor-pointer"
               >
                 Save
               </button>
               <button
                 type="button"
                 onClick={onCancelAlt}
-                className="flex-1 rounded-lg border border-slate-200 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                className="flex-1 rounded-md border border-slate-200 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -1156,14 +1156,14 @@ function ImageCard({
                 type="button"
                 onClick={onDeleteConfirm}
                 disabled={isDeleting}
-                className="flex-1 rounded-lg bg-rose-600 py-1 text-[10px] font-bold text-white hover:bg-rose-700 transition cursor-pointer"
+                className="flex-1 rounded-md bg-rose-600 py-1 text-[10px] font-bold text-white hover:bg-rose-700 transition cursor-pointer"
               >
                 {isDeleting ? "…" : "Yes, delete"}
               </button>
               <button
                 type="button"
                 onClick={onDeleteCancel}
-                className="flex-1 rounded-lg border border-slate-200 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                className="flex-1 rounded-md border border-slate-200 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
               >
                 Cancel
               </button>

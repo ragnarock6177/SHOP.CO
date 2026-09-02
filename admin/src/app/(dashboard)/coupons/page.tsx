@@ -37,7 +37,7 @@ export default function CouponsPage() {
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <Ticket className="h-4 w-4 text-slate-500" />
-          <code className="font-mono text-xs font-bold text-slate-900 uppercase">{row.original.code}</code>
+          <span className="text-xs font-bold text-slate-900 uppercase">{row.original.code}</span>
         </div>
       ),
     },
@@ -95,7 +95,7 @@ export default function CouponsPage() {
         <PermissionGate permission="coupons:create">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
+            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             <span>Create Coupon</span>

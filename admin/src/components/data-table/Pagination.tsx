@@ -63,9 +63,9 @@ export const Pagination: React.FC<PaginationProps> = ({
       >
         <div className="h-3.5 w-48 rounded-md animate-shimmer bg-slate-100" />
         <div className="flex items-center gap-2">
-          <div className="h-8 w-16 rounded-xl animate-shimmer bg-slate-100 border border-slate-200/60" />
-          <div className="h-8 w-36 rounded-xl animate-shimmer bg-slate-100 border border-slate-200/60" />
-          <div className="h-8 w-16 rounded-xl animate-shimmer bg-slate-100 border border-slate-200/60" />
+          <div className="h-8 w-16 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
+          <div className="h-8 w-36 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
+          <div className="h-8 w-16 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
         </div>
       </div>
     );
@@ -109,7 +109,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         </button>
 
         {/* Page Numbers Container */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 shadow-2xs">
+        <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-md border border-slate-200/70 shadow-2xs">
           {getPageNumbers().map((page, index) => {
             if (page === "...") {
               return (
@@ -130,7 +130,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 type="button"
                 key={`page-${pageNum}-${index}`}
                 onClick={() => onPageChange(pageNum)}
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-md text-xs font-bold transition-all duration-150 cursor-pointer ${
                   isActive
                     ? "bg-slate-900 text-white shadow-xs scale-105 z-10"
                     : "text-slate-700 hover:bg-white hover:text-slate-900 hover:shadow-2xs"

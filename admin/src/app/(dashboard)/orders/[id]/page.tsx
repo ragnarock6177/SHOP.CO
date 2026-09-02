@@ -25,19 +25,19 @@ export default function OrderDetailsPage() {
         {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="h-9 w-9 rounded-xl animate-shimmer bg-slate-100 border border-slate-200/60" />
+            <div className="h-9 w-9 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
             <div className="space-y-1.5">
               <div className="h-6 w-48 rounded-md animate-shimmer bg-slate-100" />
               <div className="h-3 w-36 rounded-md animate-shimmer bg-slate-100" />
             </div>
           </div>
-          <div className="h-6 w-24 rounded-full animate-shimmer bg-slate-100" />
+          <div className="h-6 w-24 rounded-md animate-shimmer bg-slate-100" />
         </div>
 
         {/* 3 Column Grid Skeleton */}
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+            <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
               <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
                 <div className="h-4 w-4 rounded animate-shimmer bg-slate-100" />
                 <div className="h-4 w-32 rounded-md animate-shimmer bg-slate-100" />
@@ -60,14 +60,14 @@ export default function OrderDetailsPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-3">
+            <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-3">
               <div className="h-4 w-32 rounded-md animate-shimmer bg-slate-100 border-b border-slate-100 pb-3" />
               <div className="space-y-2 pt-1">
                 <div className="h-4 w-28 rounded-md animate-shimmer bg-slate-100" />
                 <div className="h-3 w-40 rounded-md animate-shimmer bg-slate-100" />
               </div>
             </div>
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-3">
+            <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-3">
               <div className="h-4 w-32 rounded-md animate-shimmer bg-slate-100 border-b border-slate-100 pb-3" />
               <div className="space-y-2 pt-1">
                 <div className="h-3.5 w-full rounded-md animate-shimmer bg-slate-100" />
@@ -82,7 +82,7 @@ export default function OrderDetailsPage() {
 
   if (error || !order) {
     return (
-      <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs">
+      <div className="rounded-md border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs">
         Order not found or error loading order details.
       </div>
     );
@@ -133,7 +133,7 @@ export default function OrderDetailsPage() {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.push("/orders")}
-            className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            className="rounded-md border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
@@ -170,7 +170,7 @@ export default function OrderDetailsPage() {
         {/* Main Line Items Section */}
         <div className="space-y-6 lg:col-span-2">
           {/* Order Items Table */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
+          <div className="rounded-md border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
             <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
               <PackageCheck className="h-4 w-4 text-slate-500" />
               <h2 className="text-sm font-semibold text-slate-900">Order Line Items</h2>
@@ -180,7 +180,7 @@ export default function OrderDetailsPage() {
                 <div key={item.id} className="flex items-center justify-between py-3">
                   <div>
                     <span className="font-semibold text-slate-800">{item.productName}</span>
-                    <p className="text-[10px] text-slate-500 font-mono">SKU: {item.sku}</p>
+                    <p className="text-[10px] text-slate-500">SKU: {item.sku}</p>
                   </div>
                   <div className="text-right">
                     <span className="block text-slate-700">
@@ -194,7 +194,7 @@ export default function OrderDetailsPage() {
           </div>
 
           {/* Status Timeline History */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
+          <div className="rounded-md border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
             <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
               <Clock className="h-4 w-4 text-slate-500" />
               <h2 className="text-sm font-semibold text-slate-900">Status History Audit Trail</h2>
@@ -225,7 +225,7 @@ export default function OrderDetailsPage() {
         {/* Sidebar Summary Section */}
         <div className="space-y-6">
           {/* Customer Profile Card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
+          <div className="rounded-md border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
             <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
               <User className="h-4 w-4 text-slate-500" />
               <h2 className="text-sm font-semibold text-slate-900">Customer Details</h2>
@@ -238,7 +238,7 @@ export default function OrderDetailsPage() {
 
           {/* Shipping Address Card */}
           {order.shippingAddress && (
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
+            <div className="rounded-md border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
               <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
                 <MapPin className="h-4 w-4 text-slate-500" />
                 <h2 className="text-sm font-semibold text-slate-900">Shipping Address</h2>
@@ -252,7 +252,7 @@ export default function OrderDetailsPage() {
           )}
 
           {/* Financial Breakdown Card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
+          <div className="rounded-md border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
             <h2 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-3">Financial Summary</h2>
             <div className="text-xs space-y-2 text-slate-700">
               <div className="flex justify-between">

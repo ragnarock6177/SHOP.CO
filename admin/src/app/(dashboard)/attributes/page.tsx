@@ -40,7 +40,7 @@ export default function AttributesPage() {
     {
       accessorKey: "slug",
       header: "Slug",
-      cell: ({ row }) => <code className="text-[11px] text-slate-500">{row.original.slug}</code>,
+      cell: ({ row }) => <span className="text-[11px] text-slate-500">{row.original.slug}</span>,
     },
     {
       accessorKey: "isVariantAttribute",
