@@ -68,7 +68,7 @@ export default function ProductsPage() {
         return (
           <div className="group/product flex min-w-0 items-center gap-3">
             {primaryImageUrl ? (
-              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border-2 border-white bg-slate-50 shadow-sm transition-transform duration-200 group-hover/product:scale-110">
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md border-2 border-white bg-slate-50 shadow-sm transition-transform duration-200 group-hover/product:scale-110">
                 <Image
                   src={primaryImageUrl}
                   alt={row.original.name}
@@ -80,7 +80,7 @@ export default function ProductsPage() {
                 />
               </div>
             ) : (
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-slate-400">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50 text-slate-400">
                 <ImageIcon className="h-5 w-5 stroke-[1.5]" />
               </div>
             )}

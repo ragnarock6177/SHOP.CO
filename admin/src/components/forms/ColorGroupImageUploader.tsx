@@ -3,7 +3,8 @@
 import React, { useRef, useState, useMemo } from "react";
 import { ImagePlus, Loader2, Trash2, Plus } from "lucide-react";
 import { usePresignUpload, useAddProductImage, useDeleteProductImage, useProductImages } from "@/hooks/queries/useProductImages";
-import { StagedImageItem, compressImage } from "./ImageUploader";
+import { StagedImageItem } from "./ImageUploader";
+import { compressImage, validateImageFile } from "@/utils/imageCompressor";
 
 interface ColorGroupImageUploaderProps {
   productId?: string;
@@ -50,7 +51,20 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
   const otherImages = colorImages.slice(1);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const rawFiles = Array.from(e.target.files || []);
+    if (!rawFiles.length) return;
+
+    // Filter and validate 2MB restriction
+    const files: File[] = [];
+    for (const f of rawFiles) {
+      const validation = validateImageFile(f);
+      if (!validation.valid) {
+        alert(validation.error);
+        continue;
+      }
+      files.push(f);
+    }
+
     if (!files.length) return;
 
     setIsUploading(true);
@@ -152,7 +166,7 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
       {/* Main Large Image */}
       <div 
         onClick={() => !disabled && !isUploading && !primaryImage && fileInputRef.current?.click()}
-        className={`relative w-full aspect-[4/5] rounded-md border-2 flex items-center justify-center overflow-hidden transition-all duration-200 group ${
+        className={`relative w-full aspect-4/5 rounded-md border-2 flex items-center justify-center overflow-hidden transition-all duration-200 group ${
           !primaryImage && !isUploading 
             ? "border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer hover:border-slate-400" 
             : "border-slate-200 bg-white"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -145,6 +145,19 @@ export function Sidebar() {
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(getDefaultOpen);
 
+  useEffect(() => {
+    navItems.forEach((item) => {
+      if (item.subItems) {
+        const isActive = item.subItems.some(
+          (sub) => pathname === sub.href || pathname.startsWith(sub.href + '/')
+        ) || pathname === item.href || pathname.startsWith(item.href + '/');
+        if (isActive) {
+          setOpenMenus((prev) => (prev[item.name] ? prev : { ...prev, [item.name]: true }));
+        }
+      }
+    });
+  }, [pathname]);
+
   const toggleMenu = (name: string) => {
     setOpenMenus((prev) => ({ ...prev, [name]: !prev[name] }));
   };
@@ -173,7 +186,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3.5 sidebar-scrollbar">
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3.5 sidebar-scrollbar">
         {navItems.map((item) => {
           const hasSubItems = item.subItems && item.subItems.length > 0;
           const isSubActive =
@@ -193,26 +206,26 @@ export function Sidebar() {
                 <button
                   onClick={() => toggleMenu(item.name)}
                   className={cn(
-                    'flex w-full items-center justify-between rounded-md px-3.5 py-2.5 text-xs font-semibold transition-all duration-150',
-                    isActive
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    'flex w-full items-center justify-between rounded-md px-3.5 py-2.5 text-xs transition-colors duration-150',
+                    isSubActive
+                      ? 'bg-slate-100 text-slate-900 font-semibold'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
                   )}
                 >
                   <div className="flex items-center gap-2.5">
-                    <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-white' : 'text-slate-500')} />
+                    <item.icon className={cn('h-4 w-4 shrink-0', isSubActive ? 'text-slate-900' : 'text-slate-500')} />
                     <span>{item.name}</span>
                   </div>
                   <ChevronDown
                     className={cn(
                       'h-3.5 w-3.5 transition-transform duration-200',
-                      isActive ? 'text-slate-300' : 'text-slate-400',
+                      isSubActive ? 'text-slate-700' : 'text-slate-400',
                       isOpen && 'rotate-180'
                     )}
                   />
                 </button>
                 {isOpen && (
-                  <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l-2 border-slate-100 pl-3.5">
+                  <div className="ml-3.5 mt-0.5 flex flex-col gap-0.5 pl-2.5">
                     {item.subItems?.map((sub) => {
                       const isSubCurrent =
                         pathname === sub.href ||
@@ -223,13 +236,13 @@ export function Sidebar() {
                           key={sub.name}
                           href={sub.href}
                           className={cn(
-                            'flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all duration-150',
+                            'flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors duration-150',
                             isSubCurrent
-                              ? 'bg-slate-100 text-slate-900 font-bold border border-slate-200/60 shadow-2xs'
-                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                              ? 'bg-slate-900 text-white shadow-xs'
+                              : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-900'
                           )}
                         >
-                          {SubIcon && <SubIcon className={cn('h-3.5 w-3.5 shrink-0', isSubCurrent ? 'text-slate-900' : 'text-slate-400')} />}
+                          {SubIcon && <SubIcon className={cn('h-3.5 w-3.5 shrink-0', isSubCurrent ? 'text-white' : 'text-slate-400')} />}
                           <span>{sub.name}</span>
                         </Link>
                       );
@@ -245,10 +258,10 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-xs font-semibold transition-all duration-150',
+                'flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-xs font-medium transition-colors duration-150',
                 isActive
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               )}
             >
               <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-white' : 'text-slate-500')} />

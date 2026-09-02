@@ -28,37 +28,7 @@ import {
   useReorderProductImages,
   ProductImage,
 } from "@/hooks/queries/useProductImages";
-
-// ── Client-side image compression ────────────────────────────────────────────
-// Converts any image to WebP at 0.85 quality and caps dimensions at 2048px.
-export async function compressImage(file: File, maxPx = 2048, quality = 0.85): Promise<File> {
-  const bitmap = await createImageBitmap(file);
-
-  let { width, height } = bitmap;
-  if (width > maxPx || height > maxPx) {
-    const ratio = Math.min(maxPx / width, maxPx / height);
-    width = Math.round(width * ratio);
-    height = Math.round(height * ratio);
-  }
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return reject(new Error("Canvas compression failed"));
-        const baseName = file.name.replace(/\.[^.]+$/, "");
-        resolve(new File([blob], `${baseName}.webp`, { type: "image/webp" }));
-      },
-      "image/webp",
-      quality
-    );
-  });
-}
+import { compressImage, validateImageFile } from "@/utils/imageCompressor";
 
 export interface VariantItem {
   id: string;
@@ -350,11 +320,18 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   );
 
   const handleFiles = (files: FileList | File[]) => {
-    const valid = Array.from(files).filter((f) => {
-      if (!f.type.startsWith("image/")) return false;
-      if (f.size > 10 * 1024 * 1024) return false;
-      return true;
+    const fileList = Array.from(files);
+    const valid: File[] = [];
+
+    fileList.forEach((f) => {
+      const validation = validateImageFile(f);
+      if (!validation.valid) {
+        alert(validation.error);
+        return;
+      }
+      valid.push(f);
     });
+
     valid.forEach(uploadFile);
   };
 
@@ -596,7 +573,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             <span className="text-slate-950 font-bold underline underline-offset-2">browse files</span>
           </p>
           <p className="text-xs text-slate-400 mt-1">
-            Auto-converted to optimized WebP • High Quality (2048px) • JPEG, PNG, WebP, AVIF up to 10 MB
+            Auto-converted to ~100KB WebP • High Quality (1800px) • JPEG, PNG, WebP up to 2 MB
           </p>
         </div>
         <input
@@ -1039,7 +1016,7 @@ function ImageCard({
             return (
               <span
                 key={v.id}
-                className="inline-flex items-center gap-1 rounded-md bg-white/90 px-1.5 py-0.5 text-[9px] font-bold text-slate-800 shadow-xs backdrop-blur-xs truncate max-w-[80px]"
+                className="inline-flex items-center gap-1 rounded-md bg-white/90 px-1.5 py-0.5 text-[9px] font-bold text-slate-800 shadow-xs backdrop-blur-xs truncate max-w-20"
               >
                 {colorHex && (
                   <span
