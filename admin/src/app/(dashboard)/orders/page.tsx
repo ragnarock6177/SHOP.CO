@@ -28,6 +28,7 @@ export default function OrdersPage() {
     {
       accessorKey: "orderNumber",
       header: "Order #",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <Link href={`/orders/${row.original.id}`} className="font-semibold text-slate-900 hover:underline">
@@ -40,6 +41,7 @@ export default function OrdersPage() {
     {
       accessorKey: "customerName",
       header: "Customer",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <span className="font-medium text-slate-800">{row.original.customerName}</span>
@@ -50,21 +52,25 @@ export default function OrdersPage() {
     {
       accessorKey: "totalAmount",
       header: "Total (₹)",
+      meta: { skeleton: "numeric" },
       cell: ({ row }) => <span className="font-bold text-slate-900">₹{row.original.totalAmount}</span>,
     },
     {
       accessorKey: "status",
       header: "Order Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "paymentStatus",
       header: "Payment",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.paymentStatus} />,
     },
     {
       id: "actions",
       header: "Actions",
+      meta: { skeleton: <div className="h-7 w-[76px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="orders:read">
           <Link
@@ -81,12 +87,7 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Order Operations Directory</h1>
-          <p className="text-xs text-slate-500">Track incoming orders, status transitions, and fulfillment packaging</p>
-        </div>
-      </div>
+
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <SearchInput

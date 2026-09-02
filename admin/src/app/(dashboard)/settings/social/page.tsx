@@ -26,12 +26,7 @@ export default function SocialSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Social Media Channels</h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Configure external brand profile links (Instagram, Facebook, YouTube, X, Pinterest, WhatsApp)
-        </p>
-      </div>
+      
 
       {loading ? (
         <div className="rounded-md border border-slate-200/80 bg-white p-12 text-center text-xs font-medium text-slate-400 shadow-2xs animate-pulse">

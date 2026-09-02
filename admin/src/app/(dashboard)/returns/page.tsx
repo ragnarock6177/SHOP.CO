@@ -27,6 +27,7 @@ export default function ReturnsPage() {
     {
       accessorKey: "returnNumber",
       header: "Return #",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <RotateCcw className="h-4 w-4 text-slate-500" />
@@ -37,6 +38,7 @@ export default function ReturnsPage() {
     {
       accessorKey: "orderId",
       header: "Order Link",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-slate-800 hover:underline">
           #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
@@ -46,6 +48,7 @@ export default function ReturnsPage() {
     {
       accessorKey: "reason",
       header: "Reason & Customer",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <span className="font-medium text-slate-800">{row.original.reason}</span>
@@ -56,16 +59,19 @@ export default function ReturnsPage() {
     {
       accessorKey: "refundAmount",
       header: "Refund Amount",
+      meta: { skeleton: "numeric" },
       cell: ({ row }) => <span className="font-bold text-slate-900">₹{row.original.refundAmount}</span>,
     },
     {
       accessorKey: "status",
       header: "Return Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       id: "actions",
       header: "Update Status",
+      meta: { skeleton: <div className="h-7 w-40 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="returns:update">
           {row.original.status !== "COMPLETED" && row.original.status !== "REJECTED" && (
@@ -102,29 +108,23 @@ export default function ReturnsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">After-Sales Return Requests</h1>
-          <p className="text-xs text-slate-500">Inspect customer return submissions, item inspect states, and approval flows</p>
-        </div>
-        <div className="flex justify-end">
-          <CustomSelect
-            value={statusFilter}
-            onChange={(val) => {
-              setStatusFilter(val);
-              setPage(1);
-            }}
-            options={[
-              { value: "", label: "All Return Statuses" },
-              { value: "REQUESTED", label: "Requested" },
-              { value: "APPROVED", label: "Approved" },
-              { value: "RECEIVED", label: "Received" },
-              { value: "COMPLETED", label: "Completed" },
-              { value: "REJECTED", label: "Rejected" },
-            ]}
-            triggerClassName="w-44"
-          />
-        </div>
+      <div className="flex justify-end">
+        <CustomSelect
+          value={statusFilter}
+          onChange={(val) => {
+            setStatusFilter(val);
+            setPage(1);
+          }}
+          options={[
+            { value: "", label: "All Return Statuses" },
+            { value: "REQUESTED", label: "Requested" },
+            { value: "APPROVED", label: "Approved" },
+            { value: "RECEIVED", label: "Received" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "REJECTED", label: "Rejected" },
+          ]}
+          triggerClassName="w-44"
+        />
       </div>
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />

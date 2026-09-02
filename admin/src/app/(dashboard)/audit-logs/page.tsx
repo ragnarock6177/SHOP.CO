@@ -24,6 +24,7 @@ export default function AuditLogsPage() {
     {
       accessorKey: "createdAt",
       header: "Timestamp",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <span className="text-[11px] text-slate-500">
           {new Date(row.original.createdAt).toLocaleString()}
@@ -33,6 +34,7 @@ export default function AuditLogsPage() {
     {
       accessorKey: "action",
       header: "Action",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <Activity className="h-4 w-4 text-slate-500" />
@@ -43,11 +45,13 @@ export default function AuditLogsPage() {
     {
       accessorKey: "actorName",
       header: "Actor",
+      meta: { skeleton: "text" },
       cell: ({ row }) => <span className="text-xs text-slate-700">{row.original.actorName}</span>,
     },
     {
       accessorKey: "entityType",
       header: "Entity Reference",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <span className="text-xs font-semibold text-slate-700 uppercase">{row.original.entityType}</span>
@@ -58,6 +62,7 @@ export default function AuditLogsPage() {
     {
       id: "actions",
       header: "Diff Payload",
+      meta: { skeleton: <div className="h-7 w-[96px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <button
           onClick={() => setSelectedLog(row.original)}
@@ -72,10 +77,7 @@ export default function AuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">System Audit Logs Stream</h1>
-        <p className="text-xs text-slate-500">Immutable record of admin actions, status shifts, and entity mutations</p>
-      </div>
+      
 
       <SearchInput
         value={search}

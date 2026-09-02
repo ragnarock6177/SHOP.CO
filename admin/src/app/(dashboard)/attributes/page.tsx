@@ -30,6 +30,7 @@ export default function AttributesPage() {
     {
       accessorKey: "name",
       header: "Attribute Name",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <Sliders className="h-4 w-4 text-slate-500" />
@@ -40,11 +41,13 @@ export default function AttributesPage() {
     {
       accessorKey: "slug",
       header: "Slug",
+      meta: { skeleton: "text" },
       cell: ({ row }) => <span className="text-[11px] text-slate-500">{row.original.slug}</span>,
     },
     {
       accessorKey: "isVariantAttribute",
       header: "Variant Attribute",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => (
         <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isVariantAttribute ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isVariantAttribute ? "YES" : "NO"}
@@ -55,10 +58,7 @@ export default function AttributesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Product Attributes & Swatches</h1>
-        <p className="text-xs text-slate-500">Configure size, color, material, and variant swatches</p>
-      </div>
+
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
     </div>

@@ -28,6 +28,7 @@ export default function CustomersPage() {
     {
       accessorKey: "email",
       header: "Customer",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <span className="font-semibold text-slate-900">
@@ -42,16 +43,19 @@ export default function CustomersPage() {
     {
       accessorKey: "phone",
       header: "Phone",
+      meta: { skeleton: "text" },
       cell: ({ row }) => <span className="text-slate-500">{row.original.phone || "-"}</span>,
     },
     {
       accessorKey: "status",
       header: "Account Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "isEmailVerified",
       header: "Verified",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => (
         <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold ${row.original.isEmailVerified ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isEmailVerified ? "VERIFIED" : "UNVERIFIED"}
@@ -61,6 +65,7 @@ export default function CustomersPage() {
     {
       id: "actions",
       header: "Actions",
+      meta: { skeleton: <div className="h-7 w-[76px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="customers:read">
           <Link
@@ -77,12 +82,7 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Customer Accounts</h1>
-          <p className="text-xs text-slate-500">Search customer profiles, address books, and account status</p>
-        </div>
-      </div>
+
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <SearchInput

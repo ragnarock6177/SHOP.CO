@@ -59,13 +59,36 @@ export const Pagination: React.FC<PaginationProps> = ({
     if (pagination && pagination.total <= 10) return null;
     return (
       <div
-        className={`flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200/80 px-4 py-3.5 bg-slate-50/40 ${className}`}
+        className={`flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200/80 px-4 py-3 bg-slate-50/40 ${className}`}
       >
-        <div className="h-3.5 w-48 rounded-md animate-shimmer bg-slate-100" />
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-16 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
-          <div className="h-8 w-36 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
-          <div className="h-8 w-16 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
+        {/* Summary Info Skeleton */}
+        {showSummary && (
+          <div className="h-3.5 w-48 rounded-md animate-shimmer bg-slate-100/80" />
+        )}
+
+        {/* Pagination Controls Skeleton */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Previous Button Skeleton */}
+          <div className="flex items-center gap-1.5 opacity-50">
+            <div className="h-[26px] w-[26px] rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
+            <div className="hidden sm:block h-3 w-8 rounded-sm animate-shimmer bg-slate-100/80" />
+          </div>
+
+          {/* Page Numbers Skeleton */}
+          <div className="flex items-center gap-1 p-1 bg-slate-100/60 rounded-md border border-slate-200/50 shadow-2xs">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-md animate-shimmer bg-slate-200/50"
+              />
+            ))}
+          </div>
+
+          {/* Next Button Skeleton */}
+          <div className="flex items-center gap-1.5 opacity-50">
+            <div className="hidden sm:block h-3 w-8 rounded-sm animate-shimmer bg-slate-100/80" />
+            <div className="h-[26px] w-[26px] rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
+          </div>
         </div>
       </div>
     );

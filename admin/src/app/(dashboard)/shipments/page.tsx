@@ -7,6 +7,7 @@ import { Truck, Plus, ExternalLink } from "lucide-react";
 import { useShipments, useCreateShipment, useUpdateShipmentStatus, ShipmentItem } from "../../../hooks/queries/useFulfillment";
 import { DataTable } from "../../../components/data-table/DataTable";
 import { Pagination } from "../../../components/data-table/Pagination";
+import { SearchInput } from "../../../components/filters/SearchInput";
 import { StatusBadge } from "../../../components/ui/StatusBadge";
 import { CreateShipmentModal } from "../../../components/fulfillment/CreateShipmentModal";
 import { PermissionGate } from "../../../components/rbac/PermissionGate";
@@ -14,12 +15,14 @@ import { CustomSelect } from "@/components/ui/select";
 
 export default function ShipmentsPage() {
   const [page, setPage] = useState<number>(1);
+  const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const { data, isLoading } = useShipments({
     page,
     limit: 10,
+    search: search || undefined,
     status: statusFilter || undefined,
   });
 
@@ -36,6 +39,7 @@ export default function ShipmentsPage() {
     {
       accessorKey: "trackingNumber",
       header: "Carrier & Tracking",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <span className="font-semibold text-slate-900">{row.original.carrier}</span>
@@ -58,6 +62,7 @@ export default function ShipmentsPage() {
     {
       accessorKey: "orderId",
       header: "Order Reference",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-slate-800 hover:underline">
           #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
@@ -67,11 +72,13 @@ export default function ShipmentsPage() {
     {
       accessorKey: "status",
       header: "Shipment Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       id: "actions",
       header: "Update Tracking",
+      meta: { skeleton: <div className="h-7 w-36 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="fulfillment:update">
           {row.original.status !== "DELIVERED" && (
@@ -100,30 +107,24 @@ export default function ShipmentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Package Shipments & Fulfillment</h1>
-          <p className="text-xs text-slate-500">Track logistics carrier status, tracking numbers, and package delivery</p>
-        </div>
-        <PermissionGate permission="fulfillment:create">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create Shipment</span>
-          </button>
-        </PermissionGate>
-      </div>
-
-      <div className="flex justify-end">
-        <CustomSelect
-          value={statusFilter}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <SearchInput
+          value={search}
           onChange={(val) => {
-            setStatusFilter(val);
+            setSearch(val);
             setPage(1);
           }}
-          options={[
+          placeholder="Search shipments..."
+          className="w-full sm:w-72"
+        />
+        <div className="flex items-center gap-3">
+          <CustomSelect
+            value={statusFilter}
+            onChange={(val) => {
+              setStatusFilter(val);
+              setPage(1);
+            }}
+            options={[
             { value: "", label: "All Shipment Statuses" },
             { value: "PENDING", label: "Pending" },
             { value: "SHIPPED", label: "Shipped" },
@@ -131,6 +132,16 @@ export default function ShipmentsPage() {
           ]}
           triggerClassName="w-44"
         />
+        <PermissionGate permission="fulfillment:create">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] h-9"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Create Shipment</span>
+          </button>
+        </PermissionGate>
+        </div>
       </div>
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />

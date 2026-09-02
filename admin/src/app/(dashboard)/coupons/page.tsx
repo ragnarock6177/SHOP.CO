@@ -34,6 +34,7 @@ export default function CouponsPage() {
     {
       accessorKey: "code",
       header: "Coupon Code",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <Ticket className="h-4 w-4 text-slate-500" />
@@ -44,6 +45,7 @@ export default function CouponsPage() {
     {
       accessorKey: "discountValue",
       header: "Discount Value",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <span className="font-semibold text-emerald-400">
           {row.original.discountType === "PERCENTAGE" ? `${row.original.discountValue}% OFF` : `₹${row.original.discountValue} OFF`}
@@ -53,6 +55,7 @@ export default function CouponsPage() {
     {
       accessorKey: "usedCount",
       header: "Redemptions / Limit",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <span className="text-xs text-slate-700">
           {row.original.usedCount} / {row.original.usageLimit ? row.original.usageLimit : "∞"}
@@ -62,6 +65,7 @@ export default function CouponsPage() {
     {
       accessorKey: "isActive",
       header: "Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => (
         <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isActive ? "ACTIVE" : "INACTIVE"}
@@ -71,6 +75,7 @@ export default function CouponsPage() {
     {
       id: "actions",
       header: "Toggle Status",
+      meta: { skeleton: <div className="h-7 w-[72px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="coupons:update">
           <button
@@ -87,31 +92,26 @@ export default function CouponsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Promotional Coupons & Discounts</h1>
-          <p className="text-xs text-slate-500">Configure promotional voucher codes, discount rules, and redemption limits</p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <SearchInput
+          value={search}
+          onChange={(val) => {
+            setSearch(val);
+            setPage(1);
+          }}
+          placeholder="Search by coupon code..."
+          className="w-full sm:w-72"
+        />
         <PermissionGate permission="coupons:create">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
+            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] h-9"
           >
             <Plus className="h-4 w-4" />
             <span>Create Coupon</span>
           </button>
         </PermissionGate>
       </div>
-
-      <SearchInput
-        value={search}
-        onChange={(val) => {
-          setSearch(val);
-          setPage(1);
-        }}
-        placeholder="Search by coupon code..."
-        className="w-full sm:w-72"
-      />
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 

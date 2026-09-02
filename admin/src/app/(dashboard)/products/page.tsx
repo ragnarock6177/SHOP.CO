@@ -64,6 +64,7 @@ export default function ProductsPage() {
     {
       id: "product",
       header: "Product",
+      meta: { skeleton: "image-text" },
       cell: ({ row }) => {
         const primaryImageUrl = getProductPrimaryImage(row.original);
 
@@ -103,16 +104,19 @@ export default function ProductsPage() {
     {
       accessorKey: "basePrice",
       header: "Base Price",
+      meta: { skeleton: "numeric" },
       cell: ({ row }) => <span className="font-semibold text-slate-800">₹{row.original.basePrice}</span>,
     },
     {
       accessorKey: "status",
       header: "Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "visibility",
       header: "Visibility",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <span className="text-[10px] font-bold text-slate-500 uppercase">{row.original.visibility}</span>
       ),
@@ -120,6 +124,7 @@ export default function ProductsPage() {
     {
       id: "stock",
       header: "Stock",
+      meta: { skeleton: "numeric" },
       cell: ({ row }) => {
         const totalStock = (row.original as any).totalStockAvailable ?? 
           row.original.variants?.reduce((acc: number, v: any) => acc + (v.stockAvailable ?? v.stock ?? 0), 0) ?? 0;
@@ -133,6 +138,7 @@ export default function ProductsPage() {
     {
       id: "actions",
       header: "Actions",
+      meta: { skeleton: "actions-2" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <PermissionGate permission="products:update">
@@ -158,36 +164,6 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Product Catalog</h1>
-          <p className="text-xs text-slate-500">Manage ecommerce products, pricing, and variants</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <PermissionGate permission="products:create">
-            <button
-              type="button"
-              onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center space-x-1.5 rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 shadow-2xs transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
-            >
-              <FileSpreadsheet className="h-4 w-4 text-slate-600" />
-              <span>Import Products</span>
-            </button>
-          </PermissionGate>
-
-          <PermissionGate permission="products:create">
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] cursor-pointer"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Create Product</span>
-            </button>
-          </PermissionGate>
-        </div>
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <SearchInput
           value={search}
@@ -198,7 +174,8 @@ export default function ProductsPage() {
           placeholder="Search products by name or slug..."
           className="w-full sm:w-72"
         />
-        <div className="flex items-center space-x-2">
+        
+        <div className="flex items-center gap-3">
           <CustomSelect
             value={statusFilter}
             onChange={(val) => {
@@ -213,6 +190,26 @@ export default function ProductsPage() {
             ]}
             triggerClassName="w-36"
           />
+          <PermissionGate permission="products:create">
+            <button
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              className="flex items-center space-x-1.5 rounded-md border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 shadow-2xs transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer h-9"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-slate-600" />
+              <span>Import Products</span>
+            </button>
+          </PermissionGate>
+          <PermissionGate permission="products:create">
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] cursor-pointer h-9"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Product</span>
+            </button>
+          </PermissionGate>
         </div>
       </div>
 

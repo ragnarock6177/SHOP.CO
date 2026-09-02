@@ -281,7 +281,7 @@ export default function EditProductPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 animate-in fade-in duration-300">
       {/* ── Top Navigation & Header ──────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
         <div>
           <Link
             href="/products"
@@ -292,9 +292,7 @@ export default function EditProductPage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              {product.name}
-            </h1>
+
             <StatusBadge status={product.status as any} />
             <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
               {product.visibility}

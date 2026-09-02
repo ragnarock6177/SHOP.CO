@@ -49,10 +49,7 @@ export default function StockMovementsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">Stock Movements Log</h1>
-        <p className="text-xs text-slate-500">Read-only audit history of all inventory balance changes</p>
-      </div>
+      
 
       <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
 
