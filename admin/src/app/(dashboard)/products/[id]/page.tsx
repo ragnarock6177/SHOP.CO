@@ -8,64 +8,45 @@ import {
   Edit,
   Trash2,
   Boxes,
-  Check,
   Image as ImageIcon,
   Eye,
   Package,
-  Search,
+  ExternalLink,
+  Copy,
+  CheckCheck,
+  AlertTriangle,
+  TrendingUp,
+  Tag,
+  Layers,
+  Sparkles,
+  Info,
 } from "lucide-react";
 import {
   useProductDetails,
   useUpdateProduct,
   useArchiveProduct,
-  useUpdateVariant,
 } from "../../../../hooks/queries/useProducts";
 import { ProductForm } from "../../../../components/forms/ProductForm";
 import { StatusBadge } from "../../../../components/ui/StatusBadge";
-import { FormSkeleton } from "../../../../components/ui/FormSkeleton";
 import { ConfirmDialog } from "../../../../components/feedback/ConfirmDialog";
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiPaginatedResponse } from "@/types/api";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 
 function formatINR(value: number): string {
   return `₹${value.toLocaleString("en-IN")}`;
 }
 
-function formatDate(date: string): string {
+function formatDateTime(date: string): string {
   return new Date(date).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
-}
-
-function InfoField({
-  label,
-  value,
-  className,
-}: {
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={cn("space-y-1", className)}>
-      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
-      <div className="text-xs font-medium text-slate-800 bg-slate-50 border border-slate-100 rounded-md px-3 py-2 min-h-8.5 flex items-center">
-        {value ?? <span className="text-slate-400">—</span>}
-      </div>
-    </div>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-1">
-      {children}
-    </p>
-  );
 }
 
 export default function EditProductPage() {
@@ -76,14 +57,13 @@ export default function EditProductPage() {
   const { data: product, isLoading, error } = useProductDetails(productId);
   const updateMutation = useUpdateProduct();
   const archiveMutation = useArchiveProduct();
-  const updateVariantMutation = useUpdateVariant();
 
   const [activeTab, setActiveTab] = useState<"overview" | "edit">("overview");
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [editingStock, setEditingStock] = useState<Record<string, number>>({});
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
 
   const { data: categoriesData } = useQuery({
     queryKey: ["admin", "categories", "active"],
@@ -108,10 +88,22 @@ export default function EditProductPage() {
   const allCategories = useMemo(() => {
     if (!product) return [];
     return (
-      (product as any).productCategories?.map((pc: any) => ({
-        name: pc.category?.name,
-        isPrimary: pc.isPrimary,
-      })).filter((c: any) => c.name) || []
+      (product as any).productCategories
+        ?.map((pc: any) => ({
+          id: pc.category?.id,
+          name: pc.category?.name,
+          isPrimary: pc.isPrimary,
+        }))
+        .filter((c: any) => c.name) || []
+    );
+  }, [product]);
+
+  const allCollections = useMemo(() => {
+    if (!product) return [];
+    return (
+      (product as any).productCollections
+        ?.map((pc: any) => pc.collection?.name)
+        .filter(Boolean) || []
     );
   }, [product]);
 
@@ -210,6 +202,15 @@ export default function EditProductPage() {
     return product?.images?.[0]?.imageUrl || null;
   }, [productImages, selectedImageIndex, product?.images]);
 
+  const handleCopyId = () => {
+    if (product?.id) {
+      navigator.clipboard.writeText(product.id);
+      setCopiedId(true);
+      toast.success("Copied to clipboard", "Product ID copied");
+      setTimeout(() => setCopiedId(false), 2000);
+    }
+  };
+
   const handleUpdate = (formData: any) => {
     const { primaryCategoryId, comparePrice, variants: formVariants, ...rest } = formData;
     updateMutation.mutate(
@@ -237,13 +238,34 @@ export default function EditProductPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-6 animate-fade-in-up">
-        <div className="space-y-2">
-          <div className="h-7 w-48 rounded-md animate-shimmer bg-slate-100" />
-          <div className="h-3.5 w-64 rounded-md animate-shimmer bg-slate-100" />
+      <div className="w-full space-y-6 animate-pulse">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-5">
+          <div className="space-y-2">
+            <div className="h-4 w-32 rounded bg-slate-200" />
+            <div className="h-7 w-64 rounded bg-slate-200" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-28 rounded bg-slate-200" />
+            <div className="h-9 w-28 rounded bg-slate-200" />
+          </div>
         </div>
-        <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs">
-          <FormSkeleton />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 space-y-6">
+            <div className="h-80 rounded-xl border border-slate-200 bg-white p-6">
+              <div className="h-full w-full rounded-lg bg-slate-100" />
+            </div>
+            <div className="h-48 rounded-xl border border-slate-200 bg-white p-6 space-y-3">
+              <div className="h-5 w-40 rounded bg-slate-200" />
+              <div className="h-4 w-full rounded bg-slate-100" />
+            </div>
+          </div>
+          <div className="lg:col-span-4 space-y-6">
+            <div className="h-48 rounded-xl border border-slate-200 bg-white p-6 space-y-3">
+              <div className="h-5 w-32 rounded bg-slate-200" />
+              <div className="h-20 rounded bg-slate-100" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -251,13 +273,21 @@ export default function EditProductPage() {
 
   if (error || !product) {
     return (
-      <div className="mx-auto max-w-3xl rounded-md border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs space-y-3">
-        <p>Product not found or failed to load product details.</p>
+      <div className="w-full rounded-xl border border-rose-200 bg-rose-50/70 p-8 text-center shadow-xs space-y-4">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-rose-900">Product Not Found</h3>
+          <p className="text-xs font-medium text-rose-700 mt-1">
+            The requested product details could not be loaded or the product has been removed.
+          </p>
+        </div>
         <Link
           href="/products"
-          className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-slate-700 border border-slate-200 shadow-2xs hover:bg-slate-50 transition"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Products Catalog
+          <ArrowLeft className="h-4 w-4" /> Back to Products Catalog
         </Link>
       </div>
     );
@@ -265,6 +295,10 @@ export default function EditProductPage() {
 
   const basePrice = Number(product.basePrice) || 0;
   const compareAtPrice = Number((product as any).compareAtPrice) || 0;
+  const discountPercent =
+    compareAtPrice > basePrice
+      ? Math.round(((compareAtPrice - basePrice) / compareAtPrice) * 100)
+      : 0;
 
   const totalStockOnHand = (product as any).totalStockOnHand ?? 0;
   const totalStockAvailable = (product as any).totalStockAvailable ?? 0;
@@ -277,66 +311,98 @@ export default function EditProductPage() {
   const currentComparePrice = activeVariant
     ? Number(activeVariant.compareAtPrice) || compareAtPrice
     : compareAtPrice;
-  const currentStock = activeVariant
-    ? activeVariant.stockAvailable !== undefined
-      ? Number(activeVariant.stockAvailable)
-      : Number((activeVariant as any).stock) || 0
-    : totalStockAvailable;
-  const currentSKU = activeVariant?.sku || "Base Product (No SKU)";
+  const currentSKU = activeVariant?.sku || null;
+
+  const hasSpecifications = Boolean(
+    (product as any).shortDescription ||
+      product.description ||
+      (product as any).careInstructions ||
+      (product as any).productType,
+  );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <Link
-            href="/products"
-            className="group mb-2 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            <span>Back to Inventory</span>
-          </Link>
-          <div className="flex flex-wrap items-center gap-2">
+    <div className="w-full space-y-6 animate-in fade-in duration-200">
+      {/* ── Top Header & Breadcrumbs Bar ── */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200/80 pb-5">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Products</span>
+            </Link>
+            <span>/</span>
+            <span className="text-slate-800 font-semibold truncate max-w-xs">{product.name}</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {product.name}
+            </h1>
             <StatusBadge status={product.status as any} />
-            <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
+            <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 uppercase border border-slate-200">
               {product.visibility}
             </span>
+            {primaryCat && (
+              <span className="rounded-md bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 uppercase tracking-wider border border-blue-100">
+                {primaryCat.name}
+              </span>
+            )}
+            <StatusBadge status={overallStockStatus} />
           </div>
         </div>
 
+        {/* Action Controls */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-md bg-slate-100/80 p-1 border border-slate-200/80 shadow-2xs">
+          {/* Tabs Pill Switcher */}
+          <div className="flex items-center rounded-lg bg-slate-100 p-1 border border-slate-200/80 shadow-2xs">
             <button
               type="button"
               onClick={() => setActiveTab("overview")}
               className={cn(
-                "rounded-md px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer",
+                "inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer",
                 activeTab === "overview"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900",
               )}
             >
-              <Eye className="inline-block h-3.5 w-3.5 mr-1.5 text-slate-500" />
+              <Eye className="h-3.5 w-3.5 text-slate-500" />
               Overview
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("edit")}
               className={cn(
-                "rounded-md px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer",
+                "inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer",
                 activeTab === "edit"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900",
               )}
             >
-              <Edit className="inline-block h-3.5 w-3.5 mr-1.5 text-slate-500" />
+              <Edit className="h-3.5 w-3.5 text-slate-500" />
               Edit Details
             </button>
           </div>
+
+          {/* View in Storefront Link */}
+          <a
+            href={`/product/${product.slug}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+            title="Preview in Storefront"
+          >
+            <ExternalLink className="h-3.5 w-3.5 text-slate-500" />
+            <span className="hidden sm:inline">Storefront</span>
+          </a>
+
+          {/* Archive Product Button */}
           <button
             type="button"
             onClick={() => setIsArchiveModalOpen(true)}
-            className="rounded-md border border-rose-200 bg-white p-2 text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors shadow-2xs cursor-pointer"
+            className="rounded-lg border border-rose-200 bg-white p-2 text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors shadow-2xs cursor-pointer"
             title="Archive Product"
           >
             <Trash2 className="h-4 w-4" />
@@ -345,500 +411,592 @@ export default function EditProductPage() {
       </div>
 
       {activeTab === "overview" && (
-        <div className="space-y-6">
-          {/* ── Section 1: Product Overview (top) ── */}
-          <div className="rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs">
-            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
-              {/* Image */}
-              <div className="shrink-0 space-y-3 sm:w-48 md:w-56">
-                <div className="relative aspect-square w-full max-w-56 mx-auto sm:mx-0 overflow-hidden rounded-lg border border-slate-200/80 bg-slate-50 group">
-                  {displayImageUrl ? (
-                    <img
-                      src={displayImageUrl}
-                      alt={product.name}
-                      className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-slate-400">
-                      <ImageIcon className="h-10 w-10 stroke-[1.5]" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* ══════════════════════════════════════════════════════════════════ */}
+          {/* LEFT MAIN COLUMN (8 cols)                                        */}
+          {/* ══════════════════════════════════════════════════════════════════ */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* ── CARD 1: Gallery & Visual Showcase ── */}
+            <div className="rounded-xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+              <div className="flex flex-col sm:flex-row gap-6">
+                {/* Large Preview Image */}
+                <div className="shrink-0 space-y-3 sm:w-56 md:w-64">
+                  <div className="relative aspect-3/4 w-full max-w-64 mx-auto sm:mx-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 group">
+                    {displayImageUrl ? (
+                      <img
+                        src={displayImageUrl}
+                        alt={product.name}
+                        className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-slate-400">
+                        <ImageIcon className="h-12 w-12 stroke-[1.5]" />
+                      </div>
+                    )}
+                    {productImages.length > 0 && (
+                      <span className="absolute bottom-2.5 right-2.5 rounded-md bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
+                        {selectedImageIndex + 1} / {productImages.length}
+                      </span>
+                    )}
+                    {activeColor && (
+                      <span className="absolute top-2.5 left-2.5 rounded-md bg-white/90 px-2 py-0.5 text-[10px] font-bold text-slate-800 shadow-xs backdrop-blur-xs border border-slate-200/80">
+                        {activeColor}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Thumbnail gallery */}
+                  {productImages.length > 1 && (
+                    <div className="flex items-center gap-2 overflow-x-auto p-1 sidebar-scrollbar max-w-64 mx-auto sm:mx-0">
+                      {productImages.map((img: any, idx: number) => (
+                        <button
+                          key={img.id || idx}
+                          type="button"
+                          onClick={() => setSelectedImageIndex(idx)}
+                          className={cn(
+                            "relative h-14 w-12 shrink-0 overflow-hidden rounded-lg border-2 transition-all cursor-pointer",
+                            selectedImageIndex === idx
+                              ? "border-slate-900 shadow-xs"
+                              : "border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100",
+                          )}
+                        >
+                          <img
+                            src={img.imageUrl}
+                            alt={img.altText || `Product Image ${idx + 1}`}
+                            className="h-full w-full object-cover"
+                          />
+                        </button>
+                      ))}
                     </div>
                   )}
-                  {productImages.length > 0 && (
-                    <span className="absolute bottom-2 right-2 rounded-md bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-white">
-                      {selectedImageIndex + 1} / {productImages.length}
-                    </span>
-                  )}
-                </div>
-                {productImages.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto p-1 sidebar-scrollbar max-w-56 mx-auto sm:mx-0">
-                    {productImages.map((img: any, idx: number) => (
-                      <button
-                        key={img.id || idx}
-                        type="button"
-                        onClick={() => setSelectedImageIndex(idx)}
-                        className={cn(
-                          "relative h-12 w-12 shrink-0 overflow-hidden rounded-md border-2 transition-all cursor-pointer",
-                          selectedImageIndex === idx
-                            ? "border-slate-900"
-                            : "border-slate-200 hover:border-slate-400",
-                        )}
-                      >
-                        <img
-                          src={img.imageUrl}
-                          alt={img.altText || `Image ${idx + 1}`}
-                          className="h-full w-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Basic info */}
-              <div className="flex-1 min-w-0 space-y-4">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="rounded-md bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-600 uppercase tracking-wider border border-blue-100">
-                      {primaryCat?.name || (product as any).productType || "Uncategorized"}
-                    </span>
-                    <StatusBadge status={overallStockStatus} />
-                  </div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                    {product.name}
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    SKU: <span className="font-semibold text-slate-700">{currentSKU}</span>
-                    <span className="mx-2 text-slate-300">·</span>
-                    <span className="font-mono text-slate-400">/{product.slug}</span>
-                  </p>
                 </div>
 
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-2xl font-bold text-slate-900">{formatINR(currentPrice)}</span>
-                  {currentComparePrice > currentPrice && (
-                    <span className="text-sm text-slate-400 line-through">
-                      {formatINR(currentComparePrice)}
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {(product as any).shortDescription ||
-                    product.description ||
-                    "No description provided."}
-                </p>
-
-                {uniqueColors.length > 0 && (
+                {/* Main Product Identity & Variant Selectors */}
+                <div className="flex-1 min-w-0 space-y-4">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      Color
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {uniqueColors.map((col) => {
-                        const isSelected = activeColor === col.name;
-                        return (
-                          <button
-                            key={col.name}
-                            type="button"
-                            onClick={() => {
-                              setSelectedColor(col.name);
-                              setSelectedImageIndex(0);
-                              const matched = variants.find(
-                                (v: any) =>
-                                  v.colorName === col.name ||
-                                  v.variantName?.toLowerCase().includes(col.name.toLowerCase()),
-                              );
-                              if (matched) setSelectedVariantId(matched.id);
-                            }}
-                            className={cn(
-                              "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer",
-                              isSelected
-                                ? "bg-slate-900 text-white"
-                                : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300",
-                            )}
-                          >
-                            {col.hex && (
-                              <span
-                                className="h-3 w-3 rounded-full border border-black/10"
-                                style={{ backgroundColor: col.hex }}
-                              />
-                            )}
-                            {col.name}
-                          </button>
-                        );
-                      })}
+                    <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                      {product.name}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 mt-1">
+                      {currentSKU && (
+                        <>
+                          <span>
+                            SKU: <strong className="text-slate-800">{currentSKU}</strong>
+                          </span>
+                          <span className="text-slate-300">·</span>
+                        </>
+                      )}
+                      <span>
+                        Slug: <span className="text-slate-700">/{product.slug}</span>
+                      </span>
                     </div>
                   </div>
-                )}
 
-                {availableSizes.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      Size
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {availableSizes.map((size) => {
-                        const sizeVariant =
-                          colorVariants.find((v: any) => v.sizeName === size) ||
-                          variants.find((v: any) => v.sizeName === size);
-                        const isSelected = activeVariant?.sizeName === size;
-                        const stock =
-                          sizeVariant?.stockAvailable ?? sizeVariant?.stockOnHand ?? 0;
-                        const isOutOfStock = stock <= 0;
-
-                        return (
-                          <button
-                            key={size}
-                            type="button"
-                            disabled={isOutOfStock}
-                            onClick={() => {
-                              if (sizeVariant) setSelectedVariantId(sizeVariant.id);
-                            }}
-                            className={cn(
-                              "flex h-9 min-w-9 items-center justify-center rounded-md px-2.5 text-xs font-bold transition-all",
-                              isSelected
-                                ? "bg-slate-900 text-white"
-                                : isOutOfStock
-                                  ? "bg-slate-50 border border-slate-100 text-slate-300 cursor-not-allowed"
-                                  : "border border-slate-200 bg-white text-slate-800 hover:border-slate-400 cursor-pointer",
-                            )}
-                          >
-                            {size}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  {/* Pricing Display */}
+                  <div className="flex items-baseline gap-3 flex-wrap bg-slate-50 border border-slate-100 rounded-lg p-3">
+                    <span className="text-2xl font-bold text-slate-900">
+                      {formatINR(currentPrice)}
+                    </span>
+                    {currentComparePrice > currentPrice && (
+                      <span className="text-sm text-slate-400 line-through">
+                        {formatINR(currentComparePrice)}
+                      </span>
+                    )}
+                    {discountPercent > 0 && (
+                      <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
+                        Save {discountPercent}%
+                      </span>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* ── Section 2: Inventory (below overview) ── */}
-          <div className="rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-slate-500" />
-                <h2 className="text-sm font-semibold text-slate-900">Inventory</h2>
-              </div>
-              <StatusBadge status={overallStockStatus} />
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { label: "On Hand", value: totalStockOnHand },
-                { label: "Available", value: totalStockAvailable },
-                { label: "Reserved", value: totalStockReserved },
-                { label: "Variants", value: variants.length },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-md border border-slate-100 bg-slate-50 px-4 py-3 text-center"
-                >
-                  <p className="text-lg font-bold text-slate-900">{item.value}</p>
-                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600">
-              <span>
-                Reorder level: <strong className="text-slate-900">≤ {reorderLevel} units</strong>
-              </span>
-              <span>
-                Created: <strong className="text-slate-900">{formatDate(product.createdAt)}</strong>
-              </span>
-              <span>
-                Updated: <strong className="text-slate-900">{formatDate(product.updatedAt)}</strong>
-              </span>
-            </div>
-            {currentStock <= reorderLevel && (
-              <p className="text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-md px-3 py-2">
-                Low stock — {currentStock} unit{currentStock !== 1 ? "s" : ""} left
-                {activeVariant ? " for selected variant" : ""}
-              </p>
-            )}
-          </div>
+                  {/* Color Selector Filter */}
+                  {uniqueColors.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        Color Options ({uniqueColors.length})
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {uniqueColors.map((col) => {
+                          const isSelected = activeColor === col.name;
+                          return (
+                            <button
+                              key={col.name}
+                              type="button"
+                              onClick={() => {
+                                setSelectedColor(col.name);
+                                setSelectedImageIndex(0);
+                                const matched = variants.find(
+                                  (v: any) =>
+                                    v.colorName === col.name ||
+                                    v.variantName?.toLowerCase().includes(col.name.toLowerCase()),
+                                );
+                                if (matched) setSelectedVariantId(matched.id);
+                              }}
+                              className={cn(
+                                "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer",
+                                isSelected
+                                  ? "bg-slate-900 text-white shadow-xs"
+                                  : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300",
+                              )}
+                            >
+                              {col.hex && (
+                                <span
+                                  className="h-3 w-3 rounded-full border border-black/10 shrink-0"
+                                  style={{ backgroundColor: col.hex }}
+                                />
+                              )}
+                              <span>{col.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-          {/* ── Section 3: Product Details (full width, field grid) ── */}
-          <div className="rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="text-sm font-semibold text-slate-900">Product Information</h2>
-              <button
-                type="button"
-                onClick={() => setActiveTab("edit")}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
-              >
-                <Edit className="h-3 w-3" />
-                Edit
-              </button>
-            </div>
+                  {/* Size Selector */}
+                  {availableSizes.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        Available Sizes
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {availableSizes.map((size) => {
+                          const sizeVariant =
+                            colorVariants.find((v: any) => v.sizeName === size) ||
+                            variants.find((v: any) => v.sizeName === size);
+                          const isSelected = activeVariant?.sizeName === size;
+                          const stock =
+                            sizeVariant?.stockAvailable ?? sizeVariant?.stockOnHand ?? 0;
+                          const isOutOfStock = stock <= 0;
 
-            <div className="space-y-5">
-              <div>
-                <SectionLabel>Identity & Classification</SectionLabel>
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <InfoField label="URL Slug" value={`/${product.slug}`} />
-                  <InfoField
-                    label="Category"
-                    value={
-                      allCategories.length > 0
-                        ? allCategories
-                            .map((c: any) => (c.isPrimary ? `${c.name} ★` : c.name))
-                            .join(", ")
-                        : null
-                    }
-                  />
-                  <InfoField label="Product Type" value={(product as any).productType} />
-                  <InfoField label="Status" value={<StatusBadge status={product.status} />} />
-                  <InfoField
-                    label="Visibility"
-                    value={
-                      <span className="text-[10px] font-bold uppercase">{product.visibility}</span>
-                    }
-                  />
+                          return (
+                            <button
+                              key={size}
+                              type="button"
+                              onClick={() => {
+                                if (sizeVariant) setSelectedVariantId(sizeVariant.id);
+                              }}
+                              className={cn(
+                                "flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-xs font-bold transition-all",
+                                isSelected
+                                  ? "bg-slate-900 text-white shadow-xs"
+                                  : isOutOfStock
+                                    ? "bg-slate-50 border border-slate-100 text-slate-400 cursor-pointer"
+                                    : "border border-slate-200 bg-white text-slate-800 hover:border-slate-400 cursor-pointer",
+                              )}
+                            >
+                              {size}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
 
-              <div className="border-t border-slate-100 pt-5">
-                <SectionLabel>Pricing</SectionLabel>
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <InfoField label="Base Price" value={formatINR(basePrice)} />
-                  <InfoField
-                    label="Compare-at Price"
-                    value={compareAtPrice > 0 ? formatINR(compareAtPrice) : null}
-                  />
-                  <InfoField label="Currency" value={(product as any).currency || "INR"} />
-                  <InfoField label="Tax Code" value={(product as any).taxCode} />
+            {/* ── CARD 2: Product Content & Specifications ── */}
+            {hasSpecifications && (
+              <div className="rounded-xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-slate-500" />
+                    <h3 className="text-sm font-bold text-slate-900">Product Specifications</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("edit")}
+                    className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                  >
+                    <Edit className="h-3 w-3" />
+                    Edit Specs
+                  </button>
                 </div>
-              </div>
 
-              <div className="border-t border-slate-100 pt-5">
-                <SectionLabel>Content</SectionLabel>
-                <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <InfoField label="Short Description" value={(product as any).shortDescription} />
-                  <InfoField
-                    label="Care Instructions"
-                    value={(product as any).careInstructions}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(product as any).shortDescription && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Short Description
+                      </p>
+                      <p className="text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-lg p-3">
+                        {(product as any).shortDescription}
+                      </p>
+                    </div>
+                  )}
+
+                  {(product as any).productType && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Product Type
+                      </p>
+                      <p className="text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-100 rounded-lg p-3">
+                        {(product as any).productType}
+                      </p>
+                    </div>
+                  )}
                 </div>
+
                 {product.description && (
-                  <div className="mt-4">
-                    <InfoField
-                      label="Full Description"
-                      value={
-                        <span className="whitespace-pre-wrap">{product.description}</span>
-                      }
-                    />
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Detailed Description
+                    </p>
+                    <div className="text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-lg p-3.5 leading-relaxed whitespace-pre-wrap">
+                      {product.description}
+                    </div>
+                  </div>
+                )}
+
+                {(product as any).careInstructions && (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Care Instructions
+                    </p>
+                    <p className="text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded-lg p-3 leading-relaxed">
+                      {(product as any).careInstructions}
+                    </p>
                   </div>
                 )}
               </div>
+            )}
 
-              <div className="border-t border-slate-100 pt-5">
-                <div className="flex items-center gap-1.5 mb-3">
-                  <Search className="h-3.5 w-3.5 text-slate-400" />
-                  <SectionLabel>SEO & Meta</SectionLabel>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <InfoField label="Meta Title" value={(product as any).metaTitle || product.name} />
-                  <InfoField
-                    label="Meta Description"
-                    value={(product as any).metaDescription}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Section 4: Variant stock table ── */}
-          {variants.length > 0 && (
-            <div className="rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-slate-700">
+            {/* ── CARD 3: Product Variants (Read-Only on Detail Page) ── */}
+            <div className="rounded-xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-800">
                     <Boxes className="h-4 w-4" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-slate-900">
-                      Variant Stock ({variants.length})
-                    </h2>
-                    <p className="text-[11px] text-slate-500">Edit stock inline and save</p>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Product Variants ({variants.length})
+                    </h3>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Variant options, pricing, and stock levels
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {Object.keys(editingStock).length > 0 && (
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("edit")}
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <Edit className="h-3 w-3" />
+                  Manage in Edit
+                </button>
+              </div>
+
+              {variants.length === 0 ? (
+                <div className="text-center py-6 text-xs text-slate-500 space-y-1.5">
+                  <p className="font-medium text-slate-700">No variants configured for this product.</p>
+                  <p className="text-slate-400">
+                    You can add color and size variants in the{" "}
                     <button
                       type="button"
-                      onClick={() => setEditingStock({})}
-                      className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                      onClick={() => setActiveTab("edit")}
+                      className="font-semibold text-slate-900 underline hover:text-slate-700 cursor-pointer"
                     >
-                      Reset
+                      Edit Details tab
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    disabled={
-                      Object.keys(editingStock).length === 0 || updateVariantMutation.isPending
-                    }
-                    onClick={async () => {
-                      try {
-                        await Promise.all(
-                          Object.keys(editingStock).map((vId) =>
-                            updateVariantMutation.mutateAsync({
-                              productId,
-                              variantId: vId,
-                              data: { stock: editingStock[vId] },
-                            }),
-                          ),
+                    .
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto sidebar-scrollbar">
+                  <table className="w-full text-left text-xs min-w-140">
+                    <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200/80">
+                      <tr>
+                        <th className="px-3 py-2.5">Variant Option</th>
+                        <th className="px-3 py-2.5">SKU</th>
+                        <th className="px-3 py-2.5">Price</th>
+                        <th className="px-3 py-2.5 text-center">On Hand</th>
+                        <th className="px-3 py-2.5 text-center">Available</th>
+                        <th className="px-3 py-2.5">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {variants.map((v: any) => {
+                        const colorName =
+                          v.colorName ||
+                          v.variantAttributeValues?.find(
+                            (vav: any) =>
+                              vav.attributeValue?.attribute?.name?.toLowerCase() === "color",
+                          )?.attributeValue?.value ||
+                          "Default";
+                        const colorHex =
+                          v.colorHex ||
+                          v.variantAttributeValues?.find((vav: any) => vav.attributeValue?.colorHex)
+                            ?.attributeValue?.colorHex;
+                        const sizeName = v.sizeName || "";
+                        const stockVal = v.stockOnHand ?? v.stock ?? 0;
+                        const available = v.stockAvailable ?? stockVal;
+
+                        return (
+                          <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="px-3 py-3">
+                              <div className="flex items-center gap-2">
+                                {colorHex && (
+                                  <span
+                                    className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0 shadow-2xs"
+                                    style={{ backgroundColor: colorHex }}
+                                  />
+                                )}
+                                <span className="font-bold text-slate-900">
+                                  {colorName}
+                                  {sizeName ? ` / ${sizeName}` : ""}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3">
+                              <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-semibold border border-slate-200">
+                                {v.sku || "—"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 font-bold text-slate-900">
+                              {formatINR(Number(v.price))}
+                            </td>
+                            <td className="px-3 py-3 text-center font-semibold text-slate-800">
+                              {stockVal}
+                            </td>
+                            <td className="px-3 py-3 text-center">
+                              <span
+                                className={cn(
+                                  "font-bold",
+                                  available > 0 ? "text-emerald-700" : "text-rose-600",
+                                )}
+                              >
+                                {available}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3">
+                              <StatusBadge
+                                status={
+                                  v.stockStatus ||
+                                  (stockVal > reorderLevel
+                                    ? "IN_STOCK"
+                                    : stockVal > 0
+                                      ? "LOW_STOCK"
+                                      : "OUT_OF_STOCK")
+                                }
+                              />
+                            </td>
+                          </tr>
                         );
-                        setEditingStock({});
-                      } catch (err) {
-                        console.error("Stock update failed:", err);
-                      }
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition disabled:opacity-40 cursor-pointer"
-                  >
-                    {updateVariantMutation.isPending
-                      ? "Saving…"
-                      : Object.keys(editingStock).length > 0
-                        ? `Save (${Object.keys(editingStock).length})`
-                        : (
-                          <>
-                            <Check className="h-3.5 w-3.5 text-emerald-400" />
-                            Synced
-                          </>
-                        )}
-                  </button>
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ══════════════════════════════════════════════════════════════════ */}
+          {/* RIGHT SIDEBAR COLUMN (4 cols)                                     */}
+          {/* ══════════════════════════════════════════════════════════════════ */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* ── SIDEBAR CARD 1: Inventory Health & Stock Summary ── */}
+            <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-slate-500" />
+                  <h3 className="text-sm font-bold text-slate-900">Inventory Summary</h3>
+                </div>
+                <StatusBadge status={overallStockStatus} />
+              </div>
+
+              {/* 4 Metric Tiles */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-center">
+                  <p className="text-lg font-bold text-slate-900">{totalStockOnHand}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+                    On Hand
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-center">
+                  <p className="text-lg font-bold text-emerald-700">{totalStockAvailable}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+                    Available
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-center">
+                  <p className="text-lg font-bold text-slate-600">{totalStockReserved}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+                    Reserved
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-center">
+                  <p className="text-lg font-bold text-slate-900">{variants.length}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+                    Variants
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SIDEBAR CARD 2: Pricing ── */}
+            <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-slate-500" />
+                  <h3 className="text-sm font-bold text-slate-900">Pricing</h3>
                 </div>
               </div>
 
-              <div className="overflow-x-auto sidebar-scrollbar">
-                <table className="w-full text-left text-xs min-w-150">
-                  <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200/60">
-                    <tr>
-                      <th className="px-3 py-2.5">Variant</th>
-                      <th className="px-3 py-2.5">SKU</th>
-                      <th className="px-3 py-2.5">Price</th>
-                      <th className="px-3 py-2.5 text-center">On Hand</th>
-                      <th className="px-3 py-2.5">Available</th>
-                      <th className="px-3 py-2.5">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {variants.map((v: any) => {
-                      const colorName =
-                        v.colorName ||
-                        v.variantAttributeValues?.find(
-                          (vav: any) =>
-                            vav.attributeValue?.attribute?.name?.toLowerCase() === "color",
-                        )?.attributeValue?.value ||
-                        "Default";
-                      const colorHex =
-                        v.colorHex ||
-                        v.variantAttributeValues?.find((vav: any) => vav.attributeValue?.colorHex)
-                          ?.attributeValue?.colorHex;
-                      const sizeName = v.sizeName || "";
-                      const stockVal =
-                        editingStock[v.id] !== undefined
-                          ? editingStock[v.id]
-                          : v.stockOnHand ?? 0;
-                      const available = v.stockAvailable ?? stockVal;
-                      const isModified = editingStock[v.id] !== undefined;
-
-                      return (
-                        <tr
-                          key={v.id}
-                          className={cn(
-                            "hover:bg-slate-50/80 transition-colors",
-                            isModified && "bg-amber-50/40",
-                          )}
-                        >
-                          <td className="px-3 py-3">
-                            <div className="flex items-center gap-2">
-                              {colorHex && (
-                                <span
-                                  className="h-3 w-3 rounded-full border border-black/10 shrink-0"
-                                  style={{ backgroundColor: colorHex }}
-                                />
-                              )}
-                              <span className="font-bold text-slate-900">
-                                {colorName}
-                                {sizeName ? ` / ${sizeName}` : ""}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3">
-                            <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-bold">
-                              {v.sku || "N/A"}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 font-bold">{formatINR(Number(v.price))}</td>
-                          <td className="px-3 py-3 text-center">
-                            <input
-                              type="number"
-                              min="0"
-                              value={stockVal}
-                              onChange={(e) => {
-                                const num = parseInt(e.target.value, 10);
-                                setEditingStock((prev) => ({
-                                  ...prev,
-                                  [v.id]: isNaN(num) ? 0 : num,
-                                }));
-                              }}
-                              className={cn(
-                                "w-20 rounded-md border px-2 py-1.5 text-center text-xs font-bold focus:outline-none",
-                                isModified
-                                  ? "border-amber-400 bg-amber-50"
-                                  : "border-slate-300 bg-white focus:border-slate-500",
-                              )}
-                            />
-                          </td>
-                          <td className="px-3 py-3">
-                            <span
-                              className={cn(
-                                "font-extrabold",
-                                available > 0 ? "text-emerald-700" : "text-rose-600",
-                              )}
-                            >
-                              {available}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3">
-                            <StatusBadge
-                              status={
-                                v.stockStatus ||
-                                (stockVal > reorderLevel
-                                  ? "IN_STOCK"
-                                  : stockVal > 0
-                                    ? "LOW_STOCK"
-                                    : "OUT_OF_STOCK")
-                              }
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Base Catalog Price:</span>
+                  <strong className="text-slate-900">{formatINR(basePrice)}</strong>
+                </div>
+                {compareAtPrice > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Compare-at Price:</span>
+                    <span className="text-slate-700">{formatINR(compareAtPrice)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Currency:</span>
+                  <span className="font-semibold text-slate-800">
+                    {(product as any).currency || "INR (₹)"}
+                  </span>
+                </div>
+                {(product as any).taxCode && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Tax Code:</span>
+                    <span className="text-slate-700">{(product as any).taxCode}</span>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+
+            {/* ── SIDEBAR CARD 3: Organization & Categorization ── */}
+            <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-slate-500" />
+                  <h3 className="text-sm font-bold text-slate-900">Categorization</h3>
+                </div>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Primary Category
+                  </p>
+                  {primaryCat ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 text-white px-2.5 py-1 text-xs font-bold shadow-2xs">
+                      <Sparkles className="h-3 w-3 text-slate-300" />
+                      {primaryCat.name}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">Uncategorized</span>
+                  )}
+                </div>
+
+                {allCategories.length > 1 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                      All Assigned Categories
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {allCategories.map((c: any) => (
+                        <span
+                          key={c.id || c.name}
+                          className="rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700 border border-slate-200"
+                        >
+                          {c.name} {c.isPrimary && "★"}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {allCollections.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                      Collections
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {allCollections.map((col: string) => (
+                        <span
+                          key={col}
+                          className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 border border-blue-100"
+                        >
+                          {col}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── SIDEBAR CARD 4: Metadata & Audit Trail ── */}
+            <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3 text-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4 text-slate-500" />
+                  <h3 className="text-sm font-bold text-slate-900">Audit & Metadata</h3>
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Product ID:</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] text-slate-700 truncate max-w-28 font-medium">
+                      {product.id}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyId}
+                      className="text-slate-400 hover:text-slate-800 transition cursor-pointer p-0.5"
+                      title="Copy Product ID"
+                    >
+                      {copiedId ? (
+                        <CheckCheck className="h-3.5 w-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Created:</span>
+                  <span className="text-slate-800 font-medium">
+                    {formatDateTime(product.createdAt)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Last Updated:</span>
+                  <span className="text-slate-800 font-medium">
+                    {formatDateTime(product.updatedAt)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
+      {/* ── Full Specifications Edit Tab ── */}
       {activeTab === "edit" && (
-        <div className="rounded-md border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-base font-bold text-slate-900">Edit Product Specifications</h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Update product identity, pricing, categorization, and SEO metadata
+                Update product identity, pricing, categorization, SEO metadata, and product variants
               </p>
             </div>
             <button
               type="button"
               onClick={() => setActiveTab("overview")}
-              className="rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs cursor-pointer"
+              className="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs cursor-pointer"
             >
               Cancel
             </button>
@@ -899,6 +1057,7 @@ export default function EditProductPage() {
         </div>
       )}
 
+      {/* ── Archive Product Confirm Dialog ── */}
       <ConfirmDialog
         isOpen={isArchiveModalOpen}
         title="Archive Product"

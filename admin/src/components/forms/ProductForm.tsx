@@ -35,6 +35,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const [seoOpen, setSeoOpen] = useState(false);
   const [variants, setVariants] = useState<ProductVariantInput[]>(initialValues?.variants || []);
 
+  useEffect(() => {
+    if (initialValues?.variants) {
+      setVariants(initialValues.variants);
+    }
+  }, [initialValues?.variants]);
+
 
   const {
     register,

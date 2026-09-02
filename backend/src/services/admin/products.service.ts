@@ -718,8 +718,223 @@ export class AdminProductsService {
           });
         }
 
-        // Handle direct stockQuantity update if passed
-        if (data.stockQuantity !== undefined && product.variants.length > 0) {
+        // Handle variant updates / creations / deletions
+        if (data.variants && data.variants.length > 0) {
+          const uuidRegex =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+          let colorAttr = await tx.attribute.findUnique({
+            where: { slug: "color" },
+          });
+          if (!colorAttr) {
+            colorAttr = await tx.attribute.create({
+              data: {
+                name: "Color",
+                slug: "color",
+                isVariantAttribute: true,
+              },
+            });
+          }
+
+          let sizeAttr = await tx.attribute.findUnique({
+            where: { slug: "size" },
+          });
+          if (!sizeAttr) {
+            sizeAttr = await tx.attribute.create({
+              data: { name: "Size", slug: "size", isVariantAttribute: true },
+            });
+          }
+
+          const attrCache = new Map<string, string>();
+          const existingVariantMap = new Map(
+            product.variants.map((v) => [v.id, v]),
+          );
+
+          // Get existing SKUs in DB across other products
+          const incomingSkus = data.variants.map((v) => v.sku);
+          const existingSkusInDb = await tx.productVariant.findMany({
+            where: {
+              sku: { in: incomingSkus },
+              productId: { not: id },
+            },
+            select: { sku: true },
+          });
+          const otherDbSkuSet = new Set(existingSkusInDb.map((e) => e.sku));
+          const usedSkus = new Set<string>();
+
+          const keptVariantIds: string[] = [];
+
+          for (const varItem of data.variants) {
+            const colorSlug = slugify(varItem.colorName);
+            const sizeSlug = slugify(varItem.sizeName);
+
+            // 1. Resolve Color Attribute
+            let colorValId = attrCache.get(`color_${colorSlug}`);
+            if (!colorValId) {
+              let colorValue = await tx.attributeValue.findFirst({
+                where: { attributeId: colorAttr.id, slug: colorSlug },
+              });
+              if (!colorValue) {
+                colorValue = await tx.attributeValue.create({
+                  data: {
+                    attributeId: colorAttr.id,
+                    value: varItem.colorName,
+                    slug: colorSlug,
+                    colorHex: varItem.colorHex || null,
+                  },
+                });
+              } else if (varItem.colorHex && !colorValue.colorHex) {
+                await tx.attributeValue.update({
+                  where: { id: colorValue.id },
+                  data: { colorHex: varItem.colorHex },
+                });
+              }
+              colorValId = colorValue.id;
+              attrCache.set(`color_${colorSlug}`, colorValId);
+            }
+
+            // 2. Resolve Size Attribute
+            let sizeValId = attrCache.get(`size_${sizeSlug}`);
+            if (!sizeValId) {
+              let sizeValue = await tx.attributeValue.findFirst({
+                where: { attributeId: sizeAttr.id, slug: sizeSlug },
+              });
+              if (!sizeValue) {
+                sizeValue = await tx.attributeValue.create({
+                  data: {
+                    attributeId: sizeAttr.id,
+                    value: varItem.sizeName,
+                    slug: sizeSlug,
+                  },
+                });
+              }
+              sizeValId = sizeValue.id;
+              attrCache.set(`size_${sizeSlug}`, sizeValId);
+            }
+
+            // 3. Resolve unique SKU
+            let finalSku = varItem.sku;
+            if (otherDbSkuSet.has(finalSku) || usedSkus.has(finalSku)) {
+              finalSku = `${finalSku}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+            }
+            usedSkus.add(finalSku);
+
+            const isExistingInDb =
+              varItem.id &&
+              uuidRegex.test(varItem.id) &&
+              existingVariantMap.has(varItem.id);
+
+            if (isExistingInDb) {
+              // Update existing variant
+              const variantId = varItem.id!;
+              keptVariantIds.push(variantId);
+
+              await tx.productVariant.update({
+                where: { id: variantId },
+                data: {
+                  sku: finalSku,
+                  variantName: `${varItem.colorName} / ${varItem.sizeName}`,
+                  price: varItem.price,
+                  compareAtPrice: varItem.compareAtPrice || null,
+                  isActive: varItem.isActive ?? true,
+                },
+              });
+
+              // Update Attribute Values
+              await tx.variantAttributeValue.deleteMany({
+                where: { variantId },
+              });
+              await tx.variantAttributeValue.createMany({
+                data: [
+                  { variantId, attributeValueId: colorValId },
+                  { variantId, attributeValueId: sizeValId },
+                ],
+              });
+
+              // Update Inventory
+              const existingInv = existingVariantMap.get(variantId)?.inventory;
+              if (existingInv) {
+                await tx.inventory.update({
+                  where: { id: existingInv.id },
+                  data: {
+                    quantityOnHand: varItem.stock ?? 0,
+                    ...(data.reorderLevel !== undefined
+                      ? { reorderLevel: data.reorderLevel }
+                      : {}),
+                  },
+                });
+              } else {
+                await tx.inventory.create({
+                  data: {
+                    variantId,
+                    quantityOnHand: varItem.stock ?? 0,
+                    quantityReserved: 0,
+                    reorderLevel: data.reorderLevel ?? 5,
+                  },
+                });
+              }
+            } else {
+              // Create new variant
+              const newVariantId =
+                varItem.id && uuidRegex.test(varItem.id)
+                  ? varItem.id
+                  : undefined;
+
+              const createdVariant = await tx.productVariant.create({
+                data: {
+                  id: newVariantId,
+                  productId: id,
+                  sku: finalSku,
+                  variantName: `${varItem.colorName} / ${varItem.sizeName}`,
+                  price: varItem.price,
+                  compareAtPrice: varItem.compareAtPrice || null,
+                  isActive: varItem.isActive ?? true,
+                },
+              });
+
+              keptVariantIds.push(createdVariant.id);
+
+              await tx.variantAttributeValue.createMany({
+                data: [
+                  { variantId: createdVariant.id, attributeValueId: colorValId },
+                  { variantId: createdVariant.id, attributeValueId: sizeValId },
+                ],
+              });
+
+              await tx.inventory.create({
+                data: {
+                  variantId: createdVariant.id,
+                  quantityOnHand: varItem.stock ?? 0,
+                  quantityReserved: 0,
+                  reorderLevel: data.reorderLevel ?? 5,
+                },
+              });
+            }
+          }
+
+          // Delete variants that were removed in the form
+          const removedVariantIds = product.variants
+            .map((v) => v.id)
+            .filter((vId) => !keptVariantIds.includes(vId));
+
+          if (removedVariantIds.length > 0) {
+            const ordersWithVariant = await tx.orderItem.findFirst({
+              where: { variantId: { in: removedVariantIds } },
+            });
+
+            if (!ordersWithVariant) {
+              await tx.productVariant.deleteMany({
+                where: { id: { in: removedVariantIds } },
+              });
+            } else {
+              await tx.productVariant.updateMany({
+                where: { id: { in: removedVariantIds } },
+                data: { isActive: false, deletedAt: new Date() },
+              });
+            }
+          }
+        } else if (data.stockQuantity !== undefined && product.variants.length > 0) {
+          // Handle direct stockQuantity update if passed without variants
           for (const v of product.variants) {
             if (v.inventory) {
               await tx.inventory.update({
