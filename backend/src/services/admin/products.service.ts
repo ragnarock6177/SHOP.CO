@@ -83,9 +83,14 @@ export class AdminProductsService {
           createdAt: true,
           updatedAt: true,
           images: {
-            take: 1,
             orderBy: { sortOrder: "asc" },
-            select: { imageUrl: true, altText: true },
+            select: {
+              imageUrl: true,
+              altText: true,
+              isPrimary: true,
+              sortOrder: true,
+              variantImages: { select: { variantId: true } },
+            },
           },
           productCategories: {
             select: {
@@ -94,20 +99,89 @@ export class AdminProductsService {
             },
           },
           variants: {
-            select: { id: true },
+            select: {
+              id: true,
+              inventory: {
+                select: { quantityOnHand: true, quantityReserved: true },
+              },
+              variantAttributeValues: {
+                select: {
+                  attributeValue: {
+                    select: {
+                      value: true,
+                      colorHex: true,
+                      attribute: { select: { slug: true, name: true } },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       }),
       prisma.product.count({ where }),
     ]);
 
-    const formattedProducts = products.map((p) => ({
-      ...p,
-      basePrice: p.basePrice ? p.basePrice.toNumber() : null,
-      compareAtPrice: p.compareAtPrice ? p.compareAtPrice.toNumber() : null,
-      primaryImage: p.images[0]?.imageUrl || null,
-      variantCount: p.variants.length,
-    }));
+    const formattedProducts = products.map((p) => {
+      const totalStock = p.variants.reduce((acc, v) => {
+        const onHand = v.inventory?.quantityOnHand || 0;
+        const reserved = v.inventory?.quantityReserved || 0;
+        return acc + Math.max(0, onHand - reserved);
+      }, 0);
+
+      const uniqueColors = new Set<string>();
+      const colorImages: any[] = [];
+
+      const imagesWithVariants = p.images.map((img) => ({
+        ...img,
+        variantIds: img.variantImages.map((vi) => vi.variantId),
+      }));
+
+      for (const v of p.variants) {
+        const colorVal = v.variantAttributeValues?.find(
+          (vav) =>
+            vav.attributeValue.attribute?.slug === "color" ||
+            vav.attributeValue.attribute?.name?.toLowerCase() === "color" ||
+            Boolean(vav.attributeValue.colorHex),
+        )?.attributeValue;
+
+        const colorKey = colorVal?.value || null;
+        if (colorKey && !uniqueColors.has(colorKey)) {
+          uniqueColors.add(colorKey);
+
+          const img = imagesWithVariants.find(
+            (i) =>
+              i.variantIds.includes(v.id) ||
+              (i.altText &&
+                i.altText.toLowerCase().includes(colorKey.toLowerCase())),
+          );
+          if (img && !colorImages.some((ci) => ci.imageUrl === img.imageUrl)) {
+            colorImages.push(img);
+          }
+        }
+      }
+
+      let displayImages =
+        colorImages.length > 0 ? colorImages : imagesWithVariants;
+
+      return {
+        ...p,
+        basePrice: p.basePrice ? p.basePrice.toNumber() : null,
+        compareAtPrice: p.compareAtPrice ? p.compareAtPrice.toNumber() : null,
+        primaryImage:
+          p.images.find((i) => i.isPrimary)?.imageUrl ||
+          p.images[0]?.imageUrl ||
+          null,
+        variantCount: p.variants.length,
+        totalStockAvailable: totalStock,
+        displayImages: displayImages.map((i) => ({
+          imageUrl: i.imageUrl,
+          altText: i.altText,
+          isPrimary: i.isPrimary,
+          sortOrder: i.sortOrder,
+        })),
+      };
+    });
 
     return {
       products: formattedProducts,
@@ -321,231 +395,240 @@ export class AdminProductsService {
               slug: finalSlug,
               description: data.description || null,
               shortDescription: data.shortDescription || null,
-            productType: data.productType || null,
-            status: data.status || ProductStatus.DRAFT,
-            visibility: data.visibility || ProductVisibility.PUBLIC,
-            basePrice:
-              data.basePrice !== undefined && !isNaN(Number(data.basePrice))
-                ? Number(data.basePrice)
-                : 0,
-            compareAtPrice:
-              data.compareAtPrice !== undefined &&
-              !isNaN(Number(data.compareAtPrice))
-                ? Number(data.compareAtPrice)
-                : null,
-            careInstructions: data.careInstructions || null,
-          },
-        });
-
-        if (validCategoryId) {
-          await tx.productCategory.create({
-            data: {
-              productId: product.id,
-              categoryId: validCategoryId,
-              isPrimary: true,
+              productType: data.productType || null,
+              status: data.status || ProductStatus.DRAFT,
+              visibility: data.visibility || ProductVisibility.PUBLIC,
+              basePrice:
+                data.basePrice !== undefined && !isNaN(Number(data.basePrice))
+                  ? Number(data.basePrice)
+                  : 0,
+              compareAtPrice:
+                data.compareAtPrice !== undefined &&
+                !isNaN(Number(data.compareAtPrice))
+                  ? Number(data.compareAtPrice)
+                  : null,
+              careInstructions: data.careInstructions || null,
             },
           });
-        }
 
-        const createdVariantIds: string[] = [];
-
-        if (data.variants && data.variants.length > 0) {
-          let colorAttr = await tx.attribute.findUnique({
-            where: { slug: "color" },
-          });
-          if (!colorAttr) {
-            colorAttr = await tx.attribute.create({
-              data: { name: "Color", slug: "color", isVariantAttribute: true },
+          if (validCategoryId) {
+            await tx.productCategory.create({
+              data: {
+                productId: product.id,
+                categoryId: validCategoryId,
+                isPrimary: true,
+              },
             });
           }
 
-          let sizeAttr = await tx.attribute.findUnique({
-            where: { slug: "size" },
-          });
-          if (!sizeAttr) {
-            sizeAttr = await tx.attribute.create({
-              data: { name: "Size", slug: "size", isVariantAttribute: true },
+          const createdVariantIds: string[] = [];
+
+          if (data.variants && data.variants.length > 0) {
+            let colorAttr = await tx.attribute.findUnique({
+              where: { slug: "color" },
             });
-          }
-
-          const attrCache = new Map<string, string>();
-          
-          const incomingSkus = data.variants.map((v) => v.sku);
-          const existingSkusInDb = await tx.productVariant.findMany({
-            where: { sku: { in: incomingSkus } },
-            select: { sku: true },
-          });
-          const dbSkuSet = new Set(existingSkusInDb.map((e) => e.sku));
-          const usedSkus = new Set<string>();
-
-          const variantAttrData: any[] = [];
-          const inventoryData: any[] = [];
-
-          for (const varItem of data.variants) {
-            const colorSlug = slugify(varItem.colorName);
-            const sizeSlug = slugify(varItem.sizeName);
-
-            // 1. Resolve Color Attribute
-            let colorValId = attrCache.get(`color_${colorSlug}`);
-            if (!colorValId) {
-              let colorValue = await tx.attributeValue.findFirst({
-                where: { attributeId: colorAttr.id, slug: colorSlug },
+            if (!colorAttr) {
+              colorAttr = await tx.attribute.create({
+                data: {
+                  name: "Color",
+                  slug: "color",
+                  isVariantAttribute: true,
+                },
               });
-              if (!colorValue) {
-                colorValue = await tx.attributeValue.create({
-                  data: {
-                    attributeId: colorAttr.id,
-                    value: varItem.colorName,
-                    slug: colorSlug,
-                    colorHex: varItem.colorHex || null,
-                  },
-                });
-              } else if (varItem.colorHex && !colorValue.colorHex) {
-                await tx.attributeValue.update({
-                  where: { id: colorValue.id },
-                  data: { colorHex: varItem.colorHex },
-                });
-              }
-              colorValId = colorValue.id;
-              attrCache.set(`color_${colorSlug}`, colorValId);
             }
 
-            // 2. Resolve Size Attribute
-            let sizeValId = attrCache.get(`size_${sizeSlug}`);
-            if (!sizeValId) {
-              let sizeValue = await tx.attributeValue.findFirst({
-                where: { attributeId: sizeAttr.id, slug: sizeSlug },
+            let sizeAttr = await tx.attribute.findUnique({
+              where: { slug: "size" },
+            });
+            if (!sizeAttr) {
+              sizeAttr = await tx.attribute.create({
+                data: { name: "Size", slug: "size", isVariantAttribute: true },
               });
-              if (!sizeValue) {
-                sizeValue = await tx.attributeValue.create({
-                  data: {
-                    attributeId: sizeAttr.id,
-                    value: varItem.sizeName,
-                    slug: sizeSlug,
-                  },
+            }
+
+            const attrCache = new Map<string, string>();
+
+            const incomingSkus = data.variants.map((v) => v.sku);
+            const existingSkusInDb = await tx.productVariant.findMany({
+              where: { sku: { in: incomingSkus } },
+              select: { sku: true },
+            });
+            const dbSkuSet = new Set(existingSkusInDb.map((e) => e.sku));
+            const usedSkus = new Set<string>();
+
+            const variantAttrData: any[] = [];
+            const inventoryData: any[] = [];
+
+            for (const varItem of data.variants) {
+              const colorSlug = slugify(varItem.colorName);
+              const sizeSlug = slugify(varItem.sizeName);
+
+              // 1. Resolve Color Attribute
+              let colorValId = attrCache.get(`color_${colorSlug}`);
+              if (!colorValId) {
+                let colorValue = await tx.attributeValue.findFirst({
+                  where: { attributeId: colorAttr.id, slug: colorSlug },
                 });
+                if (!colorValue) {
+                  colorValue = await tx.attributeValue.create({
+                    data: {
+                      attributeId: colorAttr.id,
+                      value: varItem.colorName,
+                      slug: colorSlug,
+                      colorHex: varItem.colorHex || null,
+                    },
+                  });
+                } else if (varItem.colorHex && !colorValue.colorHex) {
+                  await tx.attributeValue.update({
+                    where: { id: colorValue.id },
+                    data: { colorHex: varItem.colorHex },
+                  });
+                }
+                colorValId = colorValue.id;
+                attrCache.set(`color_${colorSlug}`, colorValId);
               }
-              sizeValId = sizeValue.id;
-              attrCache.set(`size_${sizeSlug}`, sizeValId);
+
+              // 2. Resolve Size Attribute
+              let sizeValId = attrCache.get(`size_${sizeSlug}`);
+              if (!sizeValId) {
+                let sizeValue = await tx.attributeValue.findFirst({
+                  where: { attributeId: sizeAttr.id, slug: sizeSlug },
+                });
+                if (!sizeValue) {
+                  sizeValue = await tx.attributeValue.create({
+                    data: {
+                      attributeId: sizeAttr.id,
+                      value: varItem.sizeName,
+                      slug: sizeSlug,
+                    },
+                  });
+                }
+                sizeValId = sizeValue.id;
+                attrCache.set(`size_${sizeSlug}`, sizeValId);
+              }
+
+              // 3. Resolve SKU
+              let finalSku = varItem.sku;
+              if (dbSkuSet.has(finalSku) || usedSkus.has(finalSku)) {
+                finalSku = `${finalSku}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+              }
+              usedSkus.add(finalSku);
+
+              // 4. Create Variant
+              const createdVariant = await tx.productVariant.create({
+                data: {
+                  id:
+                    varItem.id && uuidRegex.test(varItem.id)
+                      ? varItem.id
+                      : undefined,
+                  productId: product.id,
+                  sku: finalSku,
+                  variantName: `${varItem.colorName} / ${varItem.sizeName}`,
+                  price: varItem.price,
+                  compareAtPrice: varItem.compareAtPrice || null,
+                  isActive: varItem.isActive ?? true,
+                },
+              });
+
+              createdVariantIds.push(createdVariant.id);
+
+              // Queue up relations for bulk insert
+              variantAttrData.push({
+                variantId: createdVariant.id,
+                attributeValueId: colorValId,
+              });
+              variantAttrData.push({
+                variantId: createdVariant.id,
+                attributeValueId: sizeValId,
+              });
+
+              inventoryData.push({
+                variantId: createdVariant.id,
+                quantityOnHand: varItem.stock ?? 0,
+                quantityReserved: 0,
+                reorderLevel: data.reorderLevel ?? 5,
+              });
             }
 
-            // 3. Resolve SKU
-            let finalSku = varItem.sku;
-            if (dbSkuSet.has(finalSku) || usedSkus.has(finalSku)) {
-              finalSku = `${finalSku}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+            // Bulk Insert Relations
+            if (variantAttrData.length > 0) {
+              await tx.variantAttributeValue.createMany({
+                data: variantAttrData,
+              });
             }
-            usedSkus.add(finalSku);
+            if (inventoryData.length > 0) {
+              await tx.inventory.createMany({ data: inventoryData });
+            }
+          } else {
+            // Standard default variant for simple products without custom variants
+            let defaultSku = `${finalSlug.toUpperCase().replace(/[^A-Z0-9]/g, "")}-STD`;
+            const existingDefaultSku = await tx.productVariant.findUnique({
+              where: { sku: defaultSku },
+            });
+            if (existingDefaultSku) {
+              defaultSku = `${defaultSku}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+            }
 
-            // 4. Create Variant
             const createdVariant = await tx.productVariant.create({
               data: {
-                id: varItem.id && uuidRegex.test(varItem.id) ? varItem.id : undefined,
                 productId: product.id,
-                sku: finalSku,
-                variantName: `${varItem.colorName} / ${varItem.sizeName}`,
-                price: varItem.price,
-                compareAtPrice: varItem.compareAtPrice || null,
-                isActive: varItem.isActive ?? true,
+                sku: defaultSku,
+                variantName: "Standard",
+                price: product.basePrice ? Number(product.basePrice) : 0,
+                compareAtPrice: product.compareAtPrice
+                  ? Number(product.compareAtPrice)
+                  : undefined,
+                isActive: true,
               },
             });
 
             createdVariantIds.push(createdVariant.id);
 
-            // Queue up relations for bulk insert
-            variantAttrData.push({
-              variantId: createdVariant.id,
-              attributeValueId: colorValId,
-            });
-            variantAttrData.push({
-              variantId: createdVariant.id,
-              attributeValueId: sizeValId,
-            });
-
-            inventoryData.push({
-              variantId: createdVariant.id,
-              quantityOnHand: varItem.stock ?? 0,
-              quantityReserved: 0,
-              reorderLevel: data.reorderLevel ?? 5,
-            });
-          }
-
-          // Bulk Insert Relations
-          if (variantAttrData.length > 0) {
-            await tx.variantAttributeValue.createMany({ data: variantAttrData });
-          }
-          if (inventoryData.length > 0) {
-            await tx.inventory.createMany({ data: inventoryData });
-          }
-        } else {
-          // Standard default variant for simple products without custom variants
-          let defaultSku = `${finalSlug.toUpperCase().replace(/[^A-Z0-9]/g, "")}-STD`;
-          const existingDefaultSku = await tx.productVariant.findUnique({
-            where: { sku: defaultSku },
-          });
-          if (existingDefaultSku) {
-            defaultSku = `${defaultSku}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-          }
-
-          const createdVariant = await tx.productVariant.create({
-            data: {
-              productId: product.id,
-              sku: defaultSku,
-              variantName: "Standard",
-              price: product.basePrice ? Number(product.basePrice) : 0,
-              compareAtPrice: product.compareAtPrice
-                ? Number(product.compareAtPrice)
-                : undefined,
-              isActive: true,
-            },
-          });
-
-          createdVariantIds.push(createdVariant.id);
-
-          await tx.inventory.create({
-            data: {
-              variantId: createdVariant.id,
-              quantityOnHand: data.stockQuantity ?? 0,
-              quantityReserved: 0,
-              reorderLevel: data.reorderLevel ?? 5,
-            },
-          });
-        }
-
-        if (data.images && data.images.length > 0) {
-          const validImgs = data.images.filter(
-            (img) => img.imageUrl && !img.imageUrl.startsWith("blob:"),
-          );
-          for (let i = 0; i < validImgs.length; i++) {
-            const img = validImgs[i];
-            const createdImg = await tx.productImage.create({
+            await tx.inventory.create({
               data: {
-                productId: product.id,
-                imageUrl: img.imageUrl,
-                altText: img.altText || null,
-                sortOrder: img.sortOrder ?? i,
-                isPrimary: img.isPrimary ?? i === 0,
+                variantId: createdVariant.id,
+                quantityOnHand: data.stockQuantity ?? 0,
+                quantityReserved: 0,
+                reorderLevel: data.reorderLevel ?? 5,
               },
             });
+          }
 
-            const vIdsToLink = (img.variantIds || []).filter((vId) =>
-              createdVariantIds.includes(vId),
+          if (data.images && data.images.length > 0) {
+            const validImgs = data.images.filter(
+              (img) => img.imageUrl && !img.imageUrl.startsWith("blob:"),
             );
-            if (vIdsToLink.length > 0) {
-              await tx.variantImage.createMany({
-                data: vIdsToLink.map((vId, sortIdx) => ({
-                  variantId: vId,
-                  imageId: createdImg.id,
-                  sortOrder: sortIdx,
-                })),
+            for (let i = 0; i < validImgs.length; i++) {
+              const img = validImgs[i];
+              const createdImg = await tx.productImage.create({
+                data: {
+                  productId: product.id,
+                  imageUrl: img.imageUrl,
+                  altText: img.altText || null,
+                  sortOrder: img.sortOrder ?? i,
+                  isPrimary: img.isPrimary ?? i === 0,
+                },
               });
+
+              const vIdsToLink = (img.variantIds || []).filter((vId) =>
+                createdVariantIds.includes(vId),
+              );
+              if (vIdsToLink.length > 0) {
+                await tx.variantImage.createMany({
+                  data: vIdsToLink.map((vId, sortIdx) => ({
+                    variantId: vId,
+                    imageId: createdImg.id,
+                    sortOrder: sortIdx,
+                  })),
+                });
+              }
             }
           }
-        }
 
-        return product;
-      },
-      { timeout: 60000, maxWait: 20000 },
-    );
+          return product;
+        },
+        { timeout: 60000, maxWait: 20000 },
+      );
     } catch (error: any) {
       if (error.code === "P2002" && validProductId) {
         // Double submit race condition: return the product that was just created

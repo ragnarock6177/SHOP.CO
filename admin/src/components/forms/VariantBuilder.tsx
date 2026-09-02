@@ -415,8 +415,8 @@ export const VariantBuilder: React.FC<VariantBuilderProps> = ({
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={v.price}
-                                onChange={(e) => updateVariantItem(v.id!, "price", parseFloat(e.target.value))}
+                                value={Number.isNaN(v.price as any) ? "" : (v.price ?? "")}
+                                onChange={(e) => updateVariantItem(v.id!, "price", e.target.value === "" ? "" : parseFloat(e.target.value))}
                                 className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-900 focus:border-slate-400 focus:ring-1 focus:ring-slate-400 bg-white"
                               />
                             </div>
@@ -428,8 +428,8 @@ export const VariantBuilder: React.FC<VariantBuilderProps> = ({
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={v.compareAtPrice || ""}
-                                onChange={(e) => updateVariantItem(v.id!, "compareAtPrice", e.target.value ? parseFloat(e.target.value) : null)}
+                                value={v.compareAtPrice === null || Number.isNaN(v.compareAtPrice as any) ? "" : v.compareAtPrice}
+                                onChange={(e) => updateVariantItem(v.id!, "compareAtPrice", e.target.value === "" ? null : parseFloat(e.target.value))}
                                 placeholder="Optional"
                                 className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-900 focus:border-slate-400 focus:ring-1 focus:ring-slate-400 bg-white"
                               />
@@ -441,8 +441,8 @@ export const VariantBuilder: React.FC<VariantBuilderProps> = ({
                               <input
                                 type="number"
                                 min="0"
-                                value={v.stock}
-                                onChange={(e) => updateVariantItem(v.id!, "stock", parseInt(e.target.value, 10))}
+                                value={Number.isNaN(v.stock as any) ? "" : (v.stock ?? "")}
+                                onChange={(e) => updateVariantItem(v.id!, "stock", e.target.value === "" ? "" : parseInt(e.target.value, 10))}
                                 className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-900 focus:border-slate-400 focus:ring-1 focus:ring-slate-400 bg-white"
                               />
                             </div>

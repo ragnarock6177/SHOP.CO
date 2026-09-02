@@ -45,26 +45,54 @@ export default function ProductsPage() {
       id: "image",
       header: "Photo",
       cell: ({ row }) => {
-        const imageUrl =
-          row.original.primaryImage ||
-          row.original.images?.find((img) => img.isPrimary)?.imageUrl ||
-          row.original.images?.[0]?.imageUrl;
+        const images = (row.original as any).displayImages || row.original.images || [];
+        const primaryImage = row.original.primaryImage;
+        
+        let displayImages = [...images].sort((a, b) => a.isPrimary ? -1 : b.isPrimary ? 1 : a.sortOrder - b.sortOrder).map(i => i.imageUrl);
+        
+        if (displayImages.length === 0 && primaryImage) {
+          displayImages = [primaryImage];
+        }
 
-        return (
-          <div className="flex items-center">
-            {imageUrl ? (
-              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-slate-200/90 bg-slate-50 shadow-2xs group">
-                <img
-                  src={imageUrl}
-                  alt={row.original.name}
-                  className="h-full w-full object-cover object-center transition-transform duration-200 group-hover:scale-110"
-                />
-              </div>
-            ) : (
+        if (displayImages.length === 0) {
+          return (
+            <div className="flex items-center">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-slate-400">
                 <ImageIcon className="h-5 w-5 stroke-[1.5]" />
               </div>
-            )}
+            </div>
+          );
+        }
+
+        const maxDisplay = 3;
+        const visibleImages = displayImages.slice(0, maxDisplay);
+        const remaining = displayImages.length - maxDisplay;
+
+        return (
+          <div className="flex items-center">
+            <div className="flex -space-x-3">
+              {visibleImages.map((url, i) => (
+                <div 
+                  key={i} 
+                  className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border-2 border-white bg-slate-50 shadow-sm transition-transform hover:z-10 hover:scale-110 group"
+                  style={{ zIndex: maxDisplay - i }}
+                >
+                  <img
+                    src={url}
+                    alt={`${row.original.name} image ${i + 1}`}
+                    className="h-full w-full object-cover object-center"
+                  />
+                </div>
+              ))}
+              {remaining > 0 && (
+                <div 
+                  className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-white bg-[#0B132B] text-xs font-black text-white shadow-sm"
+                  style={{ zIndex: 0 }}
+                >
+                  +{remaining}
+                </div>
+              )}
+            </div>
           </div>
         );
       },
@@ -97,6 +125,19 @@ export default function ProductsPage() {
       cell: ({ row }) => (
         <span className="text-[10px] font-bold text-slate-500 uppercase">{row.original.visibility}</span>
       ),
+    },
+    {
+      id: "stock",
+      header: "Stock",
+      cell: ({ row }) => {
+        const totalStock = (row.original as any).totalStockAvailable ?? 
+          row.original.variants?.reduce((acc: number, v: any) => acc + (v.stockAvailable ?? v.stock ?? 0), 0) ?? 0;
+        return (
+          <span className={`font-semibold ${totalStock > 0 ? "text-slate-800" : "text-rose-600"}`}>
+            {totalStock}
+          </span>
+        );
+      }
     },
     {
       id: "actions",
