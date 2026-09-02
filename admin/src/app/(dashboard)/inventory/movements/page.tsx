@@ -24,7 +24,7 @@ export default function StockMovementsPage() {
     {
       accessorKey: "variantSku",
       header: "SKU",
-      cell: ({ row }) => <code className="text-xs font-semibold text-slate-800">{row.original.variantSku || row.original.sku}</code>,
+      cell: ({ row }) => <span className="text-xs font-semibold text-slate-800">{row.original.variantSku || row.original.sku}</span>,
     },
     {
       accessorKey: "movementType",

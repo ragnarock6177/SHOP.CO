@@ -61,7 +61,7 @@ export default function CategoriesPage() {
     {
       accessorKey: "slug",
       header: "Slug",
-      cell: ({ row }) => <code className="text-[11px] text-slate-500">{row.original.slug}</code>,
+      cell: ({ row }) => <span className="text-[11px] text-slate-500">{row.original.slug}</span>,
     },
     {
       accessorKey: "status",
@@ -84,7 +84,7 @@ export default function CategoriesPage() {
         <PermissionGate permission="categories:create">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
+            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             <span>Add Category</span>
@@ -96,7 +96,7 @@ export default function CategoriesPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+          <div className="w-full max-w-md space-y-4 rounded-md border border-slate-200/80 bg-white p-6 shadow-xs">
             <h3 className="text-base font-semibold text-slate-900">Create New Category</h3>
             <div className="space-y-3 text-xs">
               <div>
@@ -109,7 +109,7 @@ export default function CategoriesPage() {
                     setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-"));
                   }}
                   placeholder="e.g. Outerwear"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+                  className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
                 />
               </div>
               <div>
@@ -119,21 +119,21 @@ export default function CategoriesPage() {
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="outerwear"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+                  className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
                 />
               </div>
             </div>
             <div className="flex justify-end space-x-3 pt-2">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={() => createMutation.mutate({ name, slug })}
                 disabled={createMutation.isPending || !name}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
+                className="rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
               >
                 {createMutation.isPending ? "Creating..." : "Save Category"}
               </button>

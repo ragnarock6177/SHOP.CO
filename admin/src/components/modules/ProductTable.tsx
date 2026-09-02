@@ -126,17 +126,17 @@ export function ProductTable() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg">
+              <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px] rounded-xl border-slate-200 bg-white p-1 shadow-lg text-slate-900">
+            <DropdownMenuContent align="end" className="w-[160px] rounded-md border-slate-200 bg-white p-1 shadow-lg text-slate-900">
               <DropdownMenuLabel className="text-xs font-bold text-slate-500 px-2 py-1.5">Actions</DropdownMenuLabel>
-              <DropdownMenuItem className="cursor-pointer text-xs font-medium rounded-lg px-2 py-1.5 hover:bg-slate-50">Edit Product</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-xs font-medium rounded-lg px-2 py-1.5 hover:bg-slate-50">Duplicate</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-xs font-medium rounded-md px-2 py-1.5 hover:bg-slate-50">Edit Product</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-xs font-medium rounded-md px-2 py-1.5 hover:bg-slate-50">Duplicate</DropdownMenuItem>
               <DropdownMenuSeparator className="bg-slate-100 my-1" />
-              <DropdownMenuItem className="cursor-pointer text-xs font-semibold text-rose-600 rounded-lg px-2 py-1.5 hover:bg-rose-50 hover:text-rose-700">Delete Product</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-xs font-semibold text-rose-600 rounded-md px-2 py-1.5 hover:bg-rose-50 hover:text-rose-700">Delete Product</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -150,7 +150,7 @@ export function ProductTable() {
       data={data}
       searchPlaceholder="Search products by name or SKU..."
       toolbarExtra={
-        <Button asChild size="sm" className="bg-slate-900 text-white hover:bg-slate-800 shadow-xs active:scale-[0.98] rounded-xl font-semibold px-3.5">
+        <Button asChild size="sm" className="bg-slate-900 text-white hover:bg-slate-800 shadow-xs active:scale-[0.98] rounded-md font-semibold px-3.5">
           <Link href="/products/new">
             <Plus className="mr-1.5 h-4 w-4" /> Add Product
           </Link>

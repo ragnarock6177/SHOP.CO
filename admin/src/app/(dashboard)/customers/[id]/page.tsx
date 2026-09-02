@@ -27,20 +27,20 @@ export default function CustomerDetailPage() {
         {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="h-9 w-9 rounded-xl animate-shimmer bg-slate-100 border border-slate-200/60" />
+            <div className="h-9 w-9 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
             <div className="space-y-1.5">
               <div className="h-6 w-48 rounded-md animate-shimmer bg-slate-100" />
               <div className="h-3 w-36 rounded-md animate-shimmer bg-slate-100" />
             </div>
           </div>
-          <div className="h-6 w-24 rounded-full animate-shimmer bg-slate-100" />
+          <div className="h-6 w-24 rounded-md animate-shimmer bg-slate-100" />
         </div>
 
         {/* Profile Card & Details Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+          <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full animate-shimmer bg-slate-100" />
+              <div className="h-12 w-12 rounded-md animate-shimmer bg-slate-100" />
               <div className="space-y-1.5">
                 <div className="h-4 w-32 rounded-md animate-shimmer bg-slate-100" />
                 <div className="h-3 w-40 rounded-md animate-shimmer bg-slate-100" />
@@ -52,12 +52,12 @@ export default function CustomerDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4 lg:col-span-2">
+          <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4 lg:col-span-2">
             <div className="h-4 w-32 rounded-md animate-shimmer bg-slate-100 border-b border-slate-100 pb-3" />
             <div className="space-y-3 pt-1">
-              <div className="h-10 w-full rounded-xl animate-shimmer bg-slate-100" />
-              <div className="h-10 w-full rounded-xl animate-shimmer bg-slate-100" />
-              <div className="h-10 w-full rounded-xl animate-shimmer bg-slate-100" />
+              <div className="h-10 w-full rounded-md animate-shimmer bg-slate-100" />
+              <div className="h-10 w-full rounded-md animate-shimmer bg-slate-100" />
+              <div className="h-10 w-full rounded-md animate-shimmer bg-slate-100" />
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function CustomerDetailPage() {
 
   if (error || !customer) {
     return (
-      <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs">
+      <div className="rounded-md border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs">
         Customer profile not found or error loading account.
       </div>
     );
@@ -86,7 +86,7 @@ export default function CustomerDetailPage() {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.push("/customers")}
-            className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            className="rounded-md border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
@@ -115,7 +115,7 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* Customer Header Card */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+      <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
@@ -141,7 +141,7 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* Saved Address Book */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+      <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
         <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
           <MapPin className="h-4 w-4 text-slate-500" />
           <h2 className="text-sm font-semibold text-slate-900">Saved Address Book</h2>
@@ -149,7 +149,7 @@ export default function CustomerDetailPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {customer.addresses?.length ? (
             customer.addresses.map((addr) => (
-              <div key={addr.id} className="rounded-lg border border-slate-200 bg-white p-4 text-xs space-y-1 text-slate-700">
+              <div key={addr.id} className="rounded-md border border-slate-200 bg-white p-4 text-xs space-y-1 text-slate-700">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-slate-900 uppercase tracking-wide">{addr.type}</span>
                   {addr.isDefaultShipping && (
@@ -168,7 +168,7 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* Recent Customer Orders */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+      <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
         <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
           <ShoppingBag className="h-4 w-4 text-slate-500" />
           <h2 className="text-sm font-semibold text-slate-900">Order History</h2>

@@ -71,7 +71,7 @@ export function CommonTable<TData, TValue>({
   });
 
   return (
-    <div className={cn('w-full flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden', className)}>
+    <div className={cn('w-full flex flex-col bg-white rounded-md border border-slate-200/80 shadow-xs overflow-hidden', className)}>
       {/* Toolbar / Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 border-b border-slate-200/80 bg-slate-50/50">
         <div className="relative max-w-sm w-full">
@@ -80,7 +80,7 @@ export function CommonTable<TData, TValue>({
             placeholder={searchPlaceholder}
             value={globalFilter ?? ''}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-9 h-9 bg-white shadow-2xs border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-900/10 focus-visible:border-slate-400 rounded-xl"
+            className="pl-9 h-9 bg-white shadow-2xs border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-900/10 focus-visible:border-slate-400 rounded-md"
           />
         </div>
         {toolbarExtra && <div className="flex items-center gap-2">{toolbarExtra}</div>}
@@ -120,7 +120,7 @@ export function CommonTable<TData, TValue>({
                       return (
                         <TableCell key={colIdx} className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
+                            <div className="h-9 w-9 rounded-md animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
                             <div className="space-y-1.5 flex-1 min-w-0">
                               <div
                                 className="h-3.5 rounded-md animate-shimmer bg-slate-100"
@@ -147,7 +147,7 @@ export function CommonTable<TData, TValue>({
                     if (isLast) {
                       return (
                         <TableCell key={colIdx} className="py-3.5 px-4">
-                          <div className="h-7 w-7 rounded-lg animate-shimmer bg-slate-100 border border-slate-200/60" />
+                          <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
                         </TableCell>
                       );
                     }
@@ -231,8 +231,8 @@ export function CommonTable<TData, TValue>({
             </button>
 
             {/* Page Indicator */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 shadow-2xs">
-              <span className="px-2.5 py-1 text-xs font-bold text-slate-900 bg-white rounded-lg shadow-2xs">
+            <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-md border border-slate-200/70 shadow-2xs">
+              <span className="px-2.5 py-1 text-xs font-bold text-slate-900 bg-white rounded-md shadow-2xs">
                 {table.getState().pagination.pageIndex + 1}
               </span>
               <span className="px-1 text-xs font-bold text-slate-400">/</span>

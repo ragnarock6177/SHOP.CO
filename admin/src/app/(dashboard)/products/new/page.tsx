@@ -72,7 +72,7 @@ export default function CreateProductPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/products"
-              className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+              className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -84,7 +84,7 @@ export default function CreateProductPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+      <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs">
         <ProductForm
           productId={tempProductId}
           isLoading={createMutation.isPending}

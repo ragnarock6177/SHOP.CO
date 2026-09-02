@@ -193,7 +193,7 @@ export function Sidebar() {
                 <button
                   onClick={() => toggleMenu(item.name)}
                   className={cn(
-                    'flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150',
+                    'flex w-full items-center justify-between rounded-md px-3.5 py-2.5 text-xs font-semibold transition-all duration-150',
                     isActive
                       ? 'bg-slate-900 text-white shadow-xs'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -223,7 +223,7 @@ export function Sidebar() {
                           key={sub.name}
                           href={sub.href}
                           className={cn(
-                            'flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150',
+                            'flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all duration-150',
                             isSubCurrent
                               ? 'bg-slate-100 text-slate-900 font-bold border border-slate-200/60 shadow-2xs'
                               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
@@ -245,7 +245,7 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-150',
+                'flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-xs font-semibold transition-all duration-150',
                 isActive
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -260,9 +260,9 @@ export function Sidebar() {
 
       {/* User Footer */}
       <div className="border-t border-slate-200/80 p-3 bg-slate-50/50">
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-xs">
+        <div className="flex items-center justify-between gap-2 rounded-md border border-slate-200/80 bg-white p-2.5 shadow-xs">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white text-xs font-bold shadow-2xs">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold shadow-2xs">
               {user?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'A'}
             </div>
             <div className="flex min-w-0 flex-col">
@@ -273,7 +273,7 @@ export function Sidebar() {
           <button
             onClick={() => logout()}
             title="Log out"
-            className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+            className="shrink-0 rounded-md p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
           >
             <LogOut className="h-4 w-4" />
           </button>

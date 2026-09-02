@@ -40,7 +40,7 @@ export default function ShipmentsPage() {
         <div>
           <span className="font-semibold text-slate-900">{row.original.carrier}</span>
           <div className="flex items-center space-x-1">
-            <code className="text-[11px] text-slate-500 font-mono">{row.original.trackingNumber}</code>
+            <span className="text-[11px] text-slate-500">{row.original.trackingNumber}</span>
             {row.original.trackingUrl && (
               <a
                 href={row.original.trackingUrl}
@@ -108,7 +108,7 @@ export default function ShipmentsPage() {
         <PermissionGate permission="fulfillment:create">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
+            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             <span>Create Shipment</span>

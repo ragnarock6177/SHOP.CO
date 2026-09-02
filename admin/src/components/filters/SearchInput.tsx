@@ -32,12 +32,12 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-900 placeholder:text-slate-400 shadow-2xs focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
+        className="w-full rounded-md border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-900 placeholder:text-slate-400 shadow-2xs focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all"
       />
       {searchTerm && (
         <button
           onClick={() => setSearchTerm("")}
-          className="absolute right-2.5 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+          className="absolute right-2.5 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
         >
           <X className="h-3.5 w-3.5" />
         </button>

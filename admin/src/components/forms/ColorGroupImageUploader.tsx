@@ -152,7 +152,7 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
       {/* Main Large Image */}
       <div 
         onClick={() => !disabled && !isUploading && !primaryImage && fileInputRef.current?.click()}
-        className={`relative w-full aspect-[4/5] rounded-2xl border-2 flex items-center justify-center overflow-hidden transition-all duration-200 group ${
+        className={`relative w-full aspect-[4/5] rounded-md border-2 flex items-center justify-center overflow-hidden transition-all duration-200 group ${
           !primaryImage && !isUploading 
             ? "border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer hover:border-slate-400" 
             : "border-slate-200 bg-white"
@@ -180,7 +180,7 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
                     e.stopPropagation();
                     handleDelete(primaryImage.id);
                   }}
-                  className="bg-white/90 hover:bg-white text-rose-600 p-1.5 rounded-lg shadow-xs transition-colors cursor-pointer"
+                  className="bg-white/90 hover:bg-white text-rose-600 p-1.5 rounded-md shadow-xs transition-colors cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -199,7 +199,7 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
       {(primaryImage || isUploading) && (
         <div className="flex flex-wrap gap-2">
           {otherImages.map((img) => (
-            <div key={img.id} className="relative w-10 h-12 rounded-lg border border-slate-200 overflow-hidden group">
+            <div key={img.id} className="relative w-10 h-12 rounded-md border border-slate-200 overflow-hidden group">
               <img src={img.imageUrl} alt="thumbnail" className="w-full h-full object-cover" />
               <button
                 type="button"
@@ -212,7 +212,7 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
           ))}
           
           {isUploading && primaryImage && (
-            <div className="w-10 h-12 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center">
+            <div className="w-10 h-12 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center">
               <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
             </div>
           )}
@@ -221,7 +221,7 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-10 h-12 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 hover:border-slate-400 text-slate-400 transition-colors cursor-pointer"
+              className="w-10 h-12 rounded-md border-2 border-dashed border-slate-300 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 hover:border-slate-400 text-slate-400 transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
             </button>

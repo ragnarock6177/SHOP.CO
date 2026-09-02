@@ -120,17 +120,17 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
       <div className="fixed inset-0" onClick={() => !createMutation.isPending && onClose()} />
 
       {/* Large Modal Container */}
-      <div className="relative z-10 w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl border border-slate-200/90 bg-white shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-3xl max-h-[90vh] flex flex-col rounded-md border border-slate-200/90 bg-white shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5 bg-white">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xs">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-white shadow-xs">
               <PackagePlus className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-slate-900">Create New Product</h2>
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-700">
+                <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-700">
                   <Sparkles className="h-3 w-3 text-slate-600" /> Catalog
                 </span>
               </div>
@@ -144,7 +144,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
             type="button"
             onClick={onClose}
             disabled={createMutation.isPending}
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
+            className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
@@ -152,7 +152,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
         </div>
 
         {errorMessage && (
-          <div className="mx-6 mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700">
+          <div className="mx-6 mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700">
             {errorMessage}
           </div>
         )}

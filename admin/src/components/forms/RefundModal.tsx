@@ -36,7 +36,7 @@ export const RefundModal: React.FC<RefundModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+      <div className="w-full max-w-md space-y-4 rounded-md border border-slate-200/80 bg-white p-6 shadow-xs">
         <h3 className="text-base font-semibold text-slate-900">Process Transactional Refund</h3>
 
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
@@ -48,7 +48,7 @@ export const RefundModal: React.FC<RefundModalProps> = ({
                 value={targetOrderId}
                 onChange={(e) => setTargetOrderId(e.target.value)}
                 placeholder="UUID order reference"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+                className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
                 required
               />
             </div>
@@ -61,7 +61,7 @@ export const RefundModal: React.FC<RefundModalProps> = ({
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+              className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               required
             />
           </div>
@@ -73,7 +73,7 @@ export const RefundModal: React.FC<RefundModalProps> = ({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Reason for payment gateway refund..."
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+              className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
               required
             />
           </div>
@@ -83,14 +83,14 @@ export const RefundModal: React.FC<RefundModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+              className="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !amount || !reason}
-              className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              className="rounded-md bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
             >
               {isLoading ? "Processing..." : "Process Refund"}
             </button>

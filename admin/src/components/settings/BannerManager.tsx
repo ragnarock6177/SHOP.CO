@@ -179,7 +179,7 @@ export function BannerManager() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center text-xs font-medium text-slate-400 shadow-2xs animate-pulse">
+      <div className="rounded-md border border-slate-200/80 bg-white p-12 text-center text-xs font-medium text-slate-400 shadow-2xs animate-pulse">
         Loading Promotional & Hero Banners...
       </div>
     );
@@ -188,7 +188,7 @@ export function BannerManager() {
   return (
     <div className="space-y-8">
       {/* SECTION 1: Hero Carousel & Campaign Banners */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
+      <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-4">
           <div>
             <h2 className="text-base font-bold text-slate-900">Promotional & Hero Banners</h2>
@@ -208,7 +208,7 @@ export function BannerManager() {
               setMobileCompressionStats(null);
               setIsDialogOpen(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] cursor-pointer"
+            className="flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Add New Banner</span>
@@ -217,7 +217,7 @@ export function BannerManager() {
 
         {message && (
           <div
-            className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-xl border ${
+            className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
               message.type === "success"
                 ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                 : "bg-rose-50 text-rose-800 border-rose-200"
@@ -233,7 +233,7 @@ export function BannerManager() {
         )}
 
         {banners.length === 0 ? (
-          <div className="p-12 text-center border border-dashed border-slate-200/80 rounded-xl text-slate-500 text-xs">
+          <div className="p-12 text-center border border-dashed border-slate-200/80 rounded-md text-slate-500 text-xs">
             No promotional banners configured yet. Click &quot;Add New Banner&quot; above to create one.
           </div>
         ) : (
@@ -241,7 +241,7 @@ export function BannerManager() {
             {banners.map((banner) => (
               <div
                 key={banner.id}
-                className={`border rounded-xl overflow-hidden flex flex-col justify-between transition-all ${
+                className={`border rounded-md overflow-hidden flex flex-col justify-between transition-all ${
                   banner.isEnabled ? "border-slate-200/80 bg-white shadow-2xs" : "border-slate-200/60 bg-slate-50 opacity-60"
                 }`}
               >
@@ -253,11 +253,11 @@ export function BannerManager() {
                   />
                   <div className="absolute top-2 right-2 flex gap-1">
                     {banner.targetProductId ? (
-                      <span className="rounded-full bg-emerald-600 text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="rounded-md bg-emerald-600 text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider">
                         + Hotspot Active
                       </span>
                     ) : (
-                      <span className="rounded-full bg-slate-700/80 text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider">
+                      <span className="rounded-md bg-slate-700/80 text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider">
                         No Hotspot Pin
                       </span>
                     )}
@@ -270,7 +270,7 @@ export function BannerManager() {
 
                   {banner.targetProductId && (
                     <div className="pt-1">
-                      <span className="text-[10px] font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 inline-block font-mono">
+                      <span className="text-[10px] font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-md border border-emerald-200 inline-block">
                         Linked Product: ID &quot;{banner.targetProductId}&quot;
                       </span>
                     </div>
@@ -297,7 +297,7 @@ export function BannerManager() {
                         setMobileCompressionStats(null);
                         setIsDialogOpen(true);
                       }}
-                      className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
+                      className="p-1.5 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
                       title="Edit Banner"
                     >
                       <Edit className="h-3.5 w-3.5" />
@@ -305,7 +305,7 @@ export function BannerManager() {
                     <button
                       type="button"
                       onClick={() => handleDelete(banner.id)}
-                      className="p-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                      className="p-1.5 rounded-md border border-rose-200 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                       title="Delete Banner"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -319,7 +319,7 @@ export function BannerManager() {
       </div>
 
       {/* SECTION 2: Brand Marquee Settings */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
+      <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
         <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -334,7 +334,7 @@ export function BannerManager() {
             <button
               type="button"
               onClick={handleAddMarqueeItem}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-800 transition cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-md border border-slate-200 hover:bg-slate-100 text-slate-800 transition cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" /> Add Marquee Item
             </button>
@@ -342,7 +342,7 @@ export function BannerManager() {
               type="button"
               onClick={handleSaveMarquee}
               disabled={savingMarquee}
-              className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] cursor-pointer"
+              className="flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] cursor-pointer"
             >
               {savingMarquee ? "Saving..." : "Save Marquee"}
             </button>
@@ -353,9 +353,9 @@ export function BannerManager() {
           {marqueeItems.map((item, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white transition"
+              className="flex items-center gap-3 p-2.5 rounded-md border border-slate-200/80 bg-slate-50/50 hover:bg-white transition"
             >
-              <span className="text-xs font-bold text-slate-400 w-6 text-center font-mono">
+              <span className="text-xs font-bold text-slate-400 w-6 text-center">
                 #{idx + 1}
               </span>
 
@@ -363,7 +363,7 @@ export function BannerManager() {
                 type="text"
                 value={item.name}
                 onChange={(e) => handleUpdateMarqueeItem(idx, "name", e.target.value)}
-                className="flex-1 h-8 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-900 font-bold tracking-wider uppercase focus:border-slate-900 outline-none"
+                className="flex-1 h-8 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 font-bold tracking-wider uppercase focus:border-slate-900 outline-none"
                 placeholder="BRAND NAME OR USP BADGE TEXT"
               />
 
@@ -393,7 +393,7 @@ export function BannerManager() {
       {/* Edit / Create Banner Dialog */}
       {editingBanner && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-lg rounded-2xl">
+          <DialogContent className="max-w-lg rounded-md">
             <DialogHeader>
               <DialogTitle className="text-base font-bold">
                 {editingBanner.id ? "Edit Campaign Banner" : "Create New Campaign Banner"}
@@ -407,7 +407,7 @@ export function BannerManager() {
                   value={editingBanner.title || ""}
                   onChange={(e) => setEditingBanner((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="e.g. SPRING SUMMER CAMPAIGN"
-                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
+                  className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 />
               </div>
 
@@ -418,12 +418,12 @@ export function BannerManager() {
                   value={editingBanner.subtitle || ""}
                   onChange={(e) => setEditingBanner((prev) => ({ ...prev, subtitle: e.target.value }))}
                   placeholder="Engineered for movement and high-contrast aesthetics"
-                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
+                  className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 />
               </div>
 
               {/* OPTIONAL FEATURED PRODUCT HOTSPOT SELECTOR */}
-              <div className="space-y-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <div className="space-y-1.5 p-3 bg-slate-50 border border-slate-200 rounded-md">
                 <label className="text-xs font-bold text-slate-900 flex items-center justify-between">
                   <span>Featured Product Hotspot (&apos;+&apos; Pin Popover)</span>
                   <span className="text-[10px] text-slate-500 font-normal">Optional</span>
@@ -441,7 +441,7 @@ export function BannerManager() {
                       targetType: selectedId ? "PRODUCT" : prev?.targetType === "PRODUCT" ? "NONE" : (prev?.targetType || "NONE"),
                     }));
                   }}
-                  className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
+                  className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                 >
                   <option value="">None (Do Not Show &apos;+&apos; Hotspot Pin on Slide)</option>
                   {products.map((p) => (
@@ -453,7 +453,7 @@ export function BannerManager() {
               </div>
 
               {/* DESKTOP BANNER IMAGE WITH QUALITY-PRESERVING UPLOADER */}
-              <div className="space-y-2 p-3 bg-slate-50/80 border border-slate-200/80 rounded-xl">
+              <div className="space-y-2 p-3 bg-slate-50/80 border border-slate-200/80 rounded-md">
                 <label className="text-xs font-bold text-slate-900 flex items-center justify-between">
                   <span>Desktop Banner Image <span className="text-rose-500">*</span></span>
                   <span className="text-[10px] text-slate-500 font-normal">WebP Compressed (Quality Preserved)</span>
@@ -465,11 +465,11 @@ export function BannerManager() {
                     value={editingBanner.desktopImageUrl || ""}
                     onChange={(e) => setEditingBanner((prev) => ({ ...prev, desktopImageUrl: e.target.value }))}
                     placeholder="https://images.unsplash.com/..."
-                    className="flex-1 h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
+                    className="flex-1 h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                     required
                   />
 
-                  <label className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition cursor-pointer shrink-0">
+                  <label className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-bold transition cursor-pointer shrink-0">
                     {uploadingDesktop ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -494,13 +494,13 @@ export function BannerManager() {
                 </div>
 
                 {desktopCompressionStats && (
-                  <p className="text-[10px] font-mono text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
+                  <p className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
                     ✓ {desktopCompressionStats}
                   </p>
                 )}
 
                 {editingBanner.desktopImageUrl && (
-                  <div className="relative h-28 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 mt-1">
+                  <div className="relative h-28 rounded-md overflow-hidden border border-slate-200 bg-slate-100 mt-1">
                     <img
                       src={editingBanner.desktopImageUrl}
                       alt="Desktop Preview"
@@ -511,7 +511,7 @@ export function BannerManager() {
               </div>
 
               {/* MOBILE BANNER IMAGE WITH QUALITY-PRESERVING UPLOADER */}
-              <div className="space-y-2 p-3 bg-slate-50/80 border border-slate-200/80 rounded-xl">
+              <div className="space-y-2 p-3 bg-slate-50/80 border border-slate-200/80 rounded-md">
                 <label className="text-xs font-bold text-slate-900 flex items-center justify-between">
                   <span>Mobile Banner Image (Optional)</span>
                   <span className="text-[10px] text-slate-500 font-normal">WebP Compressed</span>
@@ -523,10 +523,10 @@ export function BannerManager() {
                     value={editingBanner.mobileImageUrl || ""}
                     onChange={(e) => setEditingBanner((prev) => ({ ...prev, mobileImageUrl: e.target.value }))}
                     placeholder="https://images.unsplash.com/..."
-                    className="flex-1 h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
+                    className="flex-1 h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                   />
 
-                  <label className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition cursor-pointer shrink-0">
+                  <label className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-bold transition cursor-pointer shrink-0">
                     {uploadingMobile ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -551,13 +551,13 @@ export function BannerManager() {
                 </div>
 
                 {mobileCompressionStats && (
-                  <p className="text-[10px] font-mono text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
+                  <p className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
                     ✓ {mobileCompressionStats}
                   </p>
                 )}
 
                 {editingBanner.mobileImageUrl && (
-                  <div className="relative h-28 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 mt-1">
+                  <div className="relative h-28 rounded-md overflow-hidden border border-slate-200 bg-slate-100 mt-1">
                     <img
                       src={editingBanner.mobileImageUrl}
                       alt="Mobile Preview"
@@ -575,7 +575,7 @@ export function BannerManager() {
                     value={editingBanner.buttonText || ""}
                     onChange={(e) => setEditingBanner((prev) => ({ ...prev, buttonText: e.target.value }))}
                     placeholder="EXPLORE CAPSULE"
-                    className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
+                    className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                   />
                 </div>
 
@@ -586,7 +586,7 @@ export function BannerManager() {
                     onChange={(e) =>
                       setEditingBanner((prev) => ({ ...prev, targetType: e.target.value as BannerTargetType }))
                     }
-                    className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
+                    className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                   >
                     <option value="NONE">NONE (No Link)</option>
                     <option value="PRODUCT">PRODUCT (Link to Product)</option>
@@ -604,7 +604,7 @@ export function BannerManager() {
                     value={editingBanner.buttonUrl || ""}
                     onChange={(e) => setEditingBanner((prev) => ({ ...prev, buttonUrl: e.target.value }))}
                     placeholder="https://airave.com/collections/sale"
-                    className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
+                    className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition"
                   />
                 </div>
               )}
@@ -613,7 +613,7 @@ export function BannerManager() {
               <button
                 type="button"
                 onClick={() => setIsDialogOpen(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                className="rounded-md border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
               >
                 Cancel
               </button>
@@ -621,7 +621,7 @@ export function BannerManager() {
                 type="button"
                 onClick={handleSaveBanner}
                 disabled={saving || uploadingDesktop || uploadingMobile}
-                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition"
+                className="rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition"
               >
                 {saving ? "Saving..." : "Save Banner"}
               </button>

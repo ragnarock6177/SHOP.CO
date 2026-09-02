@@ -45,7 +45,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
+    <form onSubmit={handleSubmit} className="rounded-md border border-slate-200/80 bg-white p-6 shadow-2xs space-y-6">
       <div className="border-b border-slate-200/80 pb-4">
         <h2 className="text-base font-bold text-slate-900">General Store Configuration</h2>
         <p className="text-xs text-slate-500 mt-0.5">Manage store identity, default currency, locale, and maintenance status</p>
@@ -53,7 +53,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
 
       {message && (
         <div
-          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-xl border ${
+          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
             message.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-rose-50 text-rose-800 border-rose-200"
@@ -79,7 +79,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
             value={formData.name}
             onChange={(e) => handleChange("name", e.target.value)}
             placeholder="e.g. AIRAVÉ"
-            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
             required
           />
         </div>
@@ -95,7 +95,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
             onChange={(e) => handleChange("currency", e.target.value.toUpperCase())}
             placeholder="INR"
             maxLength={3}
-            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs font-mono uppercase"
+            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs uppercase"
             required
           />
         </div>
@@ -111,7 +111,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
           value={formData.description}
           onChange={(e) => handleChange("description", e.target.value)}
           placeholder="Luxury High-Fashion Streetwear & Contemporary Apparel"
-          className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+          className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
         />
       </div>
 
@@ -126,7 +126,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
             value={formData.logoUrl}
             onChange={(e) => handleChange("logoUrl", e.target.value)}
             placeholder="/images/logo.svg"
-            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
             required
           />
         </div>
@@ -141,7 +141,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
             value={formData.faviconUrl}
             onChange={(e) => handleChange("faviconUrl", e.target.value)}
             placeholder="/favicon.ico"
-            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
             required
           />
         </div>
@@ -158,7 +158,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
             value={formData.defaultLanguage}
             onChange={(e) => handleChange("defaultLanguage", e.target.value)}
             placeholder="en"
-            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
             required
           />
         </div>
@@ -173,7 +173,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
             value={formData.timezone}
             onChange={(e) => handleChange("timezone", e.target.value)}
             placeholder="Asia/Kolkata"
-            className="w-full h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
+            className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition shadow-2xs"
             required
           />
         </div>
@@ -197,7 +197,7 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
         >
           <Save className="h-3.5 w-3.5" />
           <span>{saving ? "Saving..." : "Save General Settings"}</span>

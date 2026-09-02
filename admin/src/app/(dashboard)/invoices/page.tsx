@@ -42,7 +42,7 @@ export default function InvoicesPage() {
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <FileText className="h-4 w-4 text-slate-500" />
-          <span className="font-mono text-xs font-semibold text-slate-900">{row.original.invoiceNumber}</span>
+          <span className="text-xs font-semibold text-slate-900">{row.original.invoiceNumber}</span>
         </div>
       ),
     },

@@ -99,16 +99,16 @@ export default function RolesPage() {
       <div className="space-y-6 animate-fade-in-up">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <div className="h-7 w-56 rounded-xl animate-shimmer bg-slate-100" />
+            <div className="h-7 w-56 rounded-md animate-shimmer bg-slate-100" />
             <div className="h-3.5 w-72 rounded-md animate-shimmer bg-slate-100" />
           </div>
-          <div className="h-9 w-28 rounded-xl animate-shimmer bg-slate-100" />
+          <div className="h-9 w-28 rounded-md animate-shimmer bg-slate-100" />
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
-          <div className="h-10 w-full rounded-xl animate-shimmer bg-slate-100" />
-          <div className="h-10 w-full rounded-xl animate-shimmer bg-slate-100" />
-          <div className="h-10 w-full rounded-xl animate-shimmer bg-slate-100" />
-          <div className="h-10 w-full rounded-xl animate-shimmer bg-slate-100" />
+        <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+          <div className="h-10 w-full rounded-md animate-shimmer bg-slate-100" />
+          <div className="h-10 w-full rounded-md animate-shimmer bg-slate-100" />
+          <div className="h-10 w-full rounded-md animate-shimmer bg-slate-100" />
+          <div className="h-10 w-full rounded-md animate-shimmer bg-slate-100" />
         </div>
       </div>
     );
@@ -124,7 +124,7 @@ export default function RolesPage() {
         <PermissionGate permission="roles:manage">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
+            className="flex items-center space-x-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" />
             <span>Create Custom Role</span>
@@ -134,14 +134,14 @@ export default function RolesPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Roles List */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
+        <div className="rounded-md border border-slate-200/80 bg-white p-5 shadow-xs space-y-3">
           <h2 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-3">Defined Staff Roles</h2>
           <div className="space-y-2">
             {roles?.map((role) => (
               <div
                 key={role.id}
                 onClick={() => handleRoleSelect(role)}
-                className={`cursor-pointer rounded-lg border p-3 text-xs transition ${
+                className={`cursor-pointer rounded-md border p-3 text-xs transition ${
                   selectedRole?.id === role.id
                     ? "border-slate-400 bg-slate-100 text-slate-900"
                     : "border-slate-200/80 bg-white/60 text-slate-500 hover:border-slate-300"
@@ -160,7 +160,7 @@ export default function RolesPage() {
         </div>
 
         {/* Permission Matrix */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs space-y-4 lg:col-span-2">
+        <div className="rounded-md border border-slate-200/80 bg-white p-5 shadow-xs space-y-4 lg:col-span-2">
           {selectedRole ? (
             <>
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -172,7 +172,7 @@ export default function RolesPage() {
                   <button
                     onClick={handleSavePermissions}
                     disabled={updatePermissionsMutation.isPending}
-                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
+                    className="rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
                   >
                     {updatePermissionsMutation.isPending ? "Saving..." : "Save Matrix"}
                   </button>
@@ -185,7 +185,7 @@ export default function RolesPage() {
                   return (
                     <label
                       key={perm}
-                      className={`flex items-center space-x-2.5 rounded-lg border p-2.5 text-xs transition cursor-pointer ${
+                      className={`flex items-center space-x-2.5 rounded-md border p-2.5 text-xs transition cursor-pointer ${
                         isChecked
                           ? "border-emerald-800/80 bg-emerald-50/20 text-emerald-700"
                           : "border-slate-200/80 bg-white/60 text-slate-500 hover:border-slate-300"
@@ -197,7 +197,7 @@ export default function RolesPage() {
                         onChange={() => handleTogglePermission(perm)}
                         className="rounded border-slate-200 bg-white text-slate-900"
                       />
-                      <span className="font-mono text-[11px]">{perm}</span>
+                      <span className="text-[11px]">{perm}</span>
                     </label>
                   );
                 })}
@@ -214,7 +214,7 @@ export default function RolesPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+          <div className="w-full max-w-md space-y-4 rounded-md border border-slate-200/80 bg-white p-6 shadow-xs">
             <h3 className="text-base font-semibold text-slate-900">Create Custom Staff Role</h3>
             <form onSubmit={handleCreateRoleSubmit} className="space-y-3 text-xs">
               <div>
@@ -224,7 +224,7 @@ export default function RolesPage() {
                   value={newRoleName}
                   onChange={(e) => setNewRoleName(e.target.value)}
                   placeholder="e.g. Catalog Manager"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+                  className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
                   required
                 />
               </div>
@@ -235,21 +235,21 @@ export default function RolesPage() {
                   value={newRoleDesc}
                   onChange={(e) => setNewRoleDesc(e.target.value)}
                   placeholder="Manages product listings and inventory balances"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
+                  className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-400 focus:outline-none"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+                  className="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createRoleMutation.isPending || !newRoleName}
-                  className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
+                  className="rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
                 >
                   {createRoleMutation.isPending ? "Creating..." : "Save Role"}
                 </button>

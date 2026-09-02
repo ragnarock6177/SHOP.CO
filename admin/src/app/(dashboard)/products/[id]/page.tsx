@@ -224,10 +224,10 @@ export default function EditProductPage() {
     return (
       <div className="mx-auto max-w-6xl space-y-6 animate-fade-in-up">
         <div className="space-y-2">
-          <div className="h-7 w-48 rounded-xl animate-shimmer bg-slate-100" />
+          <div className="h-7 w-48 rounded-md animate-shimmer bg-slate-100" />
           <div className="h-3.5 w-64 rounded-md animate-shimmer bg-slate-100" />
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+        <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs">
           <FormSkeleton />
         </div>
       </div>
@@ -236,11 +236,11 @@ export default function EditProductPage() {
 
   if (error || !product) {
     return (
-      <div className="mx-auto max-w-3xl rounded-xl border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs space-y-3">
+      <div className="mx-auto max-w-3xl rounded-md border border-rose-200 bg-rose-50/60 p-6 text-center text-xs font-semibold text-rose-700 shadow-xs space-y-3">
         <p>Product not found or failed to load product details.</p>
         <Link
           href="/products"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-700 border border-slate-200 shadow-2xs hover:bg-slate-50 transition"
+          className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-slate-700 border border-slate-200 shadow-2xs hover:bg-slate-50 transition"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Products Catalog
         </Link>
@@ -296,7 +296,7 @@ export default function EditProductPage() {
               {product.name}
             </h1>
             <StatusBadge status={product.status as any} />
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
+            <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
               {product.visibility}
             </span>
           </div>
@@ -304,11 +304,11 @@ export default function EditProductPage() {
 
         {/* Tab Switcher & Actions */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-xl bg-slate-100/80 p-1 border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center rounded-md bg-slate-100/80 p-1 border border-slate-200/80 shadow-2xs">
             <button
               type="button"
               onClick={() => setActiveTab("overview")}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
+              className={`rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
                 activeTab === "overview"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -320,7 +320,7 @@ export default function EditProductPage() {
             <button
               type="button"
               onClick={() => setActiveTab("edit")}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
+              className={`rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
                 activeTab === "edit"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -334,7 +334,7 @@ export default function EditProductPage() {
           <button
             type="button"
             onClick={() => setIsArchiveModalOpen(true)}
-            className="rounded-xl border border-rose-200 bg-white p-2 text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors shadow-2xs cursor-pointer"
+            className="rounded-md border border-rose-200 bg-white p-2 text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors shadow-2xs cursor-pointer"
             title="Archive Product"
           >
             <Trash2 className="h-4 w-4" />
@@ -365,7 +365,7 @@ export default function EditProductPage() {
                         </div>
                       )}
                       {productImages.length > 0 && (
-                        <span className="absolute bottom-3 right-3 rounded-full bg-slate-900/80 px-3 py-1 text-[10px] font-bold text-white backdrop-blur-xs">
+                        <span className="absolute bottom-3 right-3 rounded-md bg-slate-900/80 px-3 py-1 text-[10px] font-bold text-white backdrop-blur-xs">
                           {selectedImageIndex + 1} / {productImages.length}
                         </span>
                       )}
@@ -379,7 +379,7 @@ export default function EditProductPage() {
                             key={img.id || idx}
                             type="button"
                             onClick={() => setSelectedImageIndex(idx)}
-                            className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border-2 transition-all cursor-pointer ${
+                            className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 transition-all cursor-pointer ${
                               selectedImageIndex === idx
                                 ? "border-blue-600 ring-2 ring-blue-600/20 scale-105"
                                 : "border-slate-200 hover:border-slate-400"
@@ -399,19 +399,19 @@ export default function EditProductPage() {
                   {/* Right Product Details Info */}
                   <div className="space-y-5">
                     <div>
-                      <span className="inline-block rounded-full bg-blue-50 px-3.5 py-1 text-[11px] font-extrabold text-blue-600 uppercase tracking-wider font-mono mb-2">
+                      <span className="inline-block rounded-md bg-blue-50 px-3.5 py-1 text-[11px] font-extrabold text-blue-600 uppercase tracking-wider mb-2">
                         {primaryCat?.name || (product as any).productType || "CLOTHING"}
                       </span>
                       <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
                         {product.name}
                       </h1>
-                      <p className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest mt-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
                         SKU: {currentSKU}
                       </p>
                     </div>
 
                     <div>
-                      <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 font-mono mb-1">
+                      <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">
                         DESCRIPTION
                       </h3>
                       <p className="text-xs font-semibold text-slate-700 leading-relaxed">
@@ -422,7 +422,7 @@ export default function EditProductPage() {
                     {/* SELECT COLOR */}
                     {uniqueColors.length > 0 && (
                       <div>
-                        <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 font-mono mb-2">
+                        <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
                           SELECT COLOR
                         </h3>
                         <div className="flex flex-wrap gap-2.5">
@@ -449,7 +449,7 @@ export default function EditProductPage() {
                                   );
                                   if (matched) setSelectedVariantId(matched.id);
                                 }}
-                                className={`relative inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                                className={`relative inline-flex items-center gap-2 rounded-md px-4 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                                   isSelected
                                     ? "border-2 border-blue-600 bg-blue-50/50 text-blue-700 shadow-2xs"
                                     : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300"
@@ -457,7 +457,7 @@ export default function EditProductPage() {
                               >
                                 {col.hex ? (
                                   <span
-                                    className="h-3 w-3 rounded-full border border-black/10 shadow-2xs"
+                                    className="h-3 w-3 rounded-md border border-black/10 shadow-2xs"
                                     style={{ backgroundColor: col.hex }}
                                   />
                                 ) : (
@@ -477,7 +477,7 @@ export default function EditProductPage() {
                     {/* AVAILABLE SIZES */}
                     {availableSizes.length > 0 && (
                       <div>
-                        <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 font-mono mb-2">
+                        <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
                           AVAILABLE SIZES
                         </h3>
                         <div className="flex flex-wrap gap-2.5">
@@ -496,7 +496,7 @@ export default function EditProductPage() {
                                 onClick={() => {
                                   if (sizeVariant) setSelectedVariantId(sizeVariant.id);
                                 }}
-                                className={`relative flex flex-col items-center justify-center rounded-2xl transition-all cursor-pointer ${
+                                className={`relative flex flex-col items-center justify-center rounded-md transition-all cursor-pointer ${
                                   isSelected
                                     ? "h-12 w-12 bg-slate-900 text-white font-extrabold shadow-md"
                                     : isLowStock
@@ -527,7 +527,7 @@ export default function EditProductPage() {
               <div className="rounded-[2.5rem] bg-[#0B132B] text-white p-6 shadow-xl space-y-5 border border-slate-800/80">
                 <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3.5">
                   <History className="h-4 w-4 text-slate-400" />
-                  <h2 className="text-xs font-black tracking-widest text-slate-300 uppercase font-mono">
+                  <h2 className="text-xs font-black tracking-widest text-slate-300 uppercase">
                     ACTIVITY & SUMMARY
                   </h2>
                 </div>
@@ -538,7 +538,7 @@ export default function EditProductPage() {
                       STATUS
                     </span>
                     <span
-                      className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                      className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${
                         overallStockStatus === "IN_STOCK"
                           ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
                           : overallStockStatus === "LOW_STOCK"
@@ -565,7 +565,7 @@ export default function EditProductPage() {
 
                   {/* Warning Restock Alert Banner */}
                   {currentStock <= 5 && (
-                    <div className="rounded-2xl bg-rose-950/70 border border-rose-800/80 p-4 text-xs font-semibold text-rose-200 space-y-1">
+                    <div className="rounded-md bg-rose-950/70 border border-rose-800/80 p-4 text-xs font-semibold text-rose-200 space-y-1">
                       <p className="font-extrabold text-rose-300">
                         Warning: This variant needs a restock soon. Only {currentStock} units left.
                       </p>
@@ -578,7 +578,7 @@ export default function EditProductPage() {
               <div className="rounded-[2.5rem] border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <Sliders className="h-4 w-4 text-blue-600" />
-                  <h2 className="text-xs font-black tracking-widest text-blue-600 uppercase font-mono">
+                  <h2 className="text-xs font-black tracking-widest text-blue-600 uppercase">
                     PRODUCT DETAILS
                   </h2>
                 </div>
@@ -604,10 +604,10 @@ export default function EditProductPage() {
 
           {/* Dynamic Variant Inventory & Stock Control Matrix Card */}
           {variants.length > 0 && (
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+            <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-slate-700">
                     <Boxes className="h-4 w-4" />
                   </div>
                   <div>
@@ -625,7 +625,7 @@ export default function EditProductPage() {
                     <button
                       type="button"
                       onClick={() => setEditingStock({})}
-                      className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                      className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
                     >
                       Reset Edits
                     </button>
@@ -650,7 +650,7 @@ export default function EditProductPage() {
                         console.error("Batch variant stock update failed:", err);
                       }
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-40 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-40 cursor-pointer"
                   >
                     {updateVariantMutation.isPending ? (
                       <span>Saving Changes...</span>
@@ -711,7 +711,7 @@ export default function EditProductPage() {
                             <div className="flex items-center gap-2">
                               {colorHex && (
                                 <span
-                                  className="h-3.5 w-3.5 rounded-full border border-black/10 shadow-2xs shrink-0"
+                                  className="h-3.5 w-3.5 rounded-md border border-black/10 shadow-2xs shrink-0"
                                   style={{ backgroundColor: colorHex }}
                                 />
                               )}
@@ -721,9 +721,9 @@ export default function EditProductPage() {
                             </div>
                           </td>
                           <td className="px-3 py-3 whitespace-nowrap">
-                            <code className="font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px] font-bold">
+                            <span className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px] font-bold">
                               {v.sku || "N/A"}
-                            </code>
+                            </span>
                           </td>
                           <td className="px-3 py-3 font-bold text-slate-900 whitespace-nowrap">
                             ₹{Number(v.price).toLocaleString("en-IN")}
@@ -740,7 +740,7 @@ export default function EditProductPage() {
                                   [v.id]: isNaN(num) ? 0 : num,
                                 }));
                               }}
-                              className={`w-24 rounded-xl border px-3 py-1.5 text-center text-xs font-extrabold shadow-2xs transition focus:outline-none ${
+                              className={`w-24 rounded-md border px-3 py-1.5 text-center text-xs font-extrabold shadow-2xs transition focus:outline-none ${
                                 isModified
                                   ? "border-amber-400 bg-amber-50 text-amber-900 ring-2 ring-amber-400/20"
                                   : "border-slate-300 bg-white text-slate-900 focus:border-slate-500 focus:ring-2 focus:ring-slate-900/10"
@@ -783,7 +783,7 @@ export default function EditProductPage() {
 
       {/* ── Tab Content: EDIT SPECIFICATIONS FORM ─────────────── */}
       {activeTab === "edit" && (
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="rounded-md border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-base font-bold text-slate-900">
@@ -797,7 +797,7 @@ export default function EditProductPage() {
             <button
               type="button"
               onClick={() => setActiveTab("overview")}
-              className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+              className="rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
             >
               Cancel Editing
             </button>
