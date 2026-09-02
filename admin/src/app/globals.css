@@ -142,17 +142,20 @@
     @apply border-border outline-ring/50;
     font-family: var(--font-be-vietnam), system-ui, sans-serif !important;
   }
+  html, body {
+    height: 100% !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-be-vietnam), system-ui, sans-serif !important;
-    overflow: hidden;
   }
   html {
     @apply font-sans;
     font-family: var(--font-be-vietnam), system-ui, sans-serif !important;
-    overflow: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
   }
   code, kbd, samp, pre, .font-mono, [class*="font-mono"] {
     font-family: var(--font-be-vietnam), system-ui, sans-serif !important;
