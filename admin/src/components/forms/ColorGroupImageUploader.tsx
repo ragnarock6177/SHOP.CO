@@ -3,7 +3,8 @@
 import React, { useRef, useState, useMemo } from "react";
 import { ImagePlus, Loader2, Trash2, Plus } from "lucide-react";
 import { usePresignUpload, useAddProductImage, useDeleteProductImage, useProductImages } from "@/hooks/queries/useProductImages";
-import { StagedImageItem, compressImage } from "./ImageUploader";
+import { StagedImageItem } from "./ImageUploader";
+import { compressImage } from "@/utils/imageCompressor";
 
 interface ColorGroupImageUploaderProps {
   productId?: string;
@@ -152,7 +153,7 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
       {/* Main Large Image */}
       <div 
         onClick={() => !disabled && !isUploading && !primaryImage && fileInputRef.current?.click()}
-        className={`relative w-full aspect-[4/5] rounded-md border-2 flex items-center justify-center overflow-hidden transition-all duration-200 group ${
+        className={`relative w-full aspect-4/5 rounded-md border-2 flex items-center justify-center overflow-hidden transition-all duration-200 group ${
           !primaryImage && !isUploading 
             ? "border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer hover:border-slate-400" 
             : "border-slate-200 bg-white"
