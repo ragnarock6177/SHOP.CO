@@ -20,7 +20,7 @@ export const StatCardSkeleton: React.FC = () => {
     <div className="relative overflow-hidden rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs">
       <div className="flex items-center justify-between">
         <Skeleton className="h-3.5 w-24 rounded-md" />
-        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-10 w-10 rounded-md" />
       </div>
       <div className="mt-4 space-y-2">
         <Skeleton className="h-8 w-36 rounded-md" />
@@ -37,7 +37,7 @@ export const WidgetSkeleton: React.FC<{ rows?: number }> = ({ rows = 4 }) => {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-4">
         <div className="flex items-center gap-2">
-          <Skeleton className="h-7 w-7 rounded-full" />
+          <Skeleton className="h-7 w-7 rounded-md" />
           <Skeleton className="h-4 w-32 rounded-md" />
         </div>
         <Skeleton className="h-3.5 w-14 rounded-md" />
@@ -48,7 +48,7 @@ export const WidgetSkeleton: React.FC<{ rows?: number }> = ({ rows = 4 }) => {
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="flex items-center justify-between py-3.5 px-2">
             <div className="flex items-center gap-3">
-              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+              <Skeleton className="h-8 w-8 rounded-md shrink-0" />
               <div className="space-y-1.5">
                 <Skeleton className="h-3.5 w-28 rounded-md" />
                 <Skeleton className="h-2.5 w-20 rounded-md" />

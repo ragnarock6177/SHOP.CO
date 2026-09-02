@@ -38,6 +38,7 @@ export default function InventoryPage() {
     {
       accessorKey: "sku",
       header: "SKU / Product",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <span className="text-xs font-semibold text-slate-900">{row.original.sku}</span>
@@ -48,26 +49,31 @@ export default function InventoryPage() {
     {
       accessorKey: "quantityOnHand",
       header: "On Hand",
+      meta: { skeleton: "text" },
       cell: ({ row }) => <span className="font-semibold text-slate-800">{row.original.quantityOnHand}</span>,
     },
     {
       accessorKey: "quantityReserved",
       header: "Reserved",
+      meta: { skeleton: "text" },
       cell: ({ row }) => <span className="text-slate-500">{row.original.quantityReserved}</span>,
     },
     {
       accessorKey: "availableQuantity",
       header: "Available",
+      meta: { skeleton: "text" },
       cell: ({ row }) => <span className="font-semibold text-emerald-400">{row.original.availableQuantity}</span>,
     },
     {
       accessorKey: "stockStatus",
       header: "Stock Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.stockStatus} />,
     },
     {
       id: "actions",
       header: "Actions",
+      meta: { skeleton: <div className="h-7 w-[68px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="inventory:adjust">
           <button

@@ -29,6 +29,7 @@ export default function ReviewsPage() {
     {
       accessorKey: "rating",
       header: "Rating",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-1">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -45,6 +46,7 @@ export default function ReviewsPage() {
     {
       accessorKey: "comment",
       header: "Review Details",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <span className="font-semibold text-slate-800">{row.original.title || "Review"}</span>
@@ -56,6 +58,7 @@ export default function ReviewsPage() {
     {
       accessorKey: "isVerifiedPurchase",
       header: "Verified",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => (
         <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold ${row.original.isVerifiedPurchase ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isVerifiedPurchase ? "VERIFIED" : "UNVERIFIED"}
@@ -65,6 +68,7 @@ export default function ReviewsPage() {
     {
       accessorKey: "isPublished",
       header: "Publication",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => (
         <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isPublished ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
           {row.original.isPublished ? "PUBLISHED" : "HIDDEN"}
@@ -74,6 +78,7 @@ export default function ReviewsPage() {
     {
       id: "actions",
       header: "Actions",
+      meta: { skeleton: <div className="flex items-center space-x-2"><div className="h-7 w-[68px] rounded animate-shimmer bg-slate-100 border border-slate-200/60" /><div className="h-7 w-7 rounded animate-shimmer bg-slate-100 border border-slate-200/60" /></div> },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <PermissionGate permission="reviews:publish">

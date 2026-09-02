@@ -62,6 +62,7 @@ export default function ProductsPage() {
     {
       id: "product",
       header: "Product",
+      meta: { skeleton: "image-text" },
       cell: ({ row }) => {
         const primaryImageUrl = getProductPrimaryImage(row.original);
 
@@ -101,16 +102,19 @@ export default function ProductsPage() {
     {
       accessorKey: "basePrice",
       header: "Base Price",
+      meta: { skeleton: "numeric" },
       cell: ({ row }) => <span className="font-semibold text-slate-800">₹{row.original.basePrice}</span>,
     },
     {
       accessorKey: "status",
       header: "Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "visibility",
       header: "Visibility",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <span className="text-[10px] font-bold text-slate-500 uppercase">{row.original.visibility}</span>
       ),
@@ -118,6 +122,7 @@ export default function ProductsPage() {
     {
       id: "stock",
       header: "Stock",
+      meta: { skeleton: "numeric" },
       cell: ({ row }) => {
         const totalStock = (row.original as any).totalStockAvailable ?? 
           row.original.variants?.reduce((acc: number, v: any) => acc + (v.stockAvailable ?? v.stock ?? 0), 0) ?? 0;
@@ -131,6 +136,7 @@ export default function ProductsPage() {
     {
       id: "actions",
       header: "Actions",
+      meta: { skeleton: "actions-2" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <PermissionGate permission="products:update">

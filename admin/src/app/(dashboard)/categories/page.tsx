@@ -51,6 +51,7 @@ export default function CategoriesPage() {
     {
       accessorKey: "name",
       header: "Category Name",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <Layers className="h-4 w-4 text-slate-500" />
@@ -61,11 +62,13 @@ export default function CategoriesPage() {
     {
       accessorKey: "slug",
       header: "Slug",
+      meta: { skeleton: "text" },
       cell: ({ row }) => <span className="text-[11px] text-slate-500">{row.original.slug}</span>,
     },
     {
       accessorKey: "status",
       header: "Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => (
         <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.status === "ACTIVE" ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80" : "bg-slate-100 text-slate-500"}`}>
           {row.original.status}

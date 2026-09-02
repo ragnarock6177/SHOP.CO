@@ -39,6 +39,7 @@ export default function ShipmentsPage() {
     {
       accessorKey: "trackingNumber",
       header: "Carrier & Tracking",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div>
           <span className="font-semibold text-slate-900">{row.original.carrier}</span>
@@ -61,6 +62,7 @@ export default function ShipmentsPage() {
     {
       accessorKey: "orderId",
       header: "Order Reference",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-slate-800 hover:underline">
           #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
@@ -70,11 +72,13 @@ export default function ShipmentsPage() {
     {
       accessorKey: "status",
       header: "Shipment Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       id: "actions",
       header: "Update Tracking",
+      meta: { skeleton: <div className="h-7 w-36 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" /> },
       cell: ({ row }) => (
         <PermissionGate permission="fulfillment:update">
           {row.original.status !== "DELIVERED" && (

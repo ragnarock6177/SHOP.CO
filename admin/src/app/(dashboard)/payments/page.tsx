@@ -42,6 +42,7 @@ export default function PaymentsPage() {
     {
       accessorKey: "provider",
       header: "Provider & Ref",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <CreditCard className="h-4 w-4 text-slate-500" />
@@ -55,6 +56,7 @@ export default function PaymentsPage() {
     {
       accessorKey: "orderId",
       header: "Order Reference",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-slate-800 hover:underline">
           #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
@@ -64,6 +66,7 @@ export default function PaymentsPage() {
     {
       accessorKey: "amount",
       header: "Amount",
+      meta: { skeleton: "numeric" },
       cell: ({ row }) => (
         <span className="font-bold text-slate-900">
           ₹{row.original.amount} {row.original.currency}
@@ -73,6 +76,7 @@ export default function PaymentsPage() {
     {
       accessorKey: "status",
       header: "Payment Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
   ];

@@ -27,6 +27,7 @@ export default function RefundsPage() {
     {
       accessorKey: "createdAt",
       header: "Timestamp",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <span className="text-[11px] text-slate-500">
           {new Date(row.original.createdAt).toLocaleString()}
@@ -36,6 +37,7 @@ export default function RefundsPage() {
     {
       accessorKey: "orderId",
       header: "Order Link",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <Link href={`/orders/${row.original.orderId}`} className="text-xs font-semibold text-slate-800 hover:underline">
           #{row.original.orderNumber || row.original.orderId.slice(0, 8)}
@@ -45,6 +47,7 @@ export default function RefundsPage() {
     {
       accessorKey: "amount",
       header: "Refund Amount",
+      meta: { skeleton: "numeric" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-1 font-bold text-rose-600">
           <DollarSign className="h-3.5 w-3.5" />
@@ -55,11 +58,13 @@ export default function RefundsPage() {
     {
       accessorKey: "reason",
       header: "Reason",
+      meta: { skeleton: "text" },
       cell: ({ row }) => <span className="text-xs text-slate-700">{row.original.reason}</span>,
     },
     {
       accessorKey: "status",
       header: "Gateway Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => (
         <span className="inline-block rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
           {row.original.status || "PROCESSED"}

@@ -28,6 +28,7 @@ export default function StaffUsersPage() {
     {
       accessorKey: "email",
       header: "Staff Member",
+      meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
         <div className="flex items-center space-x-2">
           <UserCheck className="h-4 w-4 text-slate-500" />
@@ -45,6 +46,7 @@ export default function StaffUsersPage() {
     {
       accessorKey: "isSuperAdmin",
       header: "Access Level",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => (
         <div>
           {row.original.isSuperAdmin ? (
@@ -63,11 +65,13 @@ export default function StaffUsersPage() {
     {
       accessorKey: "status",
       header: "Status",
+      meta: { skeleton: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "lastLoginAt",
       header: "Last Login",
+      meta: { skeleton: "text" },
       cell: ({ row }) => (
         <span className="text-[11px] text-slate-500">
           {row.original.lastLoginAt ? new Date(row.original.lastLoginAt).toLocaleString() : "Never"}
