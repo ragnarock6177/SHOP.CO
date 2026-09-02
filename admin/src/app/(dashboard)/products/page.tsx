@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link.js";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
@@ -14,6 +15,23 @@ import { ConfirmDialog } from "../../../components/feedback/ConfirmDialog";
 import { PermissionGate } from "../../../components/rbac/PermissionGate";
 import { CustomSelect } from "@/components/ui/select";
 import { CreateProductModal } from "../../../components/forms/CreateProductModal";
+
+function getProductPrimaryImage(product: ProductItem): string | null {
+  const images =
+    (product as ProductItem & { displayImages?: ProductItem["images"] }).displayImages ||
+    product.images ||
+    [];
+
+  const primaryImage = images.find((image) => image.isPrimary);
+  if (primaryImage?.imageUrl) return primaryImage.imageUrl;
+
+  const sortedImage = [...images].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  if (sortedImage?.imageUrl) return sortedImage.imageUrl;
+
+  return product.primaryImage ?? null;
+}
+
+const PRODUCT_THUMB_PX = 44;
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -42,72 +60,43 @@ export default function ProductsPage() {
 
   const columns: ColumnDef<ProductItem>[] = [
     {
-      id: "image",
-      header: "Photo",
+      id: "product",
+      header: "Product",
       cell: ({ row }) => {
-        const images = (row.original as any).displayImages || row.original.images || [];
-        const primaryImage = row.original.primaryImage;
-        
-        let displayImages = [...images].sort((a, b) => a.isPrimary ? -1 : b.isPrimary ? 1 : a.sortOrder - b.sortOrder).map(i => i.imageUrl);
-        
-        if (displayImages.length === 0 && primaryImage) {
-          displayImages = [primaryImage];
-        }
-
-        if (displayImages.length === 0) {
-          return (
-            <div className="flex items-center">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50 text-slate-400">
-                <ImageIcon className="h-5 w-5 stroke-[1.5]" />
-              </div>
-            </div>
-          );
-        }
-
-        const maxDisplay = 3;
-        const visibleImages = displayImages.slice(0, maxDisplay);
-        const remaining = displayImages.length - maxDisplay;
+        const primaryImageUrl = getProductPrimaryImage(row.original);
 
         return (
-          <div className="flex items-center">
-            <div className="flex -space-x-3">
-              {visibleImages.map((url, i) => (
-                <div 
-                  key={i} 
-                  className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md border-2 border-white bg-slate-50 shadow-sm transition-transform hover:z-10 hover:scale-110 group"
-                  style={{ zIndex: maxDisplay - i }}
-                >
-                  <img
-                    src={url}
-                    alt={`${row.original.name} image ${i + 1}`}
-                    className="h-full w-full object-cover object-center"
-                  />
-                </div>
-              ))}
-              {remaining > 0 && (
-                <div 
-                  className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md border-2 border-white bg-[#0B132B] text-xs font-black text-white shadow-sm"
-                  style={{ zIndex: 0 }}
-                >
-                  +{remaining}
-                </div>
-              )}
+          <div className="group/product flex min-w-0 items-center gap-3">
+            {primaryImageUrl ? (
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border-2 border-white bg-slate-50 shadow-sm transition-transform duration-200 group-hover/product:scale-110">
+                <Image
+                  src={primaryImageUrl}
+                  alt={row.original.name}
+                  width={PRODUCT_THUMB_PX * 2}
+                  height={PRODUCT_THUMB_PX * 2}
+                  quality={95}
+                  unoptimized
+                  className="h-full w-full object-cover object-center"
+                />
+              </div>
+            ) : (
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-slate-400">
+                <ImageIcon className="h-5 w-5 stroke-[1.5]" />
+              </div>
+            )}
+
+            <div className="min-w-0">
+              <Link
+                href={`/products/${row.original.id}`}
+                className="block truncate font-semibold text-slate-900 hover:underline"
+              >
+                {row.original.name}
+              </Link>
+              <p className="truncate text-[10px] text-slate-500">{row.original.slug}</p>
             </div>
           </div>
         );
       },
-    },
-    {
-      accessorKey: "name",
-      header: "Product Name",
-      cell: ({ row }) => (
-        <div>
-          <Link href={`/products/${row.original.id}`} className="font-semibold text-slate-900 hover:underline">
-            {row.original.name}
-          </Link>
-          <p className="text-[10px] text-slate-500">{row.original.slug}</p>
-        </div>
-      ),
     },
     {
       accessorKey: "basePrice",

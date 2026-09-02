@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import app from "./app.js";
-import { connectDB } from "./config/db.js";
+import { connectDB, stopDbKeepAlive } from "./config/db.js";
+import prisma from "./lib/prisma.js";
 
 dotenv.config();
 
@@ -17,6 +18,17 @@ const server = app.listen(PORT, () => {
 
 // Asynchronously connect database with retries
 connectDB();
+
+async function shutdown(signal: string) {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+  stopDbKeepAlive();
+  server.close();
+  await prisma.$disconnect();
+  process.exit(0);
+}
+
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
 // Handle unhandled rejections without crashing server
 process.on("unhandledRejection", (err: Error) => {

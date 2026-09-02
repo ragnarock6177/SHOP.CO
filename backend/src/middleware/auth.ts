@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import prisma from "../lib/prisma.js";
+import prisma, { isPrismaConnectionError } from "../lib/prisma.js";
 import { firebaseApp, getFirebaseAuth } from "../config/firebase.js";
 import { env } from "../config/env.js";
 import {
@@ -26,21 +26,6 @@ export function invalidateAuthCache(userId?: string) {
   } else {
     authCache.clear();
   }
-}
-
-function isPrismaDbConnectionError(err: any): boolean {
-  if (!err) return false;
-  const msg = (err.message || "").toLowerCase();
-  return (
-    msg.includes("can't reach database server") ||
-    msg.includes("database server") ||
-    msg.includes("connection timed out") ||
-    msg.includes("p1001") ||
-    msg.includes("p1002") ||
-    err.code === "P1001" ||
-    err.code === "P1002" ||
-    err.name === "PrismaClientInitializationError"
-  );
 }
 
 export async function authenticate(
@@ -127,7 +112,7 @@ export async function authenticate(
               "[AuthMiddleware] Database query error during JWT auth:",
               dbErr.message || dbErr,
             );
-            if (isPrismaDbConnectionError(dbErr)) {
+            if (isPrismaConnectionError(dbErr)) {
               if (cached && cached.staleUntil > Date.now()) {
                 console.warn(
                   `[AuthMiddleware] Database temporary connection failure. Serving cached auth user for ${decoded.userId}.`,
@@ -222,7 +207,7 @@ export async function authenticate(
               "[AuthMiddleware] Database query error during Firebase auth:",
               dbErr.message || dbErr,
             );
-            if (isPrismaDbConnectionError(dbErr)) {
+            if (isPrismaConnectionError(dbErr)) {
               if (cached && cached.staleUntil > Date.now()) {
                 user = cached.user;
               } else {

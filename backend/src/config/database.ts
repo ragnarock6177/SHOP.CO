@@ -1,19 +1,7 @@
-import { PrismaClient } from "@prisma/client";
-import { env } from "./env.js";
-
-declare global {
-  var prisma: PrismaClient | undefined;
-}
-
-export const prisma =
-  global.prisma ||
-  new PrismaClient({
-    log:
-      env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-  });
-
-if (env.NODE_ENV !== "production") {
-  global.prisma = prisma;
-}
-
-export default prisma;
+export {
+  prisma,
+  buildDatabaseUrl,
+  ensureDatabaseConnection,
+  isPrismaConnectionError,
+} from "../lib/prisma.js";
+export { default } from "../lib/prisma.js";
