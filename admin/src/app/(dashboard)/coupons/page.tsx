@@ -15,7 +15,7 @@ export default function CouponsPage() {
   const [search, setSearch] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const { data, isLoading } = useCoupons({
+  const { data, isPending, isFetching } = useCoupons({
     page,
     limit: 10,
     search: search || undefined,
@@ -113,9 +113,9 @@ export default function CouponsPage() {
         </PermissionGate>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
 
       <CouponFormModal
         isOpen={isModalOpen}

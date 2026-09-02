@@ -15,6 +15,9 @@ import { sendError } from "./utils/response.js";
 
 const app: Express = express();
 
+// Disable ETag — prevents browsers returning 304 for paginated list endpoints
+app.set("etag", false);
+
 // Security Headers (configured to allow cross-origin image loading)
 app.use(
   helmet({

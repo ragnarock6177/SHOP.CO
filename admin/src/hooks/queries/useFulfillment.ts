@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface ShipmentItem {
   id: string;
@@ -16,14 +17,7 @@ export interface ShipmentItem {
 }
 
 export const useShipments = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "fulfillment", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<ShipmentItem>>("/admin/fulfillment", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<ShipmentItem>("fulfillment", "/admin/fulfillment", params);
 };
 
 export const useCreateShipment = () => {

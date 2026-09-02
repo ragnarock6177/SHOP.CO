@@ -13,7 +13,7 @@ export default function ReviewsPage() {
   const [page, setPage] = useState<number>(1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data, isLoading } = useReviews({ page, limit: 10 });
+  const { data, isPending, isFetching } = useReviews({ page, limit: 10 });
   const toggleMutation = useToggleReviewPublish();
   const deleteMutation = useDeleteReview();
 
@@ -107,9 +107,9 @@ export default function ReviewsPage() {
     <div className="space-y-6">
       
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
 
       <ConfirmDialog
         isOpen={!!deleteId}

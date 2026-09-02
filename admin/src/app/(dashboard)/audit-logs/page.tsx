@@ -14,7 +14,7 @@ export default function AuditLogsPage() {
   const [search, setSearch] = useState<string>("");
   const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null);
 
-  const { data, isLoading } = useAuditLogs({
+  const { data, isPending, isFetching } = useAuditLogs({
     page,
     limit: 10,
     search: search || undefined,
@@ -89,9 +89,9 @@ export default function AuditLogsPage() {
         className="w-full sm:w-72"
       />
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
 
       <AuditDiffModal
         log={selectedLog}

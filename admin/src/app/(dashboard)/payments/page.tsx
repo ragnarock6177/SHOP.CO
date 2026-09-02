@@ -2,15 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { CreditCard } from "lucide-react";
-import apiClient from "@/lib/apiClient";
-import { ApiPaginatedResponse } from "@/types/api";
 import { DataTable } from "@/components/data-table/DataTable";
 import { Pagination } from "@/components/data-table/Pagination";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CustomSelect } from "@/components/ui/select";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface PaymentItem {
   id: string;
@@ -28,15 +26,11 @@ export default function PaymentsPage() {
   const [page, setPage] = useState<number>(1);
   const [statusFilter, setStatusFilter] = useState<string>("");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "payments", { page, limit: 10, status: statusFilter || undefined }],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<PaymentItem>>("/admin/payments", {
-        params: { page, limit: 10, status: statusFilter || undefined },
-      });
-      return response.data;
-    },
-  });
+  const { data, isPending, isFetching } = usePaginatedQuery<PaymentItem>(
+    "payments",
+    "/admin/payments",
+    { page, limit: 10, status: statusFilter },
+  );
 
   const columns: ColumnDef<PaymentItem>[] = [
     {
@@ -105,9 +99,15 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination
+        pagination={data?.pagination}
+        currentPage={page}
+        isLoading={isPending && !data}
+        isFetching={isFetching}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

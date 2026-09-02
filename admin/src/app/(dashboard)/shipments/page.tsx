@@ -19,7 +19,7 @@ export default function ShipmentsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const { data, isLoading } = useShipments({
+  const { data, isPending, isFetching } = useShipments({
     page,
     limit: 10,
     search: search || undefined,
@@ -144,9 +144,9 @@ export default function ShipmentsPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
 
       <CreateShipmentModal
         isOpen={isModalOpen}

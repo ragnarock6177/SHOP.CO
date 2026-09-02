@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Link from "next/link.js";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -43,12 +43,35 @@ export default function ProductsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
-  const { data, isLoading } = useProducts({
+  const { data, isPending, isFetching, isError, error } = useProducts({
     page,
     limit: 10,
     search: search || undefined,
     status: statusFilter || undefined,
   });
+
+  const handlePageChange = useCallback((nextPage: number) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const handleSearchChange = useCallback((val: string) => {
+    setSearch((prev) => {
+      if (prev !== val) {
+        setPage(1);
+      }
+      return val;
+    });
+  }, []);
+
+  const handleStatusChange = useCallback((val: string) => {
+    setStatusFilter((prev) => {
+      if (prev !== val) {
+        setPage(1);
+      }
+      return val;
+    });
+  }, []);
 
   const archiveMutation = useArchiveProduct();
 
@@ -167,10 +190,7 @@ export default function ProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <SearchInput
           value={search}
-          onChange={(val) => {
-            setSearch(val);
-            setPage(1);
-          }}
+          onChange={handleSearchChange}
           placeholder="Search products by name or slug..."
           className="w-full sm:w-72"
         />
@@ -178,10 +198,7 @@ export default function ProductsPage() {
         <div className="flex items-center gap-3">
           <CustomSelect
             value={statusFilter}
-            onChange={(val) => {
-              setStatusFilter(val);
-              setPage(1);
-            }}
+            onChange={handleStatusChange}
             options={[
               { value: "", label: "All Statuses" },
               { value: "ACTIVE", label: "Published" },
@@ -213,14 +230,30 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={data?.data || []}
-        isLoading={isLoading}
-        onRowClick={(product) => router.push(`/products/${product.id}`)}
-      />
+      <div className="w-full overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-xs">
+        {isError && (
+          <div className="border-b border-rose-100 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700">
+            Failed to load products. {(error as Error)?.message || "Please try again."}
+          </div>
+        )}
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+        <DataTable
+          columns={columns}
+          data={data?.data ?? []}
+          isLoading={isPending && !data}
+          isFetching={isFetching}
+          onRowClick={(product) => router.push(`/products/${product.id}`)}
+          embedded
+        />
+
+        <Pagination
+          pagination={data?.pagination}
+          currentPage={page}
+          isLoading={isPending && !data}
+          isFetching={isFetching}
+          onPageChange={handlePageChange}
+        />
+      </div>
 
       <CreateProductModal
         isOpen={isCreateModalOpen}

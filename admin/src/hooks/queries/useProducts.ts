@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface ProductItem {
   id: string;
@@ -25,14 +26,7 @@ export interface ProductItem {
 }
 
 export const useProducts = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "products", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<ProductItem>>("/admin/products", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<ProductItem>("products", "/admin/products", params);
 };
 
 export const useProductDetails = (id: string) => {
@@ -85,7 +79,7 @@ export const useCreateProduct = () => {
       return response.data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
     },
   });
 };
@@ -98,7 +92,7 @@ export const useUpdateProduct = () => {
       return response.data.data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.id] });
     },
   });
@@ -112,7 +106,7 @@ export const useArchiveProduct = () => {
       return response.data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
     },
   });
 };
@@ -125,7 +119,7 @@ export const useAddVariant = () => {
       return response.data.data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
     },
   });
@@ -139,7 +133,7 @@ export const useUpdateVariant = () => {
       return response.data.data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
     },
   });
@@ -153,7 +147,7 @@ export const useDeleteVariant = () => {
       return response.data.data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", variables.productId] });
     },
   });

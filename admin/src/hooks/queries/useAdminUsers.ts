@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface StaffUserItem {
   id: string;
@@ -24,14 +25,7 @@ export interface RoleItem {
 }
 
 export const useStaffUsers = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "staff", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<StaffUserItem>>("/admin/admin-users", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<StaffUserItem>("staff", "/admin/admin-users", params);
 };
 
 export const useCreateStaffUser = () => {

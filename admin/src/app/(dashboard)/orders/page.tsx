@@ -17,7 +17,7 @@ export default function OrdersPage() {
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
 
-  const { data, isLoading } = useOrders({
+  const { data, isPending, isFetching } = useOrders({
     page,
     limit: 10,
     search: search || undefined,
@@ -121,9 +121,9 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
     </div>
   );
 }

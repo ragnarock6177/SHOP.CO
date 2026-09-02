@@ -7,24 +7,12 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-  Package,
-  Tag,
-  Sparkles,
-  Layers,
-  Search,
-  ExternalLink,
-  CheckCircle2,
   Boxes,
-  FileText,
-  DollarSign,
-  Info,
-  Image as ImageIcon,
-  Copy,
   Check,
+  Image as ImageIcon,
   Eye,
-  ChevronRight,
-  History,
-  Sliders,
+  Package,
+  Search,
 } from "lucide-react";
 import {
   useProductDetails,
@@ -39,6 +27,46 @@ import { ConfirmDialog } from "../../../../components/feedback/ConfirmDialog";
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiPaginatedResponse } from "@/types/api";
+import { cn } from "@/lib/utils";
+
+function formatINR(value: number): string {
+  return `₹${value.toLocaleString("en-IN")}`;
+}
+
+function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function InfoField({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("space-y-1", className)}>
+      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
+      <div className="text-xs font-medium text-slate-800 bg-slate-50 border border-slate-100 rounded-md px-3 py-2 min-h-[34px] flex items-center">
+        {value ?? <span className="text-slate-400">—</span>}
+      </div>
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-1">
+      {children}
+    </p>
+  );
+}
 
 export default function EditProductPage() {
   const params = useParams();
@@ -50,17 +78,12 @@ export default function EditProductPage() {
   const archiveMutation = useArchiveProduct();
   const updateVariantMutation = useUpdateVariant();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "edit">(
-    "overview",
-  );
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    null,
-  );
+  const [activeTab, setActiveTab] = useState<"overview" | "edit">("overview");
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [editingStock, setEditingStock] = useState<{ [variantId: string]: number }>({});
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [editingStock, setEditingStock] = useState<Record<string, number>>({});
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
-  const [copiedId, setCopiedId] = useState(false);
 
   const { data: categoriesData } = useQuery({
     queryKey: ["admin", "categories", "active"],
@@ -74,48 +97,47 @@ export default function EditProductPage() {
     gcTime: 15 * 60 * 1000,
   });
 
-  const categories = (categoriesData?.data || []).filter(
-    (c) => c.status === "ACTIVE",
-  );
+  const categories = (categoriesData?.data || []).filter((c) => c.status === "ACTIVE");
 
-  // Derive primary category
   const primaryCat = useMemo(() => {
     if (!product) return null;
-    const catRel = (product as any).productCategories?.find(
-      (pc: any) => pc.isPrimary,
-    );
+    const catRel = (product as any).productCategories?.find((pc: any) => pc.isPrimary);
     return catRel?.category || null;
   }, [product]);
 
-  // Derived variants list
-  const variants = useMemo(() => {
-    return product?.variants || [];
-  }, [product?.variants]);
+  const allCategories = useMemo(() => {
+    if (!product) return [];
+    return (
+      (product as any).productCategories?.map((pc: any) => ({
+        name: pc.category?.name,
+        isPrimary: pc.isPrimary,
+      })).filter((c: any) => c.name) || []
+    );
+  }, [product]);
 
-  // Unique colors extracted from variants
+  const variants = useMemo(() => product?.variants || [], [product?.variants]);
+
   const uniqueColors = useMemo(() => {
     const colorsMap = new Map<string, string | undefined>();
     for (const v of variants) {
-      const colorName = v.colorName || v.variantAttributeValues?.find(
-        (vav: any) =>
-          vav.attributeValue?.attribute?.name?.toLowerCase() === "color" ||
-          vav.attributeValue?.colorHex
-      )?.attributeValue?.value;
-      const colorHex = v.colorHex || v.variantAttributeValues?.find(
-        (vav: any) => vav.attributeValue?.colorHex
-      )?.attributeValue?.colorHex;
-
+      const colorName =
+        v.colorName ||
+        v.variantAttributeValues?.find(
+          (vav: any) =>
+            vav.attributeValue?.attribute?.name?.toLowerCase() === "color" ||
+            vav.attributeValue?.colorHex,
+        )?.attributeValue?.value;
+      const colorHex =
+        v.colorHex ||
+        v.variantAttributeValues?.find((vav: any) => vav.attributeValue?.colorHex)
+          ?.attributeValue?.colorHex;
       if (colorName && !colorsMap.has(colorName)) {
         colorsMap.set(colorName, colorHex || undefined);
       }
     }
-    return Array.from(colorsMap.entries()).map(([name, hex]) => ({
-      name,
-      hex,
-    }));
+    return Array.from(colorsMap.entries()).map(([name, hex]) => ({ name, hex }));
   }, [variants]);
 
-  // Active color (defaults to selectedColor or first available color)
   const activeColor = useMemo(() => {
     if (selectedColor && uniqueColors.some((c) => c.name === selectedColor)) {
       return selectedColor;
@@ -123,37 +145,44 @@ export default function EditProductPage() {
     return uniqueColors[0]?.name || null;
   }, [selectedColor, uniqueColors]);
 
-  // Variants filtered by active color
   const colorVariants = useMemo(() => {
     if (!activeColor) return variants;
-    return variants.filter((v: any) => v.colorName === activeColor || v.variantName?.toLowerCase().includes(activeColor.toLowerCase()));
+    return variants.filter(
+      (v: any) =>
+        v.colorName === activeColor ||
+        v.variantName?.toLowerCase().includes(activeColor.toLowerCase()),
+    );
   }, [variants, activeColor]);
 
-  // Active selected variant (or first variant of active color)
   const activeVariant = useMemo(() => {
     if (selectedVariantId) {
       const found = variants.find((v: any) => v.id === selectedVariantId);
-      if (found && (!activeColor || found.colorName === activeColor || found.variantName?.toLowerCase().includes(activeColor.toLowerCase()))) {
+      if (
+        found &&
+        (!activeColor ||
+          found.colorName === activeColor ||
+          found.variantName?.toLowerCase().includes(activeColor.toLowerCase()))
+      ) {
         return found;
       }
     }
     return colorVariants[0] || variants[0] || null;
   }, [variants, colorVariants, selectedVariantId, activeColor]);
 
-  // Sizes available under the active color
   const availableSizes = useMemo(() => {
     const sizesSet = new Set<string>();
     const sourceVariants = activeColor ? colorVariants : variants;
     sourceVariants.forEach((v: any) => {
-      const size = v.sizeName || v.variantAttributeValues?.find(
-        (vav: any) => vav.attributeValue?.attribute?.name?.toLowerCase() === "size"
-      )?.attributeValue?.value;
+      const size =
+        v.sizeName ||
+        v.variantAttributeValues?.find(
+          (vav: any) => vav.attributeValue?.attribute?.name?.toLowerCase() === "size",
+        )?.attributeValue?.value;
       if (size) sizesSet.add(size);
     });
     return Array.from(sizesSet);
   }, [variants, colorVariants, activeColor]);
 
-  // Images linked to the active color or active variant
   const productImages = useMemo(() => {
     const allImgs = product?.images || [];
     if (allImgs.length === 0) return [];
@@ -161,19 +190,19 @@ export default function EditProductPage() {
     if (activeColor || activeVariant) {
       const activeColorVarIds = colorVariants.map((v: any) => v.id);
       const colorImgs = allImgs.filter((img: any) => {
-        const vIds = img.variantIds || img.variantImages?.map((vi: any) => vi.variantId) || [];
+        const vIds =
+          img.variantIds || img.variantImages?.map((vi: any) => vi.variantId) || [];
         const isLinkedToColor = vIds.some((id: string) => activeColorVarIds.includes(id));
-        const isAltMatch = img.altText?.toLowerCase().includes((activeColor || "").toLowerCase());
+        const isAltMatch = img.altText
+          ?.toLowerCase()
+          .includes((activeColor || "").toLowerCase());
         return isLinkedToColor || isAltMatch;
       });
-
       if (colorImgs.length > 0) return colorImgs;
     }
-
     return allImgs;
   }, [product?.images, activeColor, colorVariants, activeVariant]);
 
-  // Currently displayed main image
   const displayImageUrl = useMemo(() => {
     if (productImages.length > 0) {
       return productImages[selectedImageIndex]?.imageUrl || productImages[0]?.imageUrl;
@@ -181,30 +210,22 @@ export default function EditProductPage() {
     return product?.images?.[0]?.imageUrl || null;
   }, [productImages, selectedImageIndex, product?.images]);
 
-  // Handle update submit
   const handleUpdate = (formData: any) => {
-    const { primaryCategoryId, comparePrice, variants, ...rest } = formData;
+    const { primaryCategoryId, comparePrice, variants: formVariants, ...rest } = formData;
     updateMutation.mutate(
       {
         id: productId,
         data: {
           ...rest,
           ...(primaryCategoryId ? { categoryId: primaryCategoryId } : {}),
-          ...(comparePrice !== undefined
-            ? { compareAtPrice: comparePrice }
-            : {}),
-          ...(variants && variants.length > 0 ? { variants } : {}),
+          ...(comparePrice !== undefined ? { compareAtPrice: comparePrice } : {}),
+          ...(formVariants && formVariants.length > 0 ? { variants: formVariants } : {}),
         },
       },
-      {
-        onSuccess: () => {
-          setActiveTab("overview");
-        },
-      },
+      { onSuccess: () => setActiveTab("overview") },
     );
   };
 
-  // Handle soft archive
   const handleConfirmArchive = () => {
     archiveMutation.mutate(productId, {
       onSuccess: () => {
@@ -212,12 +233,6 @@ export default function EditProductPage() {
         router.push("/products");
       },
     });
-  };
-
-  const copyProductId = () => {
-    navigator.clipboard.writeText(productId);
-    setCopiedId(true);
-    setTimeout(() => setCopiedId(false), 2000);
   };
 
   if (isLoading) {
@@ -250,38 +265,29 @@ export default function EditProductPage() {
 
   const basePrice = Number(product.basePrice) || 0;
   const compareAtPrice = Number((product as any).compareAtPrice) || 0;
-  const hasDiscount = compareAtPrice > basePrice;
-  const discountPercent = hasDiscount
-    ? Math.round(((compareAtPrice - basePrice) / compareAtPrice) * 100)
-    : 0;
 
   const totalStockOnHand = (product as any).totalStockOnHand ?? 0;
   const totalStockAvailable = (product as any).totalStockAvailable ?? 0;
   const totalStockReserved = (product as any).totalStockReserved ?? 0;
-  const reorderThreshold = (product as any).reorderLevel ?? 5;
-  const overallStockStatus = (product as any).stockStatus || (totalStockAvailable > 0 ? "IN_STOCK" : "OUT_OF_STOCK");
+  const reorderLevel = (product as any).reorderLevel ?? 5;
+  const overallStockStatus =
+    (product as any).stockStatus || (totalStockAvailable > 0 ? "IN_STOCK" : "OUT_OF_STOCK");
 
-  // Active pricing & stock (from active variant if selected)
-  const currentPrice = activeVariant
-    ? Number(activeVariant.price) || basePrice
-    : basePrice;
+  const currentPrice = activeVariant ? Number(activeVariant.price) || basePrice : basePrice;
+  const currentComparePrice = activeVariant
+    ? Number(activeVariant.compareAtPrice) || compareAtPrice
+    : compareAtPrice;
   const currentStock = activeVariant
-    ? (activeVariant.stockAvailable !== undefined ? Number(activeVariant.stockAvailable) : Number((activeVariant as any).stock) || 0)
-    : (product as any).totalStockAvailable || 0;
+    ? activeVariant.stockAvailable !== undefined
+      ? Number(activeVariant.stockAvailable)
+      : Number((activeVariant as any).stock) || 0
+    : totalStockAvailable;
   const currentSKU = activeVariant?.sku || "Base Product (No SKU)";
-
-  const uniqueSizesSet = new Set<string>();
-  variants.forEach((v: any) => {
-    if (v.sizeName) {
-      uniqueSizesSet.add(v.sizeName);
-    }
-  });
-  const uniqueSizes = Array.from(uniqueSizesSet);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 animate-in fade-in duration-300">
-      {/* ── Top Navigation & Header ──────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <Link
             href="/products"
@@ -290,9 +296,7 @@ export default function EditProductPage() {
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
             <span>Back to Inventory</span>
           </Link>
-
-          <div className="flex items-center gap-3">
-
+          <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={product.status as any} />
             <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
               {product.visibility}
@@ -300,17 +304,17 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* Tab Switcher & Actions */}
         <div className="flex items-center gap-2">
           <div className="flex items-center rounded-md bg-slate-100/80 p-1 border border-slate-200/80 shadow-2xs">
             <button
               type="button"
               onClick={() => setActiveTab("overview")}
-              className={`rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
+              className={cn(
+                "rounded-md px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer",
                 activeTab === "overview"
                   ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
+                  : "text-slate-600 hover:text-slate-900",
+              )}
             >
               <Eye className="inline-block h-3.5 w-3.5 mr-1.5 text-slate-500" />
               Overview
@@ -318,17 +322,17 @@ export default function EditProductPage() {
             <button
               type="button"
               onClick={() => setActiveTab("edit")}
-              className={`rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
+              className={cn(
+                "rounded-md px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer",
                 activeTab === "edit"
                   ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
+                  : "text-slate-600 hover:text-slate-900",
+              )}
             >
               <Edit className="inline-block h-3.5 w-3.5 mr-1.5 text-slate-500" />
               Edit Details
             </button>
           </div>
-
           <button
             type="button"
             onClick={() => setIsArchiveModalOpen(true)}
@@ -340,269 +344,315 @@ export default function EditProductPage() {
         </div>
       </div>
 
-      {/* ── Tab Content: OVERVIEW ──────────────────────────────── */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* Main Left Column (2 Cols Hero Card) */}
-            <div className="space-y-6 lg:col-span-2">
-              <div className="rounded-[2.5rem] border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 items-start">
-                  {/* Photo Box */}
-                  <div className="space-y-4">
-                    <div className="relative aspect-square w-full overflow-hidden rounded-[2rem] border border-slate-200/80 bg-slate-50 shadow-xs group">
-                      {displayImageUrl ? (
-                        <img
-                          src={displayImageUrl}
-                          alt={product.name}
-                          className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-slate-400">
-                          <ImageIcon className="h-12 w-12 stroke-[1.5]" />
-                        </div>
-                      )}
-                      {productImages.length > 0 && (
-                        <span className="absolute bottom-3 right-3 rounded-md bg-slate-900/80 px-3 py-1 text-[10px] font-bold text-white backdrop-blur-xs">
-                          {selectedImageIndex + 1} / {productImages.length}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Thumbnails strip */}
-                    {productImages.length > 1 && (
-                      <div className="flex items-center gap-2 overflow-x-auto p-2 -m-2 sidebar-scrollbar">
-                        {productImages.map((img: any, idx: number) => (
-                          <button
-                            key={img.id || idx}
-                            type="button"
-                            onClick={() => setSelectedImageIndex(idx)}
-                            className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 transition-all cursor-pointer ${
-                              selectedImageIndex === idx
-                                ? "border-blue-600 ring-2 ring-blue-600/20 scale-105"
-                                : "border-slate-200 hover:border-slate-400"
-                            }`}
-                          >
-                            <img
-                              src={img.imageUrl}
-                              alt={img.altText || `Product image ${idx + 1}`}
-                              className="h-full w-full object-cover"
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right Product Details Info */}
-                  <div className="space-y-5">
-                    <div>
-                      <span className="inline-block rounded-md bg-blue-50 px-3.5 py-1 text-[11px] font-extrabold text-blue-600 uppercase tracking-wider mb-2">
-                        {primaryCat?.name || (product as any).productType || "CLOTHING"}
-                      </span>
-                      <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                        {product.name}
-                      </h1>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-                        SKU: {currentSKU}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">
-                        DESCRIPTION
-                      </h3>
-                      <p className="text-xs font-semibold text-slate-700 leading-relaxed">
-                        {(product as any).shortDescription || product.description || "Premium quality product."}
-                      </p>
-                    </div>
-
-                    {/* SELECT COLOR */}
-                    {uniqueColors.length > 0 && (
-                      <div>
-                        <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                          SELECT COLOR
-                        </h3>
-                        <div className="flex flex-wrap gap-2.5">
-                          {uniqueColors.map((col) => {
-                            const isSelected = activeColor === col.name;
-                            const hasLowStock = variants.some(
-                              (v: any) =>
-                                (v.colorName === col.name ||
-                                  v.variantName?.toLowerCase().includes(col.name.toLowerCase())) &&
-                                (v.stockAvailable ?? v.stock ?? 0) <= 5
-                            );
-
-                            return (
-                              <button
-                                key={col.name}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedColor(col.name);
-                                  setSelectedImageIndex(0);
-                                  const matched = variants.find(
-                                    (v: any) =>
-                                      v.colorName === col.name ||
-                                      v.variantName?.toLowerCase().includes(col.name.toLowerCase())
-                                  );
-                                  if (matched) setSelectedVariantId(matched.id);
-                                }}
-                                className={`relative inline-flex items-center gap-2 rounded-md px-4 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                                  isSelected
-                                    ? "border-2 border-blue-600 bg-blue-50/50 text-blue-700 shadow-2xs"
-                                    : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                                }`}
-                              >
-                                {col.hex ? (
-                                  <span
-                                    className="h-3 w-3 rounded-md border border-black/10 shadow-2xs"
-                                    style={{ backgroundColor: col.hex }}
-                                  />
-                                ) : (
-                                  <span className="h-2.5 w-2.5 rounded-full bg-slate-900" />
-                                )}
-                                <span>{col.name}</span>
-                                {hasLowStock && (
-                                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white" />
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* AVAILABLE SIZES */}
-                    {availableSizes.length > 0 && (
-                      <div>
-                        <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                          AVAILABLE SIZES
-                        </h3>
-                        <div className="flex flex-wrap gap-2.5">
-                          {availableSizes.map((size) => {
-                            const isSelected = activeVariant?.sizeName === size;
-                            const sizeVariant =
-                              colorVariants.find((v: any) => v.sizeName === size) ||
-                              variants.find((v: any) => v.sizeName === size);
-                            const isLowStock =
-                              sizeVariant && (sizeVariant.stockAvailable ?? sizeVariant.stock ?? 0) <= 5;
-
-                            return (
-                              <button
-                                key={size}
-                                type="button"
-                                onClick={() => {
-                                  if (sizeVariant) setSelectedVariantId(sizeVariant.id);
-                                }}
-                                className={`relative flex flex-col items-center justify-center rounded-md transition-all cursor-pointer ${
-                                  isSelected
-                                    ? "h-12 w-12 bg-slate-900 text-white font-extrabold shadow-md"
-                                    : isLowStock
-                                    ? "h-12 w-12 bg-rose-50 border border-rose-200 text-rose-700 font-extrabold"
-                                    : "h-12 w-12 bg-slate-100 border border-slate-200/80 text-slate-800 font-bold hover:bg-slate-200/80"
-                                }`}
-                              >
-                                <span className="text-xs uppercase">{size}</span>
-                                {!isSelected && isLowStock && (
-                                  <span className="text-[9px] font-black text-rose-600 bg-rose-200/60 px-1 rounded uppercase scale-90">
-                                    LOW
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column Sidebar */}
-            <div className="space-y-6">
-              {/* Top Card: ACTIVITY & SUMMARY (Dark Navy Card #0B132B) */}
-              <div className="rounded-[2.5rem] bg-[#0B132B] text-white p-6 shadow-xl space-y-5 border border-slate-800/80">
-                <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3.5">
-                  <History className="h-4 w-4 text-slate-400" />
-                  <h2 className="text-xs font-black tracking-widest text-slate-300 uppercase">
-                    ACTIVITY & SUMMARY
-                  </h2>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      STATUS
-                    </span>
-                    <span
-                      className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${
-                        overallStockStatus === "IN_STOCK"
-                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                          : overallStockStatus === "LOW_STOCK"
-                          ? "bg-amber-400/20 text-amber-300 border-amber-400/30"
-                          : "bg-rose-500/20 text-rose-300 border-rose-500/30"
-                      }`}
-                    >
-                      {overallStockStatus === "LOW_STOCK"
-                        ? "LOW STOCK"
-                        : overallStockStatus === "IN_STOCK"
-                        ? "IN STOCK"
-                        : "OUT OF STOCK"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-slate-800/60 pt-3">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      TOTAL VARIANTS
-                    </span>
-                    <span className="text-sm font-black text-white">
-                      {variants.length} items
-                    </span>
-                  </div>
-
-                  {/* Warning Restock Alert Banner */}
-                  {currentStock <= 5 && (
-                    <div className="rounded-md bg-rose-950/70 border border-rose-800/80 p-4 text-xs font-semibold text-rose-200 space-y-1">
-                      <p className="font-extrabold text-rose-300">
-                        Warning: This variant needs a restock soon. Only {currentStock} units left.
-                      </p>
+          {/* ── Section 1: Product Overview (top) ── */}
+          <div className="rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
+              {/* Image */}
+              <div className="shrink-0 space-y-3 sm:w-48 md:w-56">
+                <div className="relative aspect-square w-full max-w-[224px] mx-auto sm:mx-0 overflow-hidden rounded-lg border border-slate-200/80 bg-slate-50 group">
+                  {displayImageUrl ? (
+                    <img
+                      src={displayImageUrl}
+                      alt={product.name}
+                      className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-slate-400">
+                      <ImageIcon className="h-10 w-10 stroke-[1.5]" />
                     </div>
                   )}
+                  {productImages.length > 0 && (
+                    <span className="absolute bottom-2 right-2 rounded-md bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-white">
+                      {selectedImageIndex + 1} / {productImages.length}
+                    </span>
+                  )}
+                </div>
+                {productImages.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto p-1 sidebar-scrollbar max-w-[224px] mx-auto sm:mx-0">
+                    {productImages.map((img: any, idx: number) => (
+                      <button
+                        key={img.id || idx}
+                        type="button"
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={cn(
+                          "relative h-12 w-12 shrink-0 overflow-hidden rounded-md border-2 transition-all cursor-pointer",
+                          selectedImageIndex === idx
+                            ? "border-slate-900"
+                            : "border-slate-200 hover:border-slate-400",
+                        )}
+                      >
+                        <img
+                          src={img.imageUrl}
+                          alt={img.altText || `Image ${idx + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Basic info */}
+              <div className="flex-1 min-w-0 space-y-4">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="rounded-md bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-600 uppercase tracking-wider border border-blue-100">
+                      {primaryCat?.name || (product as any).productType || "Uncategorized"}
+                    </span>
+                    <StatusBadge status={overallStockStatus} />
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                    {product.name}
+                  </h1>
+                  <p className="text-xs text-slate-500 mt-1">
+                    SKU: <span className="font-semibold text-slate-700">{currentSKU}</span>
+                    <span className="mx-2 text-slate-300">·</span>
+                    <span className="font-mono text-slate-400">/{product.slug}</span>
+                  </p>
+                </div>
+
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-2xl font-bold text-slate-900">{formatINR(currentPrice)}</span>
+                  {currentComparePrice > currentPrice && (
+                    <span className="text-sm text-slate-400 line-through">
+                      {formatINR(currentComparePrice)}
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {(product as any).shortDescription ||
+                    product.description ||
+                    "No description provided."}
+                </p>
+
+                {uniqueColors.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      Color
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {uniqueColors.map((col) => {
+                        const isSelected = activeColor === col.name;
+                        return (
+                          <button
+                            key={col.name}
+                            type="button"
+                            onClick={() => {
+                              setSelectedColor(col.name);
+                              setSelectedImageIndex(0);
+                              const matched = variants.find(
+                                (v: any) =>
+                                  v.colorName === col.name ||
+                                  v.variantName?.toLowerCase().includes(col.name.toLowerCase()),
+                              );
+                              if (matched) setSelectedVariantId(matched.id);
+                            }}
+                            className={cn(
+                              "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer",
+                              isSelected
+                                ? "bg-slate-900 text-white"
+                                : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300",
+                            )}
+                          >
+                            {col.hex && (
+                              <span
+                                className="h-3 w-3 rounded-full border border-black/10"
+                                style={{ backgroundColor: col.hex }}
+                              />
+                            )}
+                            {col.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {availableSizes.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      Size
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {availableSizes.map((size) => {
+                        const sizeVariant =
+                          colorVariants.find((v: any) => v.sizeName === size) ||
+                          variants.find((v: any) => v.sizeName === size);
+                        const isSelected = activeVariant?.sizeName === size;
+                        const stock =
+                          sizeVariant?.stockAvailable ?? sizeVariant?.stockOnHand ?? 0;
+                        const isOutOfStock = stock <= 0;
+
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            disabled={isOutOfStock}
+                            onClick={() => {
+                              if (sizeVariant) setSelectedVariantId(sizeVariant.id);
+                            }}
+                            className={cn(
+                              "flex h-9 min-w-9 items-center justify-center rounded-md px-2.5 text-xs font-bold transition-all",
+                              isSelected
+                                ? "bg-slate-900 text-white"
+                                : isOutOfStock
+                                  ? "bg-slate-50 border border-slate-100 text-slate-300 cursor-not-allowed"
+                                  : "border border-slate-200 bg-white text-slate-800 hover:border-slate-400 cursor-pointer",
+                            )}
+                          >
+                            {size}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Section 2: Inventory (below overview) ── */}
+          <div className="rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-slate-500" />
+                <h2 className="text-sm font-semibold text-slate-900">Inventory</h2>
+              </div>
+              <StatusBadge status={overallStockStatus} />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: "On Hand", value: totalStockOnHand },
+                { label: "Available", value: totalStockAvailable },
+                { label: "Reserved", value: totalStockReserved },
+                { label: "Variants", value: variants.length },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-md border border-slate-100 bg-slate-50 px-4 py-3 text-center"
+                >
+                  <p className="text-lg font-bold text-slate-900">{item.value}</p>
+                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600">
+              <span>
+                Reorder level: <strong className="text-slate-900">≤ {reorderLevel} units</strong>
+              </span>
+              <span>
+                Created: <strong className="text-slate-900">{formatDate(product.createdAt)}</strong>
+              </span>
+              <span>
+                Updated: <strong className="text-slate-900">{formatDate(product.updatedAt)}</strong>
+              </span>
+            </div>
+            {currentStock <= reorderLevel && (
+              <p className="text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-md px-3 py-2">
+                Low stock — {currentStock} unit{currentStock !== 1 ? "s" : ""} left
+                {activeVariant ? " for selected variant" : ""}
+              </p>
+            )}
+          </div>
+
+          {/* ── Section 3: Product Details (full width, field grid) ── */}
+          <div className="rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h2 className="text-sm font-semibold text-slate-900">Product Information</h2>
+              <button
+                type="button"
+                onClick={() => setActiveTab("edit")}
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+              >
+                <Edit className="h-3 w-3" />
+                Edit
+              </button>
+            </div>
+
+            <div className="space-y-5">
+              <div>
+                <SectionLabel>Identity & Classification</SectionLabel>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <InfoField label="URL Slug" value={`/${product.slug}`} />
+                  <InfoField
+                    label="Category"
+                    value={
+                      allCategories.length > 0
+                        ? allCategories
+                            .map((c: any) => (c.isPrimary ? `${c.name} ★` : c.name))
+                            .join(", ")
+                        : null
+                    }
+                  />
+                  <InfoField label="Product Type" value={(product as any).productType} />
+                  <InfoField label="Status" value={<StatusBadge status={product.status} />} />
+                  <InfoField
+                    label="Visibility"
+                    value={
+                      <span className="text-[10px] font-bold uppercase">{product.visibility}</span>
+                    }
+                  />
                 </div>
               </div>
 
-              {/* Bottom Card: PRODUCT DETAILS */}
-              <div className="rounded-[2.5rem] border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <Sliders className="h-4 w-4 text-blue-600" />
-                  <h2 className="text-xs font-black tracking-widest text-blue-600 uppercase">
-                    PRODUCT DETAILS
-                  </h2>
+              <div className="border-t border-slate-100 pt-5">
+                <SectionLabel>Pricing</SectionLabel>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <InfoField label="Base Price" value={formatINR(basePrice)} />
+                  <InfoField
+                    label="Compare-at Price"
+                    value={compareAtPrice > 0 ? formatINR(compareAtPrice) : null}
+                  />
+                  <InfoField label="Currency" value={(product as any).currency || "INR"} />
+                  <InfoField label="Tax Code" value={(product as any).taxCode} />
                 </div>
+              </div>
 
-                <div className="space-y-3.5 text-xs">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <span className="font-bold text-slate-700">Fabric</span>
-                    <span className="font-bold text-slate-900">
-                      {(product as any).careInstructions || "Linen"}
-                    </span>
+              <div className="border-t border-slate-100 pt-5">
+                <SectionLabel>Content</SectionLabel>
+                <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <InfoField label="Short Description" value={(product as any).shortDescription} />
+                  <InfoField
+                    label="Care Instructions"
+                    value={(product as any).careInstructions}
+                  />
+                </div>
+                {product.description && (
+                  <div className="mt-4">
+                    <InfoField
+                      label="Full Description"
+                      value={
+                        <span className="whitespace-pre-wrap">{product.description}</span>
+                      }
+                    />
                   </div>
+                )}
+              </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-700">Fit</span>
-                    <span className="font-bold text-slate-900">
-                      {(product as any).productType || "Regular Fit"}
-                    </span>
-                  </div>
+              <div className="border-t border-slate-100 pt-5">
+                <div className="flex items-center gap-1.5 mb-3">
+                  <Search className="h-3.5 w-3.5 text-slate-400" />
+                  <SectionLabel>SEO & Meta</SectionLabel>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <InfoField label="Meta Title" value={(product as any).metaTitle || product.name} />
+                  <InfoField
+                    label="Meta Description"
+                    value={(product as any).metaDescription}
+                  />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Dynamic Variant Inventory & Stock Control Matrix Card */}
+          {/* ── Section 4: Variant stock table ── */}
           {variants.length > 0 && (
-            <div className="rounded-md border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+            <div className="rounded-md border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4 gap-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-slate-700">
@@ -610,14 +660,11 @@ export default function EditProductPage() {
                   </div>
                   <div>
                     <h2 className="text-sm font-bold text-slate-900">
-                      Variant Stock & Inventory Control Matrix ({variants.length})
+                      Variant Stock ({variants.length})
                     </h2>
-                    <p className="text-[11px] font-medium text-slate-500">
-                      Edit stock levels inline and save all changes at once
-                    </p>
+                    <p className="text-[11px] text-slate-500">Edit stock inline and save</p>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2">
                   {Object.keys(editingStock).length > 0 && (
                     <button
@@ -625,107 +672,107 @@ export default function EditProductPage() {
                       onClick={() => setEditingStock({})}
                       className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
                     >
-                      Reset Edits
+                      Reset
                     </button>
                   )}
                   <button
                     type="button"
-                    disabled={Object.keys(editingStock).length === 0 || updateVariantMutation.isPending}
+                    disabled={
+                      Object.keys(editingStock).length === 0 || updateVariantMutation.isPending
+                    }
                     onClick={async () => {
-                      const variantIdsToUpdate = Object.keys(editingStock);
                       try {
                         await Promise.all(
-                          variantIdsToUpdate.map((vId) =>
+                          Object.keys(editingStock).map((vId) =>
                             updateVariantMutation.mutateAsync({
                               productId,
                               variantId: vId,
                               data: { stock: editingStock[vId] },
-                            })
-                          )
+                            }),
+                          ),
                         );
                         setEditingStock({});
                       } catch (err) {
-                        console.error("Batch variant stock update failed:", err);
+                        console.error("Stock update failed:", err);
                       }
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-40 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition disabled:opacity-40 cursor-pointer"
                   >
-                    {updateVariantMutation.isPending ? (
-                      <span>Saving Changes...</span>
-                    ) : Object.keys(editingStock).length > 0 ? (
-                      <span>Save All Changes ({Object.keys(editingStock).length})</span>
-                    ) : (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-emerald-400" />
-                        <span>Stock Synced</span>
-                      </>
-                    )}
+                    {updateVariantMutation.isPending
+                      ? "Saving…"
+                      : Object.keys(editingStock).length > 0
+                        ? `Save (${Object.keys(editingStock).length})`
+                        : (
+                          <>
+                            <Check className="h-3.5 w-3.5 text-emerald-400" />
+                            Synced
+                          </>
+                        )}
                   </button>
                 </div>
               </div>
 
               <div className="overflow-x-auto sidebar-scrollbar">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50/90 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200/60">
+                <table className="w-full text-left text-xs min-w-[600px]">
+                  <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200/60">
                     <tr>
                       <th className="px-3 py-2.5">Variant</th>
                       <th className="px-3 py-2.5">SKU</th>
                       <th className="px-3 py-2.5">Price</th>
-                      <th className="px-3 py-2.5 text-center">Stock On Hand</th>
-                      <th className="px-3 py-2.5">Available Stock</th>
+                      <th className="px-3 py-2.5 text-center">On Hand</th>
+                      <th className="px-3 py-2.5">Available</th>
                       <th className="px-3 py-2.5">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
+                  <tbody className="divide-y divide-slate-100">
                     {variants.map((v: any) => {
-                      const colorVal = v.variantAttributeValues?.find(
-                        (vav: any) =>
-                          vav.attributeValue?.attribute?.name?.toLowerCase() === "color" ||
-                          vav.attributeValue?.colorHex
-                      )?.attributeValue;
-                      const sizeVal = v.variantAttributeValues?.find(
-                        (vav: any) => vav.attributeValue?.attribute?.name?.toLowerCase() === "size"
-                      )?.attributeValue;
-
-                      const colorName = v.colorName || colorVal?.value || "Default";
-                      const colorHex = v.colorHex || colorVal?.colorHex;
-                      const sizeName = v.sizeName || sizeVal?.value || "";
-
+                      const colorName =
+                        v.colorName ||
+                        v.variantAttributeValues?.find(
+                          (vav: any) =>
+                            vav.attributeValue?.attribute?.name?.toLowerCase() === "color",
+                        )?.attributeValue?.value ||
+                        "Default";
+                      const colorHex =
+                        v.colorHex ||
+                        v.variantAttributeValues?.find((vav: any) => vav.attributeValue?.colorHex)
+                          ?.attributeValue?.colorHex;
+                      const sizeName = v.sizeName || "";
                       const stockVal =
                         editingStock[v.id] !== undefined
                           ? editingStock[v.id]
-                          : v.stockOnHand ?? v.stock ?? 0;
-
+                          : v.stockOnHand ?? 0;
+                      const available = v.stockAvailable ?? stockVal;
                       const isModified = editingStock[v.id] !== undefined;
 
                       return (
                         <tr
                           key={v.id}
-                          className={`transition-colors ${
-                            isModified ? "bg-amber-50/40 hover:bg-amber-50/60" : "hover:bg-slate-50/80"
-                          }`}
+                          className={cn(
+                            "hover:bg-slate-50/80 transition-colors",
+                            isModified && "bg-amber-50/40",
+                          )}
                         >
                           <td className="px-3 py-3">
                             <div className="flex items-center gap-2">
                               {colorHex && (
                                 <span
-                                  className="h-3.5 w-3.5 rounded-md border border-black/10 shadow-2xs shrink-0"
+                                  className="h-3 w-3 rounded-full border border-black/10 shrink-0"
                                   style={{ backgroundColor: colorHex }}
                                 />
                               )}
                               <span className="font-bold text-slate-900">
-                                {colorName} {sizeName ? `/ ${sizeName}` : ""}
+                                {colorName}
+                                {sizeName ? ` / ${sizeName}` : ""}
                               </span>
                             </div>
                           </td>
-                          <td className="px-3 py-3 whitespace-nowrap">
-                            <span className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px] font-bold">
+                          <td className="px-3 py-3">
+                            <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-bold">
                               {v.sku || "N/A"}
                             </span>
                           </td>
-                          <td className="px-3 py-3 font-bold text-slate-900 whitespace-nowrap">
-                            ₹{Number(v.price).toLocaleString("en-IN")}
-                          </td>
+                          <td className="px-3 py-3 font-bold">{formatINR(Number(v.price))}</td>
                           <td className="px-3 py-3 text-center">
                             <input
                               type="number"
@@ -738,33 +785,33 @@ export default function EditProductPage() {
                                   [v.id]: isNaN(num) ? 0 : num,
                                 }));
                               }}
-                              className={`w-24 rounded-md border px-3 py-1.5 text-center text-xs font-extrabold shadow-2xs transition focus:outline-none ${
+                              className={cn(
+                                "w-20 rounded-md border px-2 py-1.5 text-center text-xs font-bold focus:outline-none",
                                 isModified
-                                  ? "border-amber-400 bg-amber-50 text-amber-900 ring-2 ring-amber-400/20"
-                                  : "border-slate-300 bg-white text-slate-900 focus:border-slate-500 focus:ring-2 focus:ring-slate-900/10"
-                              }`}
+                                  ? "border-amber-400 bg-amber-50"
+                                  : "border-slate-300 bg-white focus:border-slate-500",
+                              )}
                             />
                           </td>
-                          <td className="px-3 py-3 whitespace-nowrap">
+                          <td className="px-3 py-3">
                             <span
-                              className={`font-extrabold ${
-                                (v.stockAvailable ?? stockVal) > 0
-                                  ? "text-emerald-700"
-                                  : "text-rose-600"
-                              }`}
+                              className={cn(
+                                "font-extrabold",
+                                available > 0 ? "text-emerald-700" : "text-rose-600",
+                              )}
                             >
-                              {v.stockAvailable ?? stockVal} Units
+                              {available}
                             </span>
                           </td>
-                          <td className="px-3 py-3 whitespace-nowrap">
+                          <td className="px-3 py-3">
                             <StatusBadge
                               status={
                                 v.stockStatus ||
-                                (stockVal > 5
+                                (stockVal > reorderLevel
                                   ? "IN_STOCK"
                                   : stockVal > 0
-                                  ? "LOW_STOCK"
-                                  : "OUT_OF_STOCK")
+                                    ? "LOW_STOCK"
+                                    : "OUT_OF_STOCK")
                               }
                             />
                           </td>
@@ -779,25 +826,21 @@ export default function EditProductPage() {
         </div>
       )}
 
-      {/* ── Tab Content: EDIT SPECIFICATIONS FORM ─────────────── */}
       {activeTab === "edit" && (
         <div className="rounded-md border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
-                Edit Product Specifications
-              </h2>
+              <h2 className="text-base font-bold text-slate-900">Edit Product Specifications</h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Update product identity, pricing, categorization, and SEO
-                metadata
+                Update product identity, pricing, categorization, and SEO metadata
               </p>
             </div>
             <button
               type="button"
               onClick={() => setActiveTab("overview")}
-              className="rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+              className="rounded-md border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs cursor-pointer"
             >
-              Cancel Editing
+              Cancel
             </button>
           </div>
 
@@ -811,8 +854,7 @@ export default function EditProductPage() {
               careInstructions: (product as any).careInstructions || "",
               productType: (product as any).productType || "",
               basePrice: Number(product.basePrice) || 0,
-              comparePrice:
-                Number((product as any).compareAtPrice) || undefined,
+              comparePrice: Number((product as any).compareAtPrice) || undefined,
               primaryCategoryId: primaryCat?.id || "",
               status: product.status as any,
               visibility: product.visibility,
@@ -826,20 +868,18 @@ export default function EditProductPage() {
                   v.variantAttributeValues?.find(
                     (vav: any) =>
                       vav.attributeValue?.colorHex ||
-                      vav.attributeValue?.attribute?.slug === "color"
+                      vav.attributeValue?.attribute?.slug === "color",
                   )?.attributeValue?.value ||
                   "Default",
                 colorHex:
                   v.colorHex ||
-                  v.variantAttributeValues?.find(
-                    (vav: any) => vav.attributeValue?.colorHex
-                  )?.attributeValue?.colorHex ||
+                  v.variantAttributeValues?.find((vav: any) => vav.attributeValue?.colorHex)
+                    ?.attributeValue?.colorHex ||
                   "#000000",
                 sizeName:
                   v.sizeName ||
                   v.variantAttributeValues?.find(
-                    (vav: any) =>
-                      vav.attributeValue?.attribute?.slug === "size"
+                    (vav: any) => vav.attributeValue?.attribute?.slug === "size",
                   )?.attributeValue?.value ||
                   "Standard",
                 price: Number(v.price) || 0,
@@ -859,7 +899,6 @@ export default function EditProductPage() {
         </div>
       )}
 
-      {/* Archive / Delete Confirmation Modal */}
       <ConfirmDialog
         isOpen={isArchiveModalOpen}
         title="Archive Product"

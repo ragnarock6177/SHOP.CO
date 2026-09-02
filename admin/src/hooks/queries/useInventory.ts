@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface InventoryItem {
   variantId: string;
@@ -22,14 +23,7 @@ export interface StockAdjustPayload {
 }
 
 export const useInventory = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "inventory", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<InventoryItem>>("/admin/inventory", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<InventoryItem>("inventory", "/admin/inventory", params);
 };
 
 export const useAdjustInventory = () => {
@@ -47,21 +41,9 @@ export const useAdjustInventory = () => {
 };
 
 export const useInventoryMovements = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "inventory", "movements", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<any>>("/admin/inventory/movements", { params });
-      return response.data;
-    },
-  });
+  return usePaginatedQuery<any>("inventory", "/admin/inventory/movements", params, ["movements"]);
 };
 
 export const useInventoryReservations = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "inventory", "reservations", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<any>>("/admin/inventory/reservations", { params });
-      return response.data;
-    },
-  });
+  return usePaginatedQuery<any>("inventory", "/admin/inventory/reservations", params, ["reservations"]);
 };

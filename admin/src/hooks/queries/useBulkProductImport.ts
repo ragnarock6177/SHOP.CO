@@ -33,8 +33,8 @@ export function useBulkProductImport() {
       };
     }) => executeProductImport(fileOrRows, options),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "inventory"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
     },

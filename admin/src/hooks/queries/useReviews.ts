@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface ReviewItem {
   id: string;
@@ -17,14 +18,7 @@ export interface ReviewItem {
 }
 
 export const useReviews = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "reviews", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<ReviewItem>>("/admin/reviews", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<ReviewItem>("reviews", "/admin/reviews", params);
 };
 
 export const useToggleReviewPublish = () => {

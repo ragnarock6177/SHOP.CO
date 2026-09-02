@@ -6,182 +6,150 @@ import { PaginationMeta } from "@/types/api";
 
 export interface PaginationProps {
   pagination?: PaginationMeta;
-  currentPage?: number;
+  currentPage: number;
   totalPages?: number;
   total?: number;
   isLoading?: boolean;
+  isFetching?: boolean;
   onPageChange: (newPage: number) => void;
   className?: string;
   showSummary?: boolean;
 }
 
+function getVisiblePages(current: number, total: number): (number | "...")[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const pages: (number | "...")[] = [1];
+
+  if (current > 3) pages.push("...");
+
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    if (!pages.includes(i)) pages.push(i);
+  }
+
+  if (current < total - 2) pages.push("...");
+
+  if (!pages.includes(total)) pages.push(total);
+
+  return pages;
+}
+
 export const Pagination: React.FC<PaginationProps> = ({
   pagination,
-  currentPage: propCurrentPage,
-  totalPages: propTotalPages,
-  total: propTotal,
+  currentPage: currentPageProp,
+  totalPages: totalPagesProp,
+  total: totalProp,
   isLoading = false,
+  isFetching = false,
   onPageChange,
   className = "",
   showSummary = true,
 }) => {
-  const currentPage = propCurrentPage ?? pagination?.page ?? 1;
-  const totalPages = propTotalPages ?? pagination?.totalPages ?? 1;
-  const total = propTotal ?? pagination?.total ?? 0;
+  const currentPage = Math.max(1, Number(currentPageProp) || 1);
+  const totalPages = Math.max(1, totalPagesProp ?? pagination?.totalPages ?? 1);
+  const total = totalProp ?? pagination?.total ?? 0;
 
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    const siblingCount = 1;
-
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
-      const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
-
-      const showLeftDots = leftSiblingIndex > 2;
-      const showRightDots = rightSiblingIndex < totalPages - 1;
-
-      if (!showLeftDots && showRightDots) {
-        for (let i = 1; i <= 3; i++) pages.push(i);
-        pages.push("...", totalPages);
-      } else if (showLeftDots && !showRightDots) {
-        pages.push(1, "...");
-        for (let i = totalPages - 2; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push(1, "...", currentPage, "...", totalPages);
-      }
-    }
-    return pages;
+  const goToPage = (page: number) => {
+    const next = Math.max(1, Math.min(page, totalPages));
+    onPageChange(next);
   };
 
-  if (isLoading) {
-    if (pagination && pagination.total <= 10) return null;
+  if (isLoading && total === 0) {
     return (
       <div
-        className={`flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200/80 px-4 py-3 bg-slate-50/40 ${className}`}
+        className={`flex items-center justify-between border-t border-slate-200/80 px-4 py-3 bg-slate-50/40 ${className}`}
       >
-        {/* Summary Info Skeleton */}
-        {showSummary && (
-          <div className="h-3.5 w-48 rounded-md animate-shimmer bg-slate-100/80" />
-        )}
-
-        {/* Pagination Controls Skeleton */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Previous Button Skeleton */}
-          <div className="flex items-center gap-1.5 opacity-50">
-            <div className="h-[26px] w-[26px] rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
-            <div className="hidden sm:block h-3 w-8 rounded-sm animate-shimmer bg-slate-100/80" />
-          </div>
-
-          {/* Page Numbers Skeleton */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100/60 rounded-md border border-slate-200/50 shadow-2xs">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-md animate-shimmer bg-slate-200/50"
-              />
-            ))}
-          </div>
-
-          {/* Next Button Skeleton */}
-          <div className="flex items-center gap-1.5 opacity-50">
-            <div className="hidden sm:block h-3 w-8 rounded-sm animate-shimmer bg-slate-100/80" />
-            <div className="h-[26px] w-[26px] rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
-          </div>
+        <div className="h-3.5 w-48 rounded-md animate-shimmer bg-slate-100" />
+        <div className="flex gap-1">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-8 w-8 rounded-md animate-shimmer bg-slate-100" />
+          ))}
         </div>
       </div>
     );
   }
 
-  // Only show pagination if total items > 10 and totalPages > 1
-  if (totalPages <= 1 || (total > 0 && total <= 10)) {
-    return null;
-  }
+  if (totalPages <= 1) return null;
+
+  const visiblePages = getVisiblePages(currentPage, totalPages);
 
   return (
     <div
-      className={`flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200/80 px-4 py-3 bg-slate-50/40 text-xs text-slate-500 ${className}`}
+      className={`flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200/80 px-4 py-3 bg-slate-50/40 text-xs transition-opacity duration-300 ease-in-out ${className}`}
     >
-      {/* Summary Info */}
       {showSummary && (
-        <div className="text-slate-500 font-medium">
-          Showing page <span className="font-bold text-slate-900">{currentPage}</span> of{" "}
-          <span className="font-bold text-slate-900">{totalPages}</span>
+        <p className="text-slate-500 font-medium">
+          Showing page <strong className="text-slate-900">{currentPage}</strong> of{" "}
+          <strong className="text-slate-900">{totalPages}</strong>
           {total > 0 && <span> ({total} total items)</span>}
-        </div>
+        </p>
       )}
 
-      {/* Pagination Controls */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Previous Button */}
+      <nav className="flex items-center gap-2" aria-label="Pagination">
         <button
           type="button"
+          aria-label="Previous page"
           disabled={currentPage <= 1}
-          onClick={() => onPageChange(currentPage - 1)}
-          className="group flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-900 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-          aria-label="Previous Page"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            goToPage(currentPage - 1);
+          }}
+          className="flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          <div className="p-1.5 rounded-full border border-slate-200 bg-white group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-2xs">
-            <ChevronLeft
-              size={13}
-              className="group-hover:-translate-x-0.5 transition-transform"
-            />
-          </div>
+          <ChevronLeft className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Prev</span>
         </button>
 
-        {/* Page Numbers Container */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-md border border-slate-200/70 shadow-2xs">
-          {getPageNumbers().map((page, index) => {
-            if (page === "...") {
-              return (
-                <span
-                  key={`dots-${index}`}
-                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 font-bold text-[11px]"
-                >
-                  ...
-                </span>
-              );
-            }
-
-            const pageNum = Number(page);
-            const isActive = currentPage === pageNum;
-
-            return (
+        <div className="flex items-center gap-1 rounded-md border border-slate-200/80 bg-slate-100/80 p-1">
+          {visiblePages.map((page, idx) =>
+            page === "..." ? (
+              <span
+                key={`dots-${idx}`}
+                className="flex h-8 w-8 items-center justify-center text-slate-400 text-[11px] font-bold"
+              >
+                …
+              </span>
+            ) : (
               <button
+                key={`page-${page}`}
                 type="button"
-                key={`page-${pageNum}-${index}`}
-                onClick={() => onPageChange(pageNum)}
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-md text-xs font-bold transition-all duration-150 cursor-pointer ${
-                  isActive
-                    ? "bg-slate-900 text-white shadow-xs scale-105 z-10"
-                    : "text-slate-700 hover:bg-white hover:text-slate-900 hover:shadow-2xs"
+                aria-label={`Page ${page}`}
+                aria-current={currentPage === page ? "page" : undefined}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goToPage(page);
+                }}
+                className={`relative flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold transition-all duration-200 ease-out cursor-pointer ${
+                  currentPage === page
+                    ? "bg-slate-900 text-white shadow-sm scale-100"
+                    : "text-slate-700 hover:bg-white hover:scale-105 active:scale-95"
                 }`}
               >
-                {pageNum}
+                {page}
               </button>
-            );
-          })}
+            ),
+          )}
         </div>
 
-        {/* Next Button */}
         <button
           type="button"
+          aria-label="Next page"
           disabled={currentPage >= totalPages}
-          onClick={() => onPageChange(currentPage + 1)}
-          className="group flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-900 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
-          aria-label="Next Page"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            goToPage(currentPage + 1);
+          }}
+          className="flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           <span className="hidden sm:inline">Next</span>
-          <div className="p-1.5 rounded-full border border-slate-200 bg-white group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-2xs">
-            <ChevronRight
-              size={13}
-              className="group-hover:translate-x-0.5 transition-transform"
-            />
-          </div>
+          <ChevronRight className="h-3.5 w-3.5" />
         </button>
-      </div>
+      </nav>
     </div>
   );
 };

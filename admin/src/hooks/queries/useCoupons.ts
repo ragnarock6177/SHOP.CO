@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface CouponItem {
   id: string;
@@ -18,14 +19,7 @@ export interface CouponItem {
 }
 
 export const useCoupons = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "coupons", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<CouponItem>>("/admin/coupons", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<CouponItem>("coupons", "/admin/coupons", params);
 };
 
 export const useCreateCoupon = () => {

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface ReturnRequestItem {
   id: string;
@@ -15,14 +16,7 @@ export interface ReturnRequestItem {
 }
 
 export const useReturns = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "returns", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<ReturnRequestItem>>("/admin/returns", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<ReturnRequestItem>("returns", "/admin/returns", params);
 };
 
 export const useUpdateReturnStatus = () => {
@@ -40,14 +34,7 @@ export const useUpdateReturnStatus = () => {
 };
 
 export const useRefunds = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "refunds", params],
-    queryFn: async () => {
-      // Refunds are nested under /admin/returns/refunds
-      const response = await apiClient.get<ApiPaginatedResponse<any>>("/admin/returns/refunds", { params });
-      return response.data;
-    },
-  });
+  return usePaginatedQuery<any>("refunds", "/admin/returns/refunds", params);
 };
 
 export const useProcessRefund = () => {

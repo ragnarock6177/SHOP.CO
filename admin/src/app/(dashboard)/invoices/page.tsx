@@ -2,13 +2,11 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { FileText, Printer } from "lucide-react";
-import apiClient from "@/lib/apiClient";
-import { ApiPaginatedResponse } from "@/types/api";
 import { DataTable } from "@/components/data-table/DataTable";
 import { Pagination } from "@/components/data-table/Pagination";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface InvoiceItem {
   id: string;
@@ -25,15 +23,11 @@ export interface InvoiceItem {
 export default function InvoicesPage() {
   const [page, setPage] = useState<number>(1);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "invoices", { page, limit: 10 }],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<InvoiceItem>>("/admin/payments/invoices", {
-        params: { page, limit: 10 },
-      });
-      return response.data;
-    },
-  });
+  const { data, isPending, isFetching } = usePaginatedQuery<InvoiceItem>(
+    "invoices",
+    "/admin/payments/invoices",
+    { page, limit: 10 },
+  );
 
   const columns: ColumnDef<InvoiceItem>[] = [
     {
@@ -84,9 +78,15 @@ export default function InvoicesPage() {
     <div className="space-y-6">
       
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination
+        pagination={data?.pagination}
+        currentPage={page}
+        isLoading={isPending && !data}
+        isFetching={isFetching}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

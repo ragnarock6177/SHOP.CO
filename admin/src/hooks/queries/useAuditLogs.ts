@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface AuditLogItem {
   id: string;
@@ -16,12 +17,5 @@ export interface AuditLogItem {
 }
 
 export const useAuditLogs = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "auditLogs", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<AuditLogItem>>("/admin/audit-logs", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<AuditLogItem>("auditLogs", "/admin/audit-logs", params);
 };

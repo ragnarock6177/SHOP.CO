@@ -14,7 +14,7 @@ export default function RefundsPage() {
   const [page, setPage] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const { data, isLoading } = useRefunds({ page, limit: 10 });
+  const { data, isPending, isFetching } = useRefunds({ page, limit: 10 });
   const refundMutation = useProcessRefund();
 
   const handleProcessRefund = (payload: any) => {
@@ -88,9 +88,9 @@ export default function RefundsPage() {
         </PermissionGate>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
 
       <RefundModal
         isOpen={isModalOpen}

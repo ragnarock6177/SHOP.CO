@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export interface CustomerItem {
   id: string;
@@ -36,14 +37,7 @@ export interface CustomerDetail extends CustomerItem {
 }
 
 export const useCustomers = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "customers", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<CustomerItem>>("/admin/customers", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<CustomerItem>("customers", "/admin/customers", params);
 };
 
 export const useCustomerDetails = (id: string) => {

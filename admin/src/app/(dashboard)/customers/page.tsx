@@ -17,7 +17,7 @@ export default function CustomersPage() {
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
 
-  const { data, isLoading } = useCustomers({
+  const { data, isPending, isFetching } = useCustomers({
     page,
     limit: 10,
     search: search || undefined,
@@ -112,9 +112,9 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data || []} isLoading={isPending && !data} isFetching={isFetching} />
 
-      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isLoading} onPageChange={(p) => setPage(p)} />
+      <Pagination pagination={data?.pagination} currentPage={page} isLoading={isPending && !data} isFetching={isFetching} onPageChange={(p) => setPage(p)} />
     </div>
   );
 }

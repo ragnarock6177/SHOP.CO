@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
+import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
 
 export type OrderStatus =
   | "PENDING"
@@ -49,14 +50,7 @@ export interface OrderDetail extends OrderItem {
 }
 
 export const useOrders = (params?: AdminQueryParams) => {
-  return useQuery({
-    queryKey: ["admin", "orders", params],
-    queryFn: async () => {
-      const response = await apiClient.get<ApiPaginatedResponse<OrderItem>>("/admin/orders", { params });
-      return response.data;
-    },
-    staleTime: 30 * 1000,
-  });
+  return usePaginatedQuery<OrderItem>("orders", "/admin/orders", params);
 };
 
 export const useOrderDetails = (id: string) => {

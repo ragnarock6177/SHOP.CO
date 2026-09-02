@@ -31,6 +31,7 @@ export function sendAdminPaginated<T>(
   statusCode = 200
 ): Response {
   const totalPages = Math.ceil(total / (limit || 1)) || 1;
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate");
   return res.status(statusCode).json({
     success: true,
     data,

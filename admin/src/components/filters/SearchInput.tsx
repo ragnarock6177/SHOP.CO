@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -19,10 +19,21 @@ export const SearchInput: React.FC<SearchInputProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState<string>(value);
   const debouncedSearch = useDebounce(searchTerm, 300);
+  const onChangeRef = useRef(onChange);
 
   useEffect(() => {
-    onChange(debouncedSearch);
-  }, [debouncedSearch, onChange]);
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    setSearchTerm(value);
+  }, [value]);
+
+  // Only notify parent when debounced value changes — NOT when onChange reference changes.
+  // Including onChange in deps caused pagination resets on every parent re-render.
+  useEffect(() => {
+    onChangeRef.current(debouncedSearch);
+  }, [debouncedSearch]);
 
   return (
     <div className={`relative flex items-center ${className}`}>
@@ -36,6 +47,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       />
       {searchTerm && (
         <button
+          type="button"
           onClick={() => setSearchTerm("")}
           className="absolute right-2.5 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
         >
