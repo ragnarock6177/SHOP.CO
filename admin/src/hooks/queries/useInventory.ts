@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
 import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
+import { toast } from "@/lib/toast";
 
 export interface InventoryItem {
   variantId: string;
@@ -26,8 +27,6 @@ export const useInventory = (params?: AdminQueryParams) => {
   return usePaginatedQuery<InventoryItem>("inventory", "/admin/inventory", params);
 };
 
-import { toast } from "@/lib/toast";
-
 export const useAdjustInventory = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -50,4 +49,40 @@ export const useInventoryMovements = (params?: AdminQueryParams) => {
 
 export const useInventoryReservations = (params?: AdminQueryParams) => {
   return usePaginatedQuery<any>("inventory", "/admin/inventory/reservations", params, ["reservations"]);
+};
+
+export const useReleaseReservation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (reservationId: string) => {
+      const response = await apiClient.post<ApiResponse<any>>(`/admin/inventory/reservations/${reservationId}/release`);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
+      toast.success("Hold Released", "Stock reservation has been released back to available inventory.");
+    },
+    onError: (err: any) => {
+      toast.error("Release Failed", err.response?.data?.message || "Failed to release reservation.");
+    },
+  });
+};
+
+export const useSweepExpiredReservations = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post<ApiResponse<{ releasedCount: number }>>("/admin/inventory/reservations/sweep-expired");
+      return response.data.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-paginated", "inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
+      toast.success("Reservations Swept", `Successfully released ${data?.releasedCount ?? 0} expired hold(s).`);
+    },
+    onError: (err: any) => {
+      toast.error("Sweep Failed", err.response?.data?.message || "Failed to sweep expired reservations.");
+    },
+  });
 };

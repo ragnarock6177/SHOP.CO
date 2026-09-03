@@ -40,6 +40,39 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'desc' | 'reviews' | 'faqs'>('reviews');
 
+  // Match selected color and size to authoritative variant
+  const activeVariant = React.useMemo(() => {
+    if (!product.variants || product.variants.length === 0) return null;
+    return (
+      product.variants.find((v) => {
+        const colorAttr = v.attributes.find(
+          (a) => a.attributeSlug === "color" || a.attributeName.toLowerCase() === "color"
+        );
+        const sizeAttr = v.attributes.find(
+          (a) => a.attributeSlug === "size" || a.attributeName.toLowerCase() === "size"
+        );
+        const matchesColor =
+          !selectedColor ||
+          !colorAttr ||
+          colorAttr.value.toLowerCase() === selectedColor.toLowerCase();
+        const matchesSize =
+          !selectedSize ||
+          !sizeAttr ||
+          sizeAttr.value.toLowerCase() === selectedSize.toLowerCase();
+        return matchesColor && matchesSize;
+      }) || product.variants[0]
+    );
+  }, [product.variants, selectedColor, selectedSize]);
+
+  const currentPrice = activeVariant ? activeVariant.price : product.price;
+  const currentOriginalPrice = activeVariant?.compareAtPrice
+    ? activeVariant.compareAtPrice
+    : product.originalPrice;
+  const stockAvailable = activeVariant
+    ? activeVariant.stockAvailable
+    : (product.stockAvailable ?? 50);
+  const isOutOfStock = stockAvailable <= 0;
+
   // Reviews state
   const [reviewsList, setReviewsList] = useState<Review[]>(REVIEWS);
   const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
@@ -47,7 +80,8 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(6);
 
   const handleAddToCart = () => {
-    addToCart(product, quantity, selectedColor, selectedSize);
+    if (isOutOfStock) return;
+    addToCart(product, quantity, selectedColor, selectedSize, activeVariant?.id);
   };
 
   const handleAddReview = (newReview: Review) => {
@@ -153,18 +187,38 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           {/* Pricing Row */}
           <div className="flex items-center gap-3">
             <span className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black">
-              ${product.price}
+              ${currentPrice}
             </span>
 
-            {product.originalPrice && (
+            {currentOriginalPrice && (
               <span className="font-be-vietnam-pro-black text-xl sm:text-2xl font-bold text-gray-400 line-through">
-                ${product.originalPrice}
+                ${currentOriginalPrice}
               </span>
             )}
 
             {product.discount && (
               <span className="bg-black/5 text-black font-extrabold text-[11px] rounded-full px-3 py-1 border border-black/10">
                 -{product.discount}%
+              </span>
+            )}
+          </div>
+
+          {/* Live Variant Stock Status Badge */}
+          <div className="pt-0.5">
+            {isOutOfStock ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 border border-rose-200">
+                <span className="h-2 w-2 rounded-full bg-rose-500"></span>
+                Out of Stock
+              </span>
+            ) : stockAvailable <= 5 ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 border border-amber-200">
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Only {stockAvailable} left in stock — order soon!
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                In Stock ({stockAvailable} available)
               </span>
             )}
           </div>
@@ -234,16 +288,18 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
             <div className="flex items-center bg-[#F4F4F4] rounded-full px-3 py-2 sm:px-4 sm:py-2.5 shrink-0">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="p-1 text-black hover:text-gray-600 cursor-pointer"
+                disabled={quantity <= 1 || isOutOfStock}
+                className="p-1 text-black hover:text-gray-600 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
                 <Minus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
               <span className="w-8 sm:w-10 text-center font-bold text-xs sm:text-sm text-black">
-                {quantity}
+                {isOutOfStock ? 0 : quantity}
               </span>
               <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="p-1 text-black hover:text-gray-600 cursor-pointer"
+                onClick={() => setQuantity(Math.min(stockAvailable, quantity + 1))}
+                disabled={quantity >= stockAvailable || isOutOfStock}
+                className="p-1 text-black hover:text-gray-600 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
                 <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
@@ -251,9 +307,14 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
 
             <button
               onClick={handleAddToCart}
-              className="flex-1 py-3 sm:py-3.5 px-4 sm:px-8 rounded-full bg-black hover:bg-neutral-800 text-white font-extrabold text-xs sm:text-sm uppercase transition-all shadow-md active:scale-98 cursor-pointer"
+              disabled={isOutOfStock}
+              className={`flex-1 py-3 sm:py-3.5 px-4 sm:px-8 rounded-full font-extrabold text-xs sm:text-sm uppercase transition-all shadow-md active:scale-98 ${
+                isOutOfStock
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-black hover:bg-neutral-800 text-white cursor-pointer'
+              }`}
             >
-              Add to Cart
+              {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
             </button>
 
             <button

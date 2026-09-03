@@ -193,18 +193,187 @@ export class AdminInventoryService {
     return { movements, total, page, limit };
   }
 
-  static async getInventoryReservations() {
-    return prisma.inventoryReservation.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        variant: {
-          select: {
-            sku: true,
-            product: { select: { name: true } },
+  static async getInventoryReservations(query: Record<string, any> = {}) {
+    const { page, limit, sortBy, sortOrder, skip } = parseAdminQueryParams(
+      query,
+      ["createdAt", "expiresAt", "quantity"],
+      "createdAt"
+    );
+
+    const where: any = {};
+
+    if (query.status === "ACTIVE") {
+      where.releasedAt = null;
+      where.expiresAt = { gt: new Date() };
+    } else if (query.status === "EXPIRED") {
+      where.releasedAt = null;
+      where.expiresAt = { lte: new Date() };
+    } else if (query.status === "RELEASED") {
+      where.releasedAt = { not: null };
+    }
+
+    if (query.variantId) {
+      where.variantId = query.variantId;
+    }
+
+    const [reservations, total] = await Promise.all([
+      prisma.inventoryReservation.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+          variant: {
+            select: {
+              id: true,
+              sku: true,
+              price: true,
+              product: { select: { id: true, name: true, slug: true } },
+            },
           },
         },
+      }),
+      prisma.inventoryReservation.count({ where }),
+    ]);
+
+    const now = new Date();
+    const formatted = reservations.map((res) => {
+      let status: "ACTIVE" | "EXPIRED" | "RELEASED" = "ACTIVE";
+      if (res.releasedAt) {
+        status = "RELEASED";
+      } else if (res.expiresAt <= now) {
+        status = "EXPIRED";
+      }
+
+      return {
+        id: res.id,
+        variantId: res.variantId,
+        sku: res.variant.sku,
+        productName: res.variant.product.name,
+        cartId: res.cartId,
+        orderId: res.orderId,
+        quantity: res.quantity,
+        expiresAt: res.expiresAt,
+        releasedAt: res.releasedAt,
+        createdAt: res.createdAt,
+        status,
+      };
+    });
+
+    return { reservations: formatted, total, page, limit };
+  }
+
+  static async releaseReservationById(reservationId: string, adminUserId?: string) {
+    return prisma.$transaction(async (tx) => {
+      const reservation = await tx.inventoryReservation.findUnique({
+        where: { id: reservationId },
+        include: { variant: { select: { sku: true, product: { select: { name: true } } } } },
+      });
+
+      if (!reservation) {
+        throw new NotFoundError("Reservation not found");
+      }
+
+      if (reservation.releasedAt) {
+        throw new ValidationError("Reservation has already been released or fulfilled.");
+      }
+
+      // Mark reservation released
+      const updatedReservation = await tx.inventoryReservation.update({
+        where: { id: reservation.id },
+        data: { releasedAt: new Date() },
+      });
+
+      // Decrement quantityReserved from inventory
+      const inventory = await tx.inventory.findUnique({
+        where: { variantId: reservation.variantId },
+      });
+
+      if (inventory) {
+        const newReserved = Math.max(0, inventory.quantityReserved - reservation.quantity);
+        await tx.inventory.update({
+          where: { id: inventory.id },
+          data: { quantityReserved: newReserved },
+        });
+
+        // Record RELEASE movement
+        await tx.inventoryMovement.create({
+          data: {
+            variantId: reservation.variantId,
+            movementType: InventoryMovementType.RELEASE,
+            quantity: reservation.quantity,
+            referenceType: reservation.orderId ? "ORDER" : "CART_RESERVATION",
+            referenceId: reservation.orderId || reservation.cartId || undefined,
+            notes: `Released hold on ${reservation.variant.sku} (Quantity: ${reservation.quantity})`,
+            createdBy: adminUserId || null,
+          },
+        });
+      }
+
+      return updatedReservation;
+    });
+  }
+
+  static async releaseExpiredReservations() {
+    const now = new Date();
+    const expiredReservations = await prisma.inventoryReservation.findMany({
+      where: {
+        releasedAt: null,
+        expiresAt: { lte: now },
+      },
+      include: {
+        variant: { select: { sku: true } },
       },
     });
+
+    if (expiredReservations.length === 0) {
+      return { releasedCount: 0 };
+    }
+
+    let releasedCount = 0;
+
+    for (const res of expiredReservations) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          // Double check within transaction
+          const check = await tx.inventoryReservation.findUnique({ where: { id: res.id } });
+          if (!check || check.releasedAt) return;
+
+          await tx.inventoryReservation.update({
+            where: { id: res.id },
+            data: { releasedAt: now },
+          });
+
+          const inventory = await tx.inventory.findUnique({
+            where: { variantId: res.variantId },
+          });
+
+          if (inventory) {
+            const newReserved = Math.max(0, inventory.quantityReserved - res.quantity);
+            await tx.inventory.update({
+              where: { id: inventory.id },
+              data: { quantityReserved: newReserved },
+            });
+
+            await tx.inventoryMovement.create({
+              data: {
+                variantId: res.variantId,
+                movementType: InventoryMovementType.RELEASE,
+                quantity: res.quantity,
+                referenceType: "TTL_EXPIRATION",
+                referenceId: res.id,
+                notes: `Auto-released expired 15-minute hold for ${res.variant?.sku || res.variantId}`,
+              },
+            });
+          }
+        });
+        releasedCount++;
+      } catch (err) {
+        console.error(`Failed to release expired reservation ${res.id}:`, err);
+      }
+    }
+
+    return { releasedCount };
   }
 
   static async updateReorderLevel(variantId: string, reorderLevel: number) {

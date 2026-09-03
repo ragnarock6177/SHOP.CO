@@ -18,6 +18,16 @@ router.post(
 );
 router.get("/movements", requirePermission("inventory:read"), AdminInventoryController.getInventoryMovements);
 router.get("/reservations", requirePermission("inventory:read"), AdminInventoryController.getInventoryReservations);
+router.post(
+  "/reservations/:id/release",
+  requirePermission("inventory:adjust"),
+  AdminInventoryController.releaseReservation
+);
+router.post(
+  "/reservations/sweep-expired",
+  requirePermission("inventory:adjust"),
+  AdminInventoryController.sweepExpiredReservations
+);
 router.put(
   "/:variantId/threshold",
   requirePermission("inventory:update"),

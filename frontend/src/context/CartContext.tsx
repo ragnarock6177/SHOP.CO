@@ -28,7 +28,7 @@ interface CartContextType {
   orders: OrderRecord[];
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
-  addToCart: (product: Product, quantity?: number, color?: string, size?: string) => void;
+  addToCart: (product: Product, quantity?: number, color?: string, size?: string, variantId?: string) => void;
   removeFromCart: (productId: string, color?: string, size?: string) => void;
   updateQuantity: (productId: string, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
@@ -135,7 +135,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [cart, wishlist, orders, isInitialized]);
 
-  const addToCart = (product: Product, quantity = 1, color?: string, size?: string) => {
+  const addToCart = (product: Product, quantity = 1, color?: string, size?: string, variantId?: string) => {
     setCart((prevCart) => {
       const selectedColor = color || (product.colors && product.colors.length > 0 ? product.colors[0].name : undefined);
       const selectedSize = size || (product.sizes && product.sizes.length > 0 ? product.sizes[0] : undefined);
@@ -150,6 +150,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (existingIndex > -1) {
         const updated = [...prevCart];
         updated[existingIndex].quantity += quantity;
+        if (variantId && !updated[existingIndex].variantId) {
+          updated[existingIndex].variantId = variantId;
+        }
         return updated;
       }
 
@@ -159,7 +162,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           product,
           quantity,
           selectedColor,
-          selectedSize
+          selectedSize,
+          variantId,
         }
       ];
     });

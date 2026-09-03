@@ -61,6 +61,39 @@ export function normalizeProduct(apiItem: any): Product {
   const title = apiItem.name || apiItem.title || "ONE LIFE GRAPHIC T-SHIRT";
   const slug = apiItem.slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || apiItem.id;
 
+  const variants = Array.isArray(apiItem.variants)
+    ? apiItem.variants.map((v: any) => ({
+        id: v.id,
+        sku: v.sku,
+        price: Number(v.price),
+        compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : null,
+        stockAvailable: Number(
+          v.stockAvailable ??
+            (v.inventory
+              ? Math.max(0, v.inventory.quantityOnHand - v.inventory.quantityReserved)
+              : 0)
+        ),
+        attributes: Array.isArray(v.attributes)
+          ? v.attributes
+          : Array.isArray(v.variantAttributeValues)
+          ? v.variantAttributeValues.map((vav: any) => ({
+              attributeSlug: vav.attributeValue?.attribute?.slug || "",
+              attributeName: vav.attributeValue?.attribute?.name || "",
+              valueSlug: vav.attributeValue?.slug || "",
+              value: vav.attributeValue?.value || "",
+              colorHex: vav.attributeValue?.colorHex || undefined,
+            }))
+          : [],
+      }))
+    : undefined;
+
+  const totalStockAvailable =
+    variants && variants.length > 0
+      ? variants.reduce((sum: number, v: any) => sum + (v.stockAvailable || 0), 0)
+      : (apiItem.stockQuantity ?? 50);
+
+  const inStock = totalStockAvailable > 0;
+
   return {
     id: apiItem.id || apiItem.slug || `prod-${Math.random().toString(36).substr(2, 9)}`,
     slug,
@@ -78,7 +111,9 @@ export function normalizeProduct(apiItem: any): Product {
     colors: finalColors,
     sizes,
     tags: apiItem.tags || [categoryName, "Streetwear", "New Arrival"],
-    inStock: apiItem.inStock !== undefined ? Boolean(apiItem.inStock) : true,
+    inStock,
+    stockAvailable: totalStockAvailable,
+    variants,
     featured: Boolean(apiItem.featured),
   };
 }

@@ -119,6 +119,12 @@ export class PaymentService {
         }
       }
 
+      // Mark linked reservations as fulfilled
+      await tx.inventoryReservation.updateMany({
+        where: { orderId: order.id, releasedAt: null },
+        data: { releasedAt: new Date() },
+      });
+
       // 4. Create Invoice
       const invoiceNumber = `INV-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
       await tx.invoice.create({

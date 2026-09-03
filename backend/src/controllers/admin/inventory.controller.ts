@@ -31,10 +31,29 @@ export class AdminInventoryController {
     }
   }
 
-  static async getInventoryReservations(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  static async getInventoryReservations(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const reservations = await AdminInventoryService.getInventoryReservations();
-      sendAdminSuccess(res, reservations, "Active inventory reservations retrieved successfully.");
+      const result = await AdminInventoryService.getInventoryReservations(req.query);
+      sendAdminPaginated(res, result.reservations, result.page, result.limit, result.total, "Inventory reservations retrieved successfully.");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async releaseReservation(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminUserId = req.user!.id;
+      const result = await AdminInventoryService.releaseReservationById(req.params.id, adminUserId);
+      sendAdminSuccess(res, result, "Inventory reservation released successfully.", 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async sweepExpiredReservations(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AdminInventoryService.releaseExpiredReservations();
+      sendAdminSuccess(res, result, `Expired reservations swept. Released ${result.releasedCount} hold(s).`, 200);
     } catch (error) {
       next(error);
     }

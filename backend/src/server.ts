@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import app from "./app.js";
 import { connectDB, stopDbKeepAlive } from "./config/db.js";
 import prisma from "./lib/prisma.js";
+import { startInventoryCron } from "./jobs/inventoryCron.js";
 
 dotenv.config();
 
@@ -18,6 +19,9 @@ const server = app.listen(PORT, () => {
 
 // Asynchronously connect database with retries
 connectDB();
+
+// Start inventory reservation TTL sweep worker
+startInventoryCron();
 
 async function shutdown(signal: string) {
   console.log(`\n${signal} received. Shutting down gracefully...`);

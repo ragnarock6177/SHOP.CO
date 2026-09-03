@@ -1,7 +1,7 @@
 import prisma from "../lib/prisma.js";
 import { NotFoundError, UnprocessableEntityError, ForbiddenError } from "../utils/errors.js";
 import { parsePaginationParams, buildPaginationMeta } from "../utils/pagination.js";
-import { AddressType, OrderStatus, PaymentStatus } from "@prisma/client";
+import { AddressType, OrderStatus, PaymentStatus, InventoryMovementType } from "@prisma/client";
 
 export class OrderService {
   static async createOrder(
@@ -42,6 +42,7 @@ export class OrderService {
       }
 
       // 1. Resolve item details & validate stock directly from DB as single source of truth
+      const pendingReservations: { variantId: string; inventoryId: string; quantity: number }[] = [];
       for (const item of payload.items) {
         const targetId = item.id || item.variantId || item.productId;
         let variant: any = null;
@@ -106,20 +107,11 @@ export class OrderService {
             );
           }
 
-          // Reserve stock
           if (variant.inventory) {
-            await tx.inventory.update({
-              where: { id: variant.inventory.id },
-              data: { quantityReserved: variant.inventory.quantityReserved + item.quantity },
-            });
-
-            const expiryDate = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
-            await tx.inventoryReservation.create({
-              data: {
-                variantId: variant.id,
-                quantity: item.quantity,
-                expiresAt: expiryDate,
-              },
+            pendingReservations.push({
+              variantId: variant.id,
+              inventoryId: variant.inventory.id,
+              quantity: item.quantity,
             });
           }
         } else if (product) {
@@ -279,6 +271,58 @@ export class OrderService {
           payments: true,
         },
       });
+
+      // 4b. Create Inventory Reservations linked directly to this order
+      for (const resItem of pendingReservations) {
+        await tx.inventory.update({
+          where: { id: resItem.inventoryId },
+          data: { quantityReserved: { increment: resItem.quantity } },
+        });
+
+        const expiryDate = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
+        await tx.inventoryReservation.create({
+          data: {
+            variantId: resItem.variantId,
+            orderId: order.id,
+            quantity: resItem.quantity,
+            expiresAt: expiryDate,
+          },
+        });
+      }
+
+      // 4c. If COD payment, immediately deduct physical stock and mark reservation fulfilled
+      if (payload.paymentMethod === "COD") {
+        for (const item of order.items) {
+          if (item.variantId) {
+            const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
+            if (inventory) {
+              await tx.inventory.update({
+                where: { id: inventory.id },
+                data: {
+                  quantityOnHand: Math.max(0, inventory.quantityOnHand - item.quantity),
+                  quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
+                },
+              });
+
+              await tx.inventoryMovement.create({
+                data: {
+                  variantId: item.variantId,
+                  movementType: InventoryMovementType.SALE,
+                  quantity: -item.quantity,
+                  referenceType: "ORDER",
+                  referenceId: order.id,
+                  notes: `Deducted for COD Order ${order.orderNumber}`,
+                },
+              });
+            }
+          }
+        }
+
+        await tx.inventoryReservation.updateMany({
+          where: { orderId: order.id, releasedAt: null },
+          data: { releasedAt: new Date() },
+        });
+      }
 
       // 5. Record Coupon Usage if DB Coupon found
       if (couponRecord) {

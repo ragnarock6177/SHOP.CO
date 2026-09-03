@@ -1,3 +1,18 @@
+export interface ProductVariant {
+  id: string;
+  sku: string;
+  price: number;
+  compareAtPrice?: number | null;
+  stockAvailable: number;
+  attributes: {
+    attributeSlug: string;
+    attributeName: string;
+    valueSlug: string;
+    value: string;
+    colorHex?: string;
+  }[];
+}
+
 export interface Product {
   id: string;
   slug?: string;
@@ -16,6 +31,8 @@ export interface Product {
   sizes?: string[];
   tags?: string[];
   inStock: boolean;
+  stockAvailable?: number;
+  variants?: ProductVariant[];
   featured?: boolean;
   isNew?: boolean;
   specs?: Record<string, string>;
@@ -35,6 +52,7 @@ export interface CartItem {
   quantity: number;
   selectedColor?: string;
   selectedSize?: string;
+  variantId?: string;
 }
 
 export interface FilterState {
