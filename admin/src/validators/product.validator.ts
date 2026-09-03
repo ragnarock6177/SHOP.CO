@@ -12,6 +12,7 @@ export const ProductFormSchema = z.object({
   stockQuantity: z.number().int("Stock must be a whole number").nonnegative("Stock cannot be negative").optional(),
   reorderLevel: z.number().int().nonnegative().optional(),
   primaryCategoryId: z.string().uuid("Please select a primary category"),
+  collectionIds: z.array(z.string().uuid()).optional(),
   status: z.enum(["DRAFT", "ACTIVE", "INACTIVE", "OUT_OF_STOCK", "ARCHIVED"]),
   visibility: z.enum(["PUBLIC", "PRIVATE", "HIDDEN"]),
   metaTitle: z.string().optional(),

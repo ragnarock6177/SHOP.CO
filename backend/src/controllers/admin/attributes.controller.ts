@@ -12,10 +12,37 @@ export class AdminAttributesController {
     }
   }
 
+  static async getAttributeById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const attribute = await AdminAttributesService.getAttributeById(req.params.id);
+      sendAdminSuccess(res, attribute, "Attribute retrieved successfully.");
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async createAttribute(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const attribute = await AdminAttributesService.createAttribute(req.body);
       sendAdminSuccess(res, attribute, "Attribute created successfully.", 201);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateAttribute(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const attribute = await AdminAttributesService.updateAttribute(req.params.id, req.body);
+      sendAdminSuccess(res, attribute, "Attribute updated successfully.");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteAttribute(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AdminAttributesService.deleteAttribute(req.params.id);
+      sendAdminSuccess(res, result, "Attribute deleted successfully.");
     } catch (error) {
       next(error);
     }
@@ -29,4 +56,23 @@ export class AdminAttributesController {
       next(error);
     }
   }
+
+  static async updateAttributeValue(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const val = await AdminAttributesService.updateAttributeValue(req.params.valueId, req.body);
+      sendAdminSuccess(res, val, "Attribute value updated successfully.");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteAttributeValue(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AdminAttributesService.deleteAttributeValue(req.params.valueId);
+      sendAdminSuccess(res, result, "Attribute value deleted successfully.");
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+

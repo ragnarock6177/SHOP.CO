@@ -15,7 +15,8 @@ export interface CollectionItem {
   name: string;
   slug: string;
   description: string | null;
-  isActive: boolean;
+  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
+  isActive?: boolean;
   createdAt: string;
 }
 
@@ -66,14 +67,24 @@ export default function CollectionsPage() {
       cell: ({ row }) => <span className="text-[11px] text-slate-500">{row.original.slug}</span>,
     },
     {
-      accessorKey: "isActive",
+      accessorKey: "status",
       header: "Status",
       meta: { skeleton: "badge" },
-      cell: ({ row }) => (
-        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${row.original.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold" : "bg-slate-100 text-slate-500"}`}>
-          {row.original.isActive ? "ACTIVE" : "INACTIVE"}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const status = row.original.status || (row.original.isActive ? "ACTIVE" : "INACTIVE");
+        const isActive = status === "ACTIVE";
+        return (
+          <span
+            className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${
+              isActive
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80"
+                : "bg-slate-100 text-slate-500"
+            }`}
+          >
+            {status}
+          </span>
+        );
+      },
     },
   ];
 

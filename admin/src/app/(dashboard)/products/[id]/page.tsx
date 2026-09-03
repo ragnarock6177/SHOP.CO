@@ -77,7 +77,20 @@ export default function EditProductPage() {
     gcTime: 15 * 60 * 1000,
   });
 
+  const { data: collectionsData } = useQuery({
+    queryKey: ["admin", "collections", "active"],
+    queryFn: async () => {
+      const res = await apiClient.get<
+        ApiPaginatedResponse<{ id: string; name: string; status: string }>
+      >("/admin/collections?limit=100&status=ACTIVE");
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
   const categories = (categoriesData?.data || []).filter((c) => c.status === "ACTIVE");
+  const collections = (collectionsData?.data || []).filter((c) => c.status === "ACTIVE");
 
   const primaryCat = useMemo(() => {
     if (!product) return null;
@@ -1013,7 +1026,11 @@ export default function EditProductPage() {
               productType: (product as any).productType || "",
               basePrice: Number(product.basePrice) || 0,
               comparePrice: Number((product as any).compareAtPrice) || undefined,
-              primaryCategoryId: primaryCat?.id || "",
+              primaryCategoryId: primaryCat?.id || (product as any).primaryCategoryId || "",
+              collectionIds:
+                (product as any).collectionIds ||
+                (product as any).productCollections?.map((pc: any) => pc.collectionId) ||
+                [],
               status: product.status as any,
               visibility: product.visibility,
               metaTitle: (product as any).metaTitle || "",
@@ -1050,6 +1067,7 @@ export default function EditProductPage() {
               })),
             }}
             categories={categories}
+            collections={collections}
             isLoading={updateMutation.isPending}
             onSubmit={handleUpdate}
             onCancel={() => setActiveTab("overview")}

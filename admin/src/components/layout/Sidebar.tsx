@@ -229,7 +229,13 @@ export function Sidebar() {
                     {item.subItems?.map((sub) => {
                       const isSubCurrent =
                         pathname === sub.href ||
-                        (sub.href !== '/' && pathname.startsWith(sub.href + '/'));
+                        (sub.href !== '/' &&
+                          pathname.startsWith(sub.href + '/') &&
+                          !item.subItems?.some(
+                            (other) =>
+                              other.href !== sub.href &&
+                              (pathname === other.href || pathname.startsWith(other.href + '/'))
+                          ));
                       const SubIcon = sub.icon;
                       return (
                         <Link

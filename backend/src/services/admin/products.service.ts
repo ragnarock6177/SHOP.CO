@@ -269,6 +269,11 @@ export class AdminProductsService {
       totalStockReserved,
       reorderLevel,
       stockStatus,
+      primaryCategoryId:
+        product.productCategories.find((pc) => pc.isPrimary)?.categoryId ||
+        product.productCategories[0]?.categoryId ||
+        null,
+      collectionIds: product.productCollections.map((pc) => pc.collectionId),
       variants: product.variants.map((v) => {
         const colorVal = v.variantAttributeValues.find(
           (vav) =>
@@ -333,6 +338,8 @@ export class AdminProductsService {
     reorderLevel?: number;
     careInstructions?: string;
     categoryId?: string;
+    primaryCategoryId?: string;
+    collectionIds?: string[];
     images?: Array<{
       imageUrl: string;
       altText?: string;
@@ -374,13 +381,14 @@ export class AdminProductsService {
       finalSlug = `${data.slug}-${Math.random().toString(36).slice(2, 7)}`;
     }
 
+    const incomingCatId = data.primaryCategoryId || data.categoryId;
     let validCategoryId: string | undefined = undefined;
-    if (data.categoryId && uuidRegex.test(data.categoryId)) {
+    if (incomingCatId && uuidRegex.test(incomingCatId)) {
       const catExists = await prisma.category.findUnique({
-        where: { id: data.categoryId },
+        where: { id: incomingCatId },
       });
       if (catExists) {
-        validCategoryId = data.categoryId;
+        validCategoryId = incomingCatId;
       }
     }
 
@@ -419,6 +427,23 @@ export class AdminProductsService {
                 isPrimary: true,
               },
             });
+          }
+
+          if (data.collectionIds && Array.isArray(data.collectionIds) && data.collectionIds.length > 0) {
+            const validCols = await tx.collection.findMany({
+              where: { id: { in: data.collectionIds } },
+              select: { id: true },
+            });
+            if (validCols.length > 0) {
+              await tx.productCollection.createMany({
+                data: validCols.map((col, idx) => ({
+                  productId: product.id,
+                  collectionId: col.id,
+                  sortOrder: idx,
+                })),
+                skipDuplicates: true,
+              });
+            }
           }
 
           const createdVariantIds: string[] = [];
@@ -657,6 +682,8 @@ export class AdminProductsService {
       reorderLevel?: number;
       careInstructions?: string;
       categoryId?: string;
+      primaryCategoryId?: string;
+      collectionIds?: string[];
       variants?: Array<{
         id?: string;
         sku: string;
@@ -705,17 +732,40 @@ export class AdminProductsService {
           },
         });
 
-        if (data.categoryId) {
+        const incomingCatId = data.primaryCategoryId || data.categoryId;
+        if (incomingCatId) {
           await tx.productCategory.deleteMany({
             where: { productId: id, isPrimary: true },
           });
           await tx.productCategory.create({
             data: {
               productId: id,
-              categoryId: data.categoryId,
+              categoryId: incomingCatId,
               isPrimary: true,
             },
           });
+        }
+
+        if (data.collectionIds && Array.isArray(data.collectionIds)) {
+          await tx.productCollection.deleteMany({
+            where: { productId: id },
+          });
+          if (data.collectionIds.length > 0) {
+            const validCols = await tx.collection.findMany({
+              where: { id: { in: data.collectionIds } },
+              select: { id: true },
+            });
+            if (validCols.length > 0) {
+              await tx.productCollection.createMany({
+                data: validCols.map((col, idx) => ({
+                  productId: id,
+                  collectionId: col.id,
+                  sortOrder: idx,
+                })),
+                skipDuplicates: true,
+              });
+            }
+          }
         }
 
         // Handle variant updates / creations / deletions

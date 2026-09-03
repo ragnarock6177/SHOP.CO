@@ -12,6 +12,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
+    "db:flush": "tsx src/scripts/flush-database.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

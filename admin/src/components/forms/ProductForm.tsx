@@ -16,6 +16,7 @@ export interface ProductFormProps {
   initialValues?: Partial<ProductFormInput>;
   isLoading?: boolean;
   categories?: Array<{ id: string; name: string }>;
+  collections?: Array<{ id: string; name: string }>;
   stagedImages?: StagedImageItem[];
   onStagedImagesChange?: (images: StagedImageItem[]) => void;
   onSubmit: (data: ProductFormInput) => void;
@@ -27,6 +28,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   initialValues,
   isLoading = false,
   categories = [],
+  collections = [],
   stagedImages = [],
   onStagedImagesChange,
   onSubmit,
@@ -62,6 +64,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       stockQuantity: (initialValues as any)?.totalStockOnHand ?? (initialValues as any)?.stockQuantity ?? 0,
       reorderLevel: (initialValues as any)?.reorderLevel ?? 5,
       primaryCategoryId: initialValues?.primaryCategoryId || (categories[0]?.id || ""),
+      collectionIds: initialValues?.collectionIds || [],
       status: initialValues?.status || "DRAFT",
       visibility: initialValues?.visibility || "PUBLIC",
       metaTitle: initialValues?.metaTitle || "",
@@ -193,6 +196,44 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           />
         </FormField>
       </div>
+
+      {/* ── Assigned Collections ────────────────────────────── */}
+      {collections.length > 0 && (
+        <FormField label="Assigned Collections" error={errors.collectionIds?.message}>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {collections.map((col) => {
+              const currentCollectionIds = watch("collectionIds") || [];
+              const isSelected = currentCollectionIds.includes(col.id);
+              return (
+                <button
+                  type="button"
+                  key={col.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      setValue(
+                        "collectionIds",
+                        currentCollectionIds.filter((id) => id !== col.id),
+                        { shouldValidate: true }
+                      );
+                    } else {
+                      setValue("collectionIds", [...currentCollectionIds, col.id], {
+                        shouldValidate: true,
+                      });
+                    }
+                  }}
+                  className={`rounded-full px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {col.name} {isSelected && "✓"}
+                </button>
+              );
+            })}
+          </div>
+        </FormField>
+      )}
 
       {/* ── Status & Visibility ──────────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-2">

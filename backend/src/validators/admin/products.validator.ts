@@ -29,6 +29,8 @@ export const CreateProductSchema = z.object({
     reorderLevel: z.number().int().nonnegative().optional().default(5),
     careInstructions: z.string().optional(),
     categoryId: z.string().uuid("Invalid category ID").optional(),
+    primaryCategoryId: z.string().uuid("Invalid primary category ID").optional(),
+    collectionIds: z.array(z.string().uuid("Invalid collection ID")).optional(),
     images: z
       .array(
         z.object({
@@ -62,6 +64,8 @@ export const UpdateProductSchema = z.object({
     reorderLevel: z.number().int().nonnegative().optional(),
     careInstructions: z.string().optional(),
     categoryId: z.string().uuid("Invalid category ID").optional(),
+    primaryCategoryId: z.string().uuid("Invalid primary category ID").optional(),
+    collectionIds: z.array(z.string().uuid("Invalid collection ID")).optional(),
     variants: z.array(VariantInputSchema).optional(),
   }),
 });

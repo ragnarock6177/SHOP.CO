@@ -38,7 +38,9 @@ export class ProductService {
     }
 
     if (query.featured === true || query.featured === "true" || query.selectionMode === "FEATURED") {
-      where.isFeatured = true;
+      where.productCollections = {
+        some: { collection: { slug: { in: ["new-arrivals", "best-sellers", "summer-2026", "urban-minimalist"] } } },
+      };
     }
 
     if (query.onSale === true || query.onSale === "true" || query.selectionMode === "SALE") {

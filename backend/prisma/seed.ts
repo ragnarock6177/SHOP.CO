@@ -52,28 +52,22 @@ async function main() {
   // 3. Seed Categories
   const categoriesData = [
     {
-      name: "Casual",
-      slug: "casual",
-      description: "Everyday comfortable outfits, t-shirts & jeans",
-      imageUrl: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&q=80&w=800",
+      name: "T-Shirts",
+      slug: "t-shirts",
+      description: "Premium heavyweight tees, oversized drop-shoulder and classic streetwear essentials",
+      imageUrl: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=800",
     },
     {
-      name: "Formal",
-      slug: "formal",
-      description: "Tailored suits, dress shirts & elegant attire",
-      imageUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800",
+      name: "Shirts",
+      slug: "shirts",
+      description: "Tailored oxford button-downs, casual pure linen, and structured overshirts",
+      imageUrl: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=800",
     },
     {
-      name: "Party",
-      slug: "party",
-      description: "Glamorous evening dresses, jackets & clubwear",
-      imageUrl: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      name: "Gym",
-      slug: "gym",
-      description: "Activewear, tank tops & athletic bottoms",
-      imageUrl: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&q=80&w=800",
+      name: "Pants",
+      slug: "pants",
+      description: "Pleated formal trousers, relaxed cargos, chinos, and modern straight-leg bottoms",
+      imageUrl: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=800",
     },
   ];
 

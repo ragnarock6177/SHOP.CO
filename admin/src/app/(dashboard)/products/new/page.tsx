@@ -40,7 +40,18 @@ export default function CreateProductPage() {
     },
   });
 
+  const { data: collectionsData } = useQuery({
+    queryKey: ["admin", "collections", "active"],
+    queryFn: async () => {
+      const res = await apiClient.get<ApiPaginatedResponse<{ id: string; name: string; status: string }>>(
+        "/admin/collections?limit=100&status=ACTIVE"
+      );
+      return res.data;
+    },
+  });
+
   const categories = (categoriesData?.data || []).filter((c) => c.status === "ACTIVE");
+  const collections = (collectionsData?.data || []).filter((c) => c.status === "ACTIVE");
 
   const handleCreate = (data: any) => {
     const formattedImages = stagedImages.map((img, idx) => ({
@@ -86,6 +97,7 @@ export default function CreateProductPage() {
           productId={tempProductId}
           isLoading={createMutation.isPending}
           categories={categories}
+          collections={collections}
           onSubmit={handleCreate}
           onCancel={() => router.push("/products")}
           stagedImages={stagedImages}
