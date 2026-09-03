@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "./Navbar";
 import { StorefrontHeaderAnnouncementBar } from "@/types/settings";
 import { DEFAULT_STOREFRONT_SETTINGS } from "@/lib/settingsApi";
+import { useAuth } from "@/context/AuthContext";
 
 interface HeaderProps {
   initialAnnouncement?: StorefrontHeaderAnnouncementBar;
 }
 
 export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
+  const { isAuthenticated, isHydrated } = useAuth();
+
   const defaultText =
     initialAnnouncement?.text ??
     DEFAULT_STOREFRONT_SETTINGS.header.announcementBar.text;
@@ -23,35 +26,44 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
     initialAnnouncement?.enabled ??
     DEFAULT_STOREFRONT_SETTINGS.header.announcementBar.enabled;
 
-  const [showAnnouncement, setShowAnnouncement] = useState(defaultEnabled);
+  const [announcementEnabled, setAnnouncementEnabled] = useState(defaultEnabled);
+  const [sessionDismissed, setSessionDismissed] = useState(false);
   const [announcementText, setAnnouncementText] = useState(defaultText);
   const [announcementLink, setAnnouncementLink] = useState(defaultLink);
+  const wasAuthenticatedRef = React.useRef(isAuthenticated);
+
+  // Defer auth-based visibility until after hydration so SSR and client match.
+  const shouldShowAnnouncement = useMemo(() => {
+    if (!isHydrated) return false;
+    if (!announcementEnabled || sessionDismissed) return false;
+    if (isAuthenticated) return false;
+    return true;
+  }, [isHydrated, announcementEnabled, sessionDismissed, isAuthenticated]);
 
   React.useEffect(() => {
     import("@/lib/settingsApi").then(({ getStorefrontSettingsApi }) => {
       getStorefrontSettingsApi().then((settings) => {
         if (settings?.header?.announcementBar) {
-          if (!settings.header.announcementBar.enabled) {
-            setShowAnnouncement(false);
-          } else {
-            setShowAnnouncement(true);
-            if (settings.header.announcementBar.text) {
-              setAnnouncementText(settings.header.announcementBar.text);
-            }
-            if (settings.header.announcementBar.link) {
-              setAnnouncementLink(settings.header.announcementBar.link);
-            }
-          }
+          const bar = settings.header.announcementBar;
+          setAnnouncementEnabled(bar.enabled);
+          if (bar.text) setAnnouncementText(bar.text);
+          if (bar.link) setAnnouncementLink(bar.link);
         }
       });
     });
   }, []);
 
+  React.useEffect(() => {
+    if (wasAuthenticatedRef.current && !isAuthenticated) {
+      setSessionDismissed(false);
+    }
+    wasAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated]);
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100 font-be-vietnam-pro">
-      {/* Single Top Black Announcement Bar */}
       <AnimatePresence initial={false}>
-        {showAnnouncement && (
+        {shouldShowAnnouncement && (
           <motion.div
             initial={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -72,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
               </div>
 
               <button
-                onClick={() => setShowAnnouncement(false)}
+                onClick={() => setSessionDismissed(true)}
                 className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
                 aria-label="Close Announcement"
               >
@@ -83,7 +95,6 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
         )}
       </AnimatePresence>
 
-      {/* Main Navigation Bar */}
       <Navbar />
     </header>
   );

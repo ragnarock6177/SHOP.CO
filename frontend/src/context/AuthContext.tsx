@@ -8,6 +8,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isHydrated: boolean;
   saveAuth: (authData: AuthResponseData) => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -18,7 +19,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<SanitizedUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -36,7 +38,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               localStorage.removeItem("user");
             }
           }
-          // Validate and fetch fresh profile from backend
           try {
             const { user: freshUser } = await getMeApi(storedToken);
             if (freshUser) {
@@ -44,7 +45,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               localStorage.setItem("user", JSON.stringify(freshUser));
             }
           } catch {
-            // Token expired or invalid
             localStorage.removeItem("accessToken");
             localStorage.removeItem("user");
             setToken(null);
@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Failed to initialize auth state:", err);
       } finally {
         setIsLoading(false);
+        setIsHydrated(true);
       }
     };
 
@@ -70,6 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       localStorage.removeItem("user");
     }
+    setIsHydrated(true);
 
     // Call /me API once to fetch fresh profile details
     getMeApi(authData.accessToken)
@@ -114,6 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         token,
         isAuthenticated: !!user && !!token,
         isLoading,
+        isHydrated,
         saveAuth,
         logout,
         refreshUser,

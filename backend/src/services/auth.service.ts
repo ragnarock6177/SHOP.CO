@@ -201,7 +201,13 @@ export class AuthService {
     const verifiedPhoneData =
       await FirebaseService.verifyPhoneToken(firebaseToken);
     const { uid, phoneNumber } = verifiedPhoneData;
+    return this.loginOrRegisterPhoneUser(phoneNumber, uid);
+  }
 
+  private static async loginOrRegisterPhoneUser(
+    phoneNumber: string,
+    uid: string,
+  ): Promise<AuthResponseData> {
     let user = await prisma.user.findFirst({
       where: {
         OR: [{ firebaseUid: uid }, { phone: phoneNumber }],

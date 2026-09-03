@@ -148,6 +148,7 @@ export async function registerEmailApi(input: {
       firstName: input.firstName,
       lastName: input.lastName,
       phone: input.phone || input.mobileNumber,
+      ...(input.firebaseToken ? { firebaseToken: input.firebaseToken } : {}),
     };
 
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
