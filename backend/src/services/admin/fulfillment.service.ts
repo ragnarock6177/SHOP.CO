@@ -75,16 +75,34 @@ export class AdminFulfillmentService {
     orderId: string;
     carrier: string;
     trackingNumber: string;
-    trackingUrl?: string;
-    notes?: string;
-    items: Array<{ orderItemId: string; quantity: number }>;
+    trackingUrl?: string | null;
+    notes?: string | null;
+    items?: Array<{ orderItemId: string; quantity: number }> | null;
   }) {
-    const order = await prisma.order.findUnique({ where: { id: data.orderId } });
+    const order = await prisma.order.findUnique({
+      where: { id: data.orderId },
+      include: { items: true },
+    });
     if (!order) throw new NotFoundError("Order not found");
 
     if (order.status === "CANCELLED" || order.status === "REFUNDED") {
       throw new ValidationError(`Cannot create shipment for order in '${order.status}' status`);
     }
+
+    // If items are not provided, fulfill all items from the order
+    let fulfillmentItems = data.items;
+    if (!fulfillmentItems || fulfillmentItems.length === 0) {
+      fulfillmentItems = order.items.map((item) => ({
+        orderItemId: item.id,
+        quantity: item.quantity,
+      }));
+    }
+
+    if (fulfillmentItems.length === 0) {
+      throw new ValidationError("Order has no line items available for fulfillment");
+    }
+
+    const cleanTrackingUrl = data.trackingUrl && data.trackingUrl.trim() ? data.trackingUrl.trim() : null;
 
     return prisma.$transaction(async (tx) => {
       const shipment = await tx.shipment.create({
@@ -92,11 +110,11 @@ export class AdminFulfillmentService {
           orderId: data.orderId,
           carrier: data.carrier,
           trackingNumber: data.trackingNumber,
-          trackingUrl: data.trackingUrl,
+          trackingUrl: cleanTrackingUrl,
           status: ShipmentStatus.PENDING,
           shippedAt: new Date(),
           items: {
-            create: data.items.map((item) => ({
+            create: fulfillmentItems!.map((item) => ({
               orderItemId: item.orderItemId,
               quantity: item.quantity,
             })),
@@ -106,7 +124,7 @@ export class AdminFulfillmentService {
       });
 
       // Advance order status to SHIPPED if not already
-      if (order.status === "PROCESSING" || order.status === "CONFIRMED") {
+      if (order.status === "PROCESSING" || order.status === "CONFIRMED" || order.status === "PENDING") {
         await tx.order.update({
           where: { id: data.orderId },
           data: { status: "SHIPPED" },

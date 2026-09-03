@@ -6,14 +6,17 @@ export const CreateShipmentSchema = z.object({
     orderId: z.string().uuid("Invalid order ID"),
     carrier: z.string().min(1, "Carrier is required"),
     trackingNumber: z.string().min(1, "Tracking number is required"),
-    trackingUrl: z.string().url("Invalid tracking URL").optional(),
-    notes: z.string().optional(),
-    items: z.array(
-      z.object({
-        orderItemId: z.string().uuid("Invalid order item ID"),
-        quantity: z.number().int().min(1, "Quantity must be at least 1"),
-      })
-    ).min(1, "At least one item must be specified for shipment"),
+    trackingUrl: z.string().url("Invalid tracking URL").optional().or(z.literal("")).nullable(),
+    notes: z.string().optional().nullable(),
+    items: z
+      .array(
+        z.object({
+          orderItemId: z.string().uuid("Invalid order item ID"),
+          quantity: z.number().int().min(1, "Quantity must be at least 1"),
+        })
+      )
+      .optional()
+      .nullable(),
   }),
 });
 
