@@ -149,7 +149,7 @@ function ShopCatalogContent({
   const maxPriceParam = searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")!) : undefined;
   const colorParam = searchParams.get("color") || "";
   const sizeParam = searchParams.get("size") || "";
-  const styleParam = searchParams.get("style") || "";
+  const collectionParam = searchParams.get("collection") || searchParams.get("style") || "";
   const sortBy = searchParams.get("sort") || "popular";
   const currentPage = parseInt(searchParams.get("page") || "1", 10) || 1;
 
@@ -161,9 +161,9 @@ function ShopCatalogContent({
       maxPrice: maxPriceParam,
       color: colorParam,
       size: sizeParam,
-      style: styleParam,
+      collection: collectionParam,
     }),
-    [activeCategory, maxPriceParam, colorParam, sizeParam]
+    [activeCategory, maxPriceParam, colorParam, sizeParam, collectionParam]
   );
 
   const [fetchedProducts, setFetchedProducts] = useState<Product[] | null>(null);
@@ -177,7 +177,7 @@ function ShopCatalogContent({
     maxPriceParam === undefined &&
     !colorParam &&
     !sizeParam &&
-    !styleParam &&
+    !collectionParam &&
     sortBy === "popular" &&
     currentPage === 1;
 
@@ -204,6 +204,7 @@ function ShopCatalogContent({
     setLoading(true);
     getProductsApi({
       category: activeCategory || undefined,
+      collection: collectionParam || undefined,
       search: searchQuery || undefined,
       maxPrice: maxPriceParam || undefined,
       colors: colorParam ? [colorParam] : undefined,
@@ -224,6 +225,7 @@ function ShopCatalogContent({
       });
   }, [
     activeCategory,
+    collectionParam,
     searchQuery,
     maxPriceParam,
     colorParam,
@@ -237,10 +239,10 @@ function ShopCatalogContent({
   const handleApplyFilter = (filters: any) => {
     updateUrlParams({
       category: filters.category || undefined,
+      collection: filters.collection || undefined,
       maxPrice: filters.maxPrice || undefined,
       color: filters.color || undefined,
       size: filters.size || undefined,
-      style: filters.style || undefined,
       page: 1,
     });
     setIsMobileFilterOpen(false);

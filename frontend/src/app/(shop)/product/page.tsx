@@ -1,27 +1,25 @@
 import React from "react";
-import { getProductsApi, getCategoriesApi } from "@/lib/productApi";
-import { getStorefrontSettingsApi } from "@/lib/settingsApi";
+import { getProductsApi, getDynamicFiltersApi } from "@/lib/productApi";
 import { ShopCatalogClient } from "@/components/shop/ShopCatalogClient";
 
 // Incremental Static Regeneration (ISR) - revalidate every 30 seconds
 export const revalidate = 30;
 
 /**
- * Server Component: Prefetches default product catalog (page 1, limit 12, default filters),
- * category list, and storefront settings at build time / 30s ISR for instant 0ms initial load time.
+ * Server Component: Prefetches default product catalog (page 1, limit 12, default filters)
+ * and 100% dynamic catalog filters directly from database.
  */
 export default async function ShopPage() {
-  const [productsData, categories, settings] = await Promise.all([
+  const [productsData, dynamicFilters] = await Promise.all([
     getProductsApi({ limit: 12, page: 1, sortBy: "popular" }),
-    getCategoriesApi(),
-    getStorefrontSettingsApi(),
+    getDynamicFiltersApi(),
   ]);
 
   return (
     <ShopCatalogClient
       initialProducts={productsData.products}
-      initialCategories={categories}
-      initialFilterSettings={settings.filters}
+      initialCategories={dynamicFilters.categories as any}
+      initialFilterSettings={dynamicFilters}
       initialMeta={productsData.meta}
     />
   );

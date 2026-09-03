@@ -386,4 +386,129 @@ export class ProductService {
       variants: formattedVariants,
     };
   }
+
+  static async getDynamicFilters() {
+    // 1. Fetch live active products with variants, attribute values, categories, and prices
+    const activeProducts = await prisma.product.findMany({
+      where: {
+        status: "ACTIVE",
+        visibility: "PUBLIC",
+        deletedAt: null,
+      },
+      select: {
+        basePrice: true,
+        productCategories: {
+          select: {
+            category: { select: { id: true, name: true, slug: true } },
+          },
+        },
+        productCollections: {
+          select: {
+            collection: { select: { id: true, name: true, slug: true } },
+          },
+        },
+        variants: {
+          where: { isActive: true, deletedAt: null },
+          select: {
+            inventory: { select: { quantityOnHand: true, quantityReserved: true } },
+            variantAttributeValues: {
+              select: {
+                attributeValue: {
+                  select: {
+                    value: true,
+                    slug: true,
+                    colorHex: true,
+                    attribute: { select: { slug: true, name: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 2. Extract dynamic Price bounds
+    let minPrice = 0;
+    let maxPrice = 5000;
+    const prices = activeProducts
+      .map((p) => (p.basePrice ? p.basePrice.toNumber() : 0))
+      .filter((pr) => pr > 0);
+
+    if (prices.length > 0) {
+      minPrice = Math.min(...prices);
+      maxPrice = Math.max(...prices);
+      maxPrice = Math.ceil(maxPrice / 100) * 100;
+    }
+
+    // 3. Extract dynamic available Colors, Sizes, Categories & Collections
+    const colorMap = new Map<string, { name: string; hex: string; count: number }>();
+    const sizeMap = new Map<string, { name: string; count: number }>();
+    const categoryMap = new Map<string, { id: string; name: string; slug: string; count: number }>();
+    const collectionMap = new Map<string, { id: string; name: string; slug: string; count: number }>();
+
+    activeProducts.forEach((p) => {
+      // Categories count
+      p.productCategories.forEach((pc) => {
+        const cat = pc.category;
+        const existing = categoryMap.get(cat.slug) || { id: cat.id, name: cat.name, slug: cat.slug, count: 0 };
+        existing.count += 1;
+        categoryMap.set(cat.slug, existing);
+      });
+
+      // Collections count
+      p.productCollections.forEach((pcol) => {
+        const col = pcol.collection;
+        const existing = collectionMap.get(col.slug) || { id: col.id, name: col.name, slug: col.slug, count: 0 };
+        existing.count += 1;
+        collectionMap.set(col.slug, existing);
+      });
+
+      // Variants Colors and Sizes with stock availability
+      p.variants.forEach((v) => {
+        const availableStock = Math.max(
+          0,
+          (v.inventory?.quantityOnHand || 0) - (v.inventory?.quantityReserved || 0)
+        );
+
+        v.variantAttributeValues.forEach((vav) => {
+          const attrSlug = vav.attributeValue.attribute?.slug?.toLowerCase();
+          const val = vav.attributeValue.value;
+          const hex = vav.attributeValue.colorHex;
+
+          if (attrSlug === "color" || hex) {
+            const key = val.toLowerCase();
+            const existing = colorMap.get(key) || { name: val, hex: hex || "#000000", count: 0 };
+            if (availableStock > 0) existing.count += 1;
+            colorMap.set(key, existing);
+          } else if (attrSlug === "size" || attrSlug === "top-size" || attrSlug === "pant-size") {
+            const key = val.toUpperCase();
+            const existing = sizeMap.get(key) || { name: val, count: 0 };
+            if (availableStock > 0) existing.count += 1;
+            sizeMap.set(key, existing);
+          }
+        });
+      });
+    });
+
+    // Custom size sorting order (XS, S, M, L, XL, XXL, 28, 30, 32, 34, 36, 38, etc.)
+    const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "28", "30", "32", "34", "36", "38", "40"];
+    const sortedSizes = Array.from(sizeMap.values()).sort((a, b) => {
+      const idxA = sizeOrder.indexOf(a.name.toUpperCase());
+      const idxB = sizeOrder.indexOf(b.name.toUpperCase());
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    return {
+      minPrice,
+      maxPrice: Math.max(maxPrice, 1000),
+      availableColors: Array.from(colorMap.values()),
+      availableSizes: sortedSizes.map((s) => s.name),
+      categories: Array.from(categoryMap.values()),
+      collections: Array.from(collectionMap.values()),
+    };
+  }
 }

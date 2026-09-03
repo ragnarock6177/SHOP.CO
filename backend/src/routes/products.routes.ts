@@ -6,6 +6,7 @@ import { ProductFilterQuerySchema, SlugParamSchema } from "../validators/catalog
 const router = Router();
 
 router.get("/", validateRequest(ProductFilterQuerySchema), ProductController.getProducts);
+router.get("/filters", ProductController.getFilters);
 router.get("/:slug", validateRequest(SlugParamSchema), ProductController.getProductBySlug);
 
 export default router;

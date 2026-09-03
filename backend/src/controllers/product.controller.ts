@@ -20,4 +20,13 @@ export class ProductController {
       next(error);
     }
   }
+
+  static async getFilters(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const filters = await ProductService.getDynamicFilters();
+      sendSuccess(res, filters, "Dynamic catalog filters retrieved successfully");
+    } catch (error) {
+      next(error);
+    }
+  }
 }

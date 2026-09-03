@@ -112,7 +112,7 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
         <span>&gt;</span>
         <span className="capitalize">{product.category}</span>
         <span>&gt;</span>
-        <span className="text-black font-semibold truncate max-w-[150px] sm:max-w-xs">{product.title}</span>
+        <span className="text-black font-semibold truncate max-w-37.5 sm:max-w-xs">{product.title}</span>
       </nav>
 
       {/* Main Product Details Section */}

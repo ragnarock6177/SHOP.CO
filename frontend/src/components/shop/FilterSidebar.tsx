@@ -19,43 +19,31 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   onCloseMobile,
   onApplyFilter,
 }) => {
-  const maxPriceBound = filterSettings?.maxPrice || 500;
-  const colorsList = filterSettings?.availableColors || [
-    { name: "Green", hex: "#00C12B" },
-    { name: "Red", hex: "#F50606" },
-    { name: "Yellow", hex: "#F5DD06" },
-    { name: "Orange", hex: "#F57906" },
-    { name: "Cyan", hex: "#06CAF5" },
-    { name: "Blue", hex: "#063AF5" },
-    { name: "Purple", hex: "#7D06F5" },
-    { name: "Pink", hex: "#F506A4" },
-    { name: "White", hex: "#FFFFFF" },
-    { name: "Black", hex: "#000000" },
-  ];
-  const sizesList = filterSettings?.availableSizes || [
-    "XX-Small",
-    "X-Small",
-    "Small",
-    "Medium",
-    "Large",
-    "X-Large",
-    "XX-Large",
-    "3X-Large",
-  ];
-  const stylesList = filterSettings?.dressStyles || [
-    { name: "Casual", slug: "casual" },
-    { name: "Formal", slug: "formal" },
-    { name: "Party", slug: "party" },
-    { name: "Gym", slug: "gym" },
-  ];
+  const maxPriceBound = filterSettings?.maxPrice || 5000;
+  const minPriceBound = filterSettings?.minPrice || 10;
+  
+  // 100% dynamic colors from database
+  const colorsList = filterSettings?.availableColors || [];
+  
+  // 100% dynamic sizes from database
+  const sizesList = filterSettings?.availableSizes || [];
+  
+  // 100% dynamic collections from database
+  const collectionsList = filterSettings?.collections || [];
 
-  const categoryNames = categories.length > 0 ? categories.map((c) => c.name) : ["T-shirts", "Shorts", "Shirts", "Hoodie", "Jeans"];
+  const categoryItems = categories.length > 0
+    ? categories
+    : [
+        { id: "1", name: "T-Shirts", slug: "t-shirts" },
+        { id: "2", name: "Shirts", slug: "shirts" },
+        { id: "3", name: "Pants", slug: "pants" },
+      ];
 
   const [selectedCategory, setSelectedCategory] = useState(activeFilters?.category || "");
   const [priceRange, setPriceRange] = useState<number>(activeFilters?.maxPrice || maxPriceBound);
   const [selectedColor, setSelectedColor] = useState<string>(activeFilters?.color || "");
   const [selectedSize, setSelectedSize] = useState<string>(activeFilters?.size || "");
-  const [selectedStyle, setSelectedStyle] = useState<string>(activeFilters?.style || "");
+  const [selectedCollection, setSelectedCollection] = useState<string>(activeFilters?.collection || activeFilters?.style || "");
 
   // Sync state when activeFilters change from URL parameters
   useEffect(() => {
@@ -68,22 +56,23 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       }
       setSelectedColor(activeFilters.color || "");
       setSelectedSize(activeFilters.size || "");
-      setSelectedStyle(activeFilters.style || "");
+      setSelectedCollection(activeFilters.collection || activeFilters.style || "");
     }
   }, [
     activeFilters?.category,
     activeFilters?.maxPrice,
     activeFilters?.color,
     activeFilters?.size,
+    activeFilters?.collection,
     activeFilters?.style,
     maxPriceBound,
   ]);
 
   // Accordion toggle states
-  const [isPriceOpen, setIsPriceOpen] = useState(filterSettings?.enablePriceFilter ?? true);
-  const [isColorsOpen, setIsColorsOpen] = useState(filterSettings?.enableColorFilter ?? true);
-  const [isSizesOpen, setIsSizesOpen] = useState(filterSettings?.enableSizeFilter ?? true);
-  const [isStyleOpen, setIsStyleOpen] = useState(filterSettings?.enableDressStyleFilter ?? true);
+  const [isPriceOpen, setIsPriceOpen] = useState(true);
+  const [isColorsOpen, setIsColorsOpen] = useState(true);
+  const [isSizesOpen, setIsSizesOpen] = useState(true);
+  const [isStyleOpen, setIsStyleOpen] = useState(true);
 
   const handleApply = () => {
     if (onApplyFilter) {
@@ -92,7 +81,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         maxPrice: priceRange < maxPriceBound ? priceRange : undefined,
         color: selectedColor,
         size: selectedSize,
-        style: selectedStyle,
+        collection: selectedCollection,
       });
     }
     if (onCloseMobile) onCloseMobile();
@@ -103,7 +92,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     setPriceRange(maxPriceBound);
     setSelectedColor("");
     setSelectedSize("");
-    setSelectedStyle("");
+    setSelectedCollection("");
     if (onApplyFilter) {
       onApplyFilter({});
     }
@@ -111,10 +100,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
 
   const isFilterActive =
-    selectedCategory ||
-    selectedColor ||
-    selectedSize ||
-    selectedStyle ||
+    Boolean(selectedCategory) ||
+    Boolean(selectedColor) ||
+    Boolean(selectedSize) ||
+    Boolean(selectedCollection) ||
     priceRange < maxPriceBound;
 
   return (
@@ -148,60 +137,68 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       </div>
 
       {/* Category List */}
-      {(filterSettings?.enableCategoryFilter ?? true) && (
-        <div className="space-y-3">
-          {categoryNames.map((cat) => (
+      <div className="space-y-3">
+        {categoryItems.map((cat: any) => {
+          const catName = typeof cat === "string" ? cat : cat.name;
+          const catSlug = typeof cat === "string" ? cat.toLowerCase().replace(/\s+/g, "-") : cat.slug;
+          const isSelected =
+            selectedCategory.toLowerCase() === catName.toLowerCase() ||
+            selectedCategory.toLowerCase() === catSlug.toLowerCase();
+
+          return (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(selectedCategory.toLowerCase() === cat.toLowerCase() ? "" : cat)}
+              key={catSlug || catName}
+              onClick={() => setSelectedCategory(isSelected ? "" : catSlug || catName)}
               className={`w-full flex items-center justify-between text-sm text-left transition-colors cursor-pointer ${
-                selectedCategory.toLowerCase() === cat.toLowerCase() ? "font-bold text-black" : "text-gray-500 hover:text-black"
+                isSelected ? "font-bold text-black" : "text-gray-500 hover:text-black"
               }`}
             >
-              <span>{cat}</span>
-              <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${selectedCategory.toLowerCase() === cat.toLowerCase() ? "rotate-90 text-black" : ""}`} />
+              <span>{catName}</span>
+              <ChevronRight
+                className={`w-4 h-4 text-gray-400 transition-transform ${
+                  isSelected ? "rotate-90 text-black" : ""
+                }`}
+              />
             </button>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
-      {(filterSettings?.enablePriceFilter ?? true) && <hr className="border-gray-200" />}
+      <hr className="border-gray-200" />
 
       {/* Price Slider */}
-      {(filterSettings?.enablePriceFilter ?? true) && (
-        <div className="space-y-4">
-          <button
-            onClick={() => setIsPriceOpen(!isPriceOpen)}
-            className="w-full flex items-center justify-between font-bold text-lg text-black cursor-pointer"
-          >
-            <span>Price</span>
-            <ChevronUp className={`w-5 h-5 transition-transform ${isPriceOpen ? "" : "rotate-180"}`} />
-          </button>
+      <div className="space-y-4">
+        <button
+          onClick={() => setIsPriceOpen(!isPriceOpen)}
+          className="w-full flex items-center justify-between font-bold text-lg text-black cursor-pointer"
+        >
+          <span>Price</span>
+          <ChevronUp className={`w-5 h-5 transition-transform ${isPriceOpen ? "" : "rotate-180"}`} />
+        </button>
 
-          {isPriceOpen && (
-            <div className="space-y-3">
-              <input
-                type="range"
-                min="10"
-                max={maxPriceBound}
-                step="5"
-                value={priceRange}
-                onChange={(e) => setPriceRange(Number(e.target.value))}
-                className="w-full accent-black bg-gray-200 h-2 rounded-lg cursor-pointer"
-              />
-              <div className="flex justify-between text-xs font-extrabold text-black">
-                <span>₹10</span>
-                <span>₹{priceRange}</span>
-              </div>
+        {isPriceOpen && (
+          <div className="space-y-3">
+            <input
+              type="range"
+              min={minPriceBound}
+              max={maxPriceBound}
+              step="50"
+              value={priceRange}
+              onChange={(e) => setPriceRange(Number(e.target.value))}
+              className="w-full accent-black bg-gray-200 h-2 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-xs font-extrabold text-black">
+              <span>₹{minPriceBound}</span>
+              <span>₹{priceRange.toLocaleString("en-IN")}</span>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
-      {(filterSettings?.enableColorFilter ?? true) && <hr className="border-gray-200" />}
+      {colorsList.length > 0 && <hr className="border-gray-200" />}
 
       {/* Colors Grid */}
-      {(filterSettings?.enableColorFilter ?? true) && (
+      {colorsList.length > 0 && (
         <div className="space-y-4">
           <button
             onClick={() => setIsColorsOpen(!isColorsOpen)}
@@ -216,7 +213,9 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
               {colorsList.map((c: any) => {
                 const hex = typeof c === "string" ? "#000" : c.hex;
                 const name = typeof c === "string" ? c : c.name;
-                const isSelected = selectedColor.toLowerCase() === name.toLowerCase() || selectedColor.toLowerCase() === hex.toLowerCase();
+                const isSelected =
+                  selectedColor.toLowerCase() === name.toLowerCase() ||
+                  selectedColor.toLowerCase() === hex.toLowerCase();
                 return (
                   <button
                     key={name}
@@ -230,7 +229,9 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     {isSelected && (
                       <Check
                         className={`w-4 h-4 ${
-                          hex === "#FFFFFF" || hex === "#F5DD06" ? "text-black" : "text-white"
+                          hex === "#FFFFFF" || hex === "#F5DD06" || hex === "#F5F5F0"
+                            ? "text-black"
+                            : "text-white"
                         }`}
                       />
                     )}
@@ -242,10 +243,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </div>
       )}
 
-      {(filterSettings?.enableSizeFilter ?? true) && <hr className="border-gray-200" />}
+      {sizesList.length > 0 && <hr className="border-gray-200" />}
 
       {/* Size Pills Grid */}
-      {(filterSettings?.enableSizeFilter ?? true) && (
+      {sizesList.length > 0 && (
         <div className="space-y-4">
           <button
             onClick={() => setIsSizesOpen(!isSizesOpen)}
@@ -278,34 +279,41 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </div>
       )}
 
-      {(filterSettings?.enableDressStyleFilter ?? true) && <hr className="border-gray-200" />}
+      {collectionsList.length > 0 && <hr className="border-gray-200" />}
 
-      {/* Dress Style List */}
-      {(filterSettings?.enableDressStyleFilter ?? true) && (
+      {/* Collections List */}
+      {collectionsList.length > 0 && (
         <div className="space-y-4">
           <button
             onClick={() => setIsStyleOpen(!isStyleOpen)}
             className="w-full flex items-center justify-between font-bold text-lg text-black cursor-pointer"
           >
-            <span>Dress Style</span>
+            <span>Collections</span>
             <ChevronUp className={`w-5 h-5 transition-transform ${isStyleOpen ? "" : "rotate-180"}`} />
           </button>
 
           {isStyleOpen && (
             <div className="space-y-3 pt-1">
-              {stylesList.map((style: any) => {
-                const name = typeof style === "string" ? style : style.name;
-                const isSelected = selectedStyle.toLowerCase() === name.toLowerCase();
+              {collectionsList.map((col: any) => {
+                const name = typeof col === "string" ? col : col.name;
+                const slug = typeof col === "string" ? col.toLowerCase().replace(/\s+/g, "-") : col.slug;
+                const isSelected =
+                  selectedCollection.toLowerCase() === name.toLowerCase() ||
+                  selectedCollection.toLowerCase() === slug.toLowerCase();
                 return (
                   <button
-                    key={name}
-                    onClick={() => setSelectedStyle(isSelected ? "" : name)}
+                    key={slug || name}
+                    onClick={() => setSelectedCollection(isSelected ? "" : slug || name)}
                     className={`w-full flex items-center justify-between text-sm text-left transition-colors cursor-pointer ${
                       isSelected ? "font-bold text-black" : "text-gray-500 hover:text-black"
                     }`}
                   >
                     <span>{name}</span>
-                    <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${isSelected ? "rotate-90 text-black" : ""}`} />
+                    <ChevronRight
+                      className={`w-4 h-4 text-gray-400 transition-transform ${
+                        isSelected ? "rotate-90 text-black" : ""
+                      }`}
+                    />
                   </button>
                 );
               })}

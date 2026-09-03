@@ -45,7 +45,6 @@ const navigationItems = [
   { name: "Roles & Permissions", href: "/roles", icon: Shield, permission: "roles:read" },
   { name: "General Settings", href: "/settings/general", icon: Settings, permission: "settings:manage" },
   { name: "Homepage Sections", href: "/settings/homepage", icon: Settings, permission: "settings:manage" },
-  { name: "Shop Filters", href: "/settings/filters", icon: Settings, permission: "settings:manage" },
   { name: "Header & Announcement", href: "/settings/header", icon: Settings, permission: "settings:manage" },
   { name: "Footer Settings", href: "/settings/footer", icon: Settings, permission: "settings:manage" },
   { name: "Contact Details", href: "/settings/contact", icon: Settings, permission: "settings:manage" },

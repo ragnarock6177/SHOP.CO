@@ -36,7 +36,6 @@ import {
   Share2,
   Search,
   Image as ImageIcon,
-  Filter,
 } from 'lucide-react';
 
 interface SubItem {
@@ -115,7 +114,6 @@ const navItems: NavItem[] = [
     subItems: [
       { name: 'General', href: '/settings/general', icon: Store },
       { name: 'Homepage Sections', href: '/settings/homepage', icon: LayoutGrid },
-      { name: 'Shop Filters', href: '/settings/filters', icon: Filter },
       { name: 'Header & Banner', href: '/settings/header', icon: Navigation },
       { name: 'Footer', href: '/settings/footer', icon: PanelBottom },
       { name: 'Contact Details', href: '/settings/contact', icon: PhoneCall },
