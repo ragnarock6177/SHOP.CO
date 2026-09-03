@@ -10,6 +10,7 @@ import {
 import { useBulkProductImport } from "@/hooks/queries/useBulkProductImport";
 import { ImportValidationSummary, ImportExecutionResult, ImportMode, NormalizedImportRow } from "@/types/bulkImport";
 import { ImportValidationTable } from "./ImportValidationTable";
+import { toast } from "@/lib/toast";
 import {
   Upload,
   Download,
@@ -42,7 +43,6 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({ isOpen, onCl
   const [currentRows, setCurrentRows] = useState<NormalizedImportRow[]>([]);
   const [validationSummary, setValidationSummary] = useState<ImportValidationSummary | null>(null);
   const [executionResult, setExecutionResult] = useState<ImportExecutionResult | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const {
     validateImport,
@@ -58,7 +58,6 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({ isOpen, onCl
     setStep("UPLOAD");
     setValidationSummary(null);
     setExecutionResult(null);
-    setErrorMessage(null);
   };
 
   const handleDialogClose = () => {
@@ -69,17 +68,16 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({ isOpen, onCl
 
   const handleFileSelection = async (file: File) => {
     if (!file.name.match(/\.(csv|xlsx|xls)$/i)) {
-      setErrorMessage("Please select a valid CSV or Excel (.xlsx) spreadsheet.");
+      toast.warning("Invalid file", "Please select a valid CSV or Excel (.xlsx) spreadsheet.");
       return;
     }
 
     if (file.size > 15 * 1024 * 1024) {
-      setErrorMessage("File exceeds 15MB limit. Please upload a smaller file.");
+      toast.warning("File too large", "File exceeds 15MB limit. Please upload a smaller file.");
       return;
     }
 
     setSelectedFile(file);
-    setErrorMessage(null);
     setStep("VALIDATING");
 
     try {
@@ -90,8 +88,7 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({ isOpen, onCl
       setValidationSummary(summary);
       setCurrentRows(summary.normalizedRows || []);
       setStep("REVIEW");
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.error?.message || err?.message || "Failed to validate spreadsheet.");
+    } catch {
       setStep("UPLOAD");
     }
   };
@@ -113,7 +110,6 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({ isOpen, onCl
     if (currentRows.length === 0 && !selectedFile) return;
 
     setStep("EXECUTING");
-    setErrorMessage(null);
 
     try {
       const result = await executeImport({
@@ -127,8 +123,7 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({ isOpen, onCl
 
       setExecutionResult(result);
       setStep("COMPLETE");
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.error?.message || err?.message || "Import execution encountered an error.");
+    } catch {
       setStep("REVIEW");
     }
   };
@@ -170,13 +165,6 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({ isOpen, onCl
 
         {/* Body Content */}
         <div className={`flex-1 min-h-0 p-5 sm:p-6 flex flex-col gap-4 ${step === "REVIEW" ? "overflow-hidden" : "overflow-y-auto"}`}>
-          {errorMessage && (
-            <div className="flex items-start gap-2.5 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800 shrink-0">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
-              <div className="flex-1 font-medium">{errorMessage}</div>
-            </div>
-          )}
-
           {/* Step 1: Upload & Configuration */}
           {step === "UPLOAD" && (
             <div className="flex flex-col gap-5">

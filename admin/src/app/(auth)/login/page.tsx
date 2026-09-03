@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,13 +8,13 @@ import { LoginSchema, LoginInput } from "@/validators/auth.validator";
 import { useAuth } from "@/hooks/useAuth";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse } from "@/types/api";
+import { toast } from "@/lib/toast";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/";
   const { login } = useAuth();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const {
     register,
@@ -29,31 +29,28 @@ function LoginForm() {
   });
 
   const onSubmit = async (data: LoginInput) => {
-    setErrorMessage(null);
     try {
-      const response = await apiClient.post<ApiResponse<any>>("/auth/login", data);
+      const response = await apiClient.post<ApiResponse<any>>("/auth/login", data, {
+        skipErrorToast: true,
+      });
       if (response.data.success && response.data.data) {
         const { accessToken, user } = response.data.data;
-
         login(accessToken, user);
-
+        toast.success("Welcome back", "Signed in successfully.");
         router.replace(redirectUrl);
       } else {
-        setErrorMessage(response.data.message || "Invalid email or password");
+        toast.error("Login failed", response.data.message || "Invalid email or password");
       }
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || "Login failed. Please verify credentials.";
-      setErrorMessage(msg);
+    } catch (err: unknown) {
+      toast.apiError(err, "Login failed");
     }
   };
 
   return (
     <div className="relative flex min-h-[100dvh] items-center justify-center bg-[#f8fafc] px-4 text-slate-900 antialiased overflow-hidden">
-      {/* Ambient background glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-md bg-slate-200/40 blur-3xl pointer-events-none" />
 
       <div className="relative w-full max-w-md space-y-8 z-10">
-        {/* Logo & Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2">
             <span className="text-3xl font-black uppercase tracking-[0.25em] text-slate-900">AIRAVÉ</span>
@@ -64,14 +61,7 @@ function LoginForm() {
           <p className="text-xs font-medium text-slate-500">Sign in to AIRAVÉ Operations Management</p>
         </div>
 
-        {/* Card */}
         <div className="space-y-6 rounded-md border border-slate-200/80 bg-white p-8 sm:p-10 shadow-xl shadow-slate-200/50">
-          {errorMessage && (
-            <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 animate-in fade-in">
-              {errorMessage}
-            </div>
-          )}
-
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">Email Address</label>

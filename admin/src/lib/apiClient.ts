@@ -1,6 +1,6 @@
 import axios from "axios";
+import { parseApiError } from "./errors";
 
-// Base API URL configuration defaulting to http://localhost:5000/api/v1
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 export const apiClient = axios.create({
@@ -13,7 +13,6 @@ export const apiClient = axios.create({
   timeout: 30000,
 });
 
-// Request Interceptor: Automatic Authorization header injection
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
@@ -24,26 +23,14 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error),
 );
 
-import { toast } from "./toast";
-
-// Response Interceptor: Standardized error parsing & 401 Unauthorized handling & Global Toast Errors
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    const status = error.response?.status;
-    const data = error.response?.data;
-    const message =
-      data?.message ||
-      data?.error ||
-      error.message ||
-      "An unexpected server error occurred.";
+    const parsed = parseApiError(error);
+    const status = parsed.status;
 
     if (status === 401) {
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
@@ -52,14 +39,12 @@ apiClient.interceptors.response.use(
         localStorage.removeItem("airave_admin_user");
         window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
       }
-    } else {
-      // Show error toast for all other errors when running in the browser
-      if (typeof window !== "undefined" && !(error.config as any)?.__skipGlobalErrorToast) {
-        toast.error(message);
-      }
     }
-    return Promise.reject(error);
-  }
+
+    const enriched = error;
+    enriched.parsedApiError = parsed;
+    return Promise.reject(enriched);
+  },
 );
 
 export default apiClient;

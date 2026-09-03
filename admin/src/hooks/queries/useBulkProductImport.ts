@@ -6,6 +6,7 @@ import {
   exportImportErrors,
 } from "@/lib/bulkImportApi";
 import { ImportMode, FailedImportRow, NormalizedImportRow } from "@/types/bulkImport";
+import { toast } from "@/lib/toast";
 
 export function useBulkProductImport() {
   const queryClient = useQueryClient();
@@ -32,16 +33,23 @@ export function useBulkProductImport() {
         skipInvalidRows?: boolean;
       };
     }) => executeProductImport(fileOrRows, options),
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["admin-paginated", "products"] });
       queryClient.invalidateQueries({ queryKey: ["admin-paginated", "inventory"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+      toast.success(
+        "Import Complete",
+        `${result.totalProductsCreated} created, ${result.totalProductsUpdated} updated.`,
+      );
     },
   });
 
   const exportErrorsMutation = useMutation({
     mutationFn: (failedRows: FailedImportRow[]) => exportImportErrors(failedRows),
+    onSuccess: () => {
+      toast.success("Export Ready", "Error report downloaded successfully.");
+    },
   });
 
   return {

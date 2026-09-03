@@ -8,6 +8,7 @@ import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse } from "@/types/api";
 import { DataTable } from "@/components/data-table/DataTable";
 import { PermissionGate } from "@/components/rbac/PermissionGate";
+import { toast } from "@/lib/toast";
 
 export interface CategoryItem {
   id: string;
@@ -44,6 +45,7 @@ export default function CategoriesPage() {
       setIsModalOpen(false);
       setName("");
       setSlug("");
+      toast.success("Category Created", "New category added successfully.");
     },
   });
 

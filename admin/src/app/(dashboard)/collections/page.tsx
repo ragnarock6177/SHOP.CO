@@ -8,6 +8,7 @@ import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse } from "@/types/api";
 import { DataTable } from "@/components/data-table/DataTable";
 import { PermissionGate } from "@/components/rbac/PermissionGate";
+import { toast } from "@/lib/toast";
 
 export interface CollectionItem {
   id: string;
@@ -42,6 +43,7 @@ export default function CollectionsPage() {
       setIsModalOpen(false);
       setName("");
       setSlug("");
+      toast.success("Collection Created", "New collection added successfully.");
     },
   });
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchAdminSettings } from "@/lib/settingsApi";
 import { FooterSettingsForm } from "@/components/settings/FooterSettingsForm";
+import { toast } from "@/lib/toast";
 
 export default function FooterSettingsPage() {
   const [settingsData, setSettingsData] = useState<Record<string, any>>({});
@@ -14,7 +15,7 @@ export default function FooterSettingsPage() {
       const data = await fetchAdminSettings();
       setSettingsData(data);
     } catch (err) {
-      console.warn("Failed to load settings:", err);
+      toast.apiError(err, "Failed to load settings");
     } finally {
       setLoading(false);
     }

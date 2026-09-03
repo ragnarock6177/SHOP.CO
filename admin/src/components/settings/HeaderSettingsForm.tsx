@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { HeaderSettings } from "@/types/settings";
 import { updateHeaderSettings } from "@/lib/settingsApi";
-import { CheckCircle2, AlertCircle, Save } from "lucide-react";
+import { toast } from "@/lib/toast";
+import { Save } from "lucide-react";
 
 interface HeaderSettingsFormProps {
   initialData?: HeaderSettings;
@@ -24,18 +25,16 @@ export function HeaderSettingsForm({ initialData, onSaved }: HeaderSettingsFormP
   });
 
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
     try {
       await updateHeaderSettings(formData);
-      setMessage({ type: "success", text: "Header settings saved successfully!" });
+      toast.success("Settings saved", "Header settings saved successfully!");
       if (onSaved) onSaved();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.response?.data?.error?.message || "Failed to update header settings." });
+    } catch (err) {
+      toast.apiError(err, "Failed to update header settings.");
     } finally {
       setSaving(false);
     }
@@ -47,23 +46,6 @@ export function HeaderSettingsForm({ initialData, onSaved }: HeaderSettingsFormP
         <h2 className="text-base font-bold text-slate-900">Header & Announcement Configuration</h2>
         <p className="text-xs text-slate-500 mt-0.5">Customize global top notification banner and header action visibility</p>
       </div>
-
-      {message && (
-        <div
-          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
-            message.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
-          }`}
-        >
-          {message.type === "success" ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-          )}
-          <span>{message.text}</span>
-        </div>
-      )}
 
       {/* Announcement Bar Box */}
       <div className="space-y-4 rounded-md border border-slate-200/80 p-4 bg-slate-50/50">

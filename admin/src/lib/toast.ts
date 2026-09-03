@@ -1,4 +1,5 @@
 import { toast as sonnerToast, ExternalToast } from "sonner";
+import { parseApiError } from "@/lib/errors";
 
 export interface ToastOptions extends Omit<ExternalToast, "description"> {
   description?: string;
@@ -30,6 +31,11 @@ export const toast = {
   },
   promise: sonnerToast.promise,
   custom: sonnerToast.custom,
+  apiError: (error: unknown, title = "Request failed") => {
+    const parsed = parseApiError(error, title);
+    if (parsed.isUnauthorized) return;
+    return sonnerToast.error(parsed.title, { description: parsed.message });
+  },
 };
 
 export default toast;

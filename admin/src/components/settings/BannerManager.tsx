@@ -5,15 +5,15 @@ import { Banner, BannerTargetType } from "@/types/settings";
 import { fetchBanners, createBanner, updateBanner, deleteBanner } from "@/lib/settingsApi";
 import apiClient from "@/lib/apiClient";
 import { compressBannerImage, validateImageFile } from "@/utils/imageCompressor";
+import { toast } from "@/lib/toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle2, AlertCircle, Plus, Edit, Trash2, Tag, Upload, ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Tag, Upload, ImageIcon, Loader2 } from "lucide-react";
 
 export function BannerManager() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [products, setProducts] = useState<Array<{ id: string; name: string; basePrice: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Compression & Upload State
   const [uploadingDesktop, setUploadingDesktop] = useState(false);
@@ -60,8 +60,8 @@ export function BannerManager() {
       if (brandMarquee && Array.isArray(brandMarquee) && brandMarquee.length > 0) {
         setMarqueeItems(brandMarquee);
       }
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to load promotional banners or settings." });
+    } catch (err) {
+      toast.apiError(err, "Failed to load promotional banners or settings.");
     } finally {
       setLoading(false);
     }
@@ -75,9 +75,9 @@ export function BannerManager() {
     try {
       const updated = await updateBanner(banner.id, { isEnabled: !banner.isEnabled });
       setBanners((prev) => prev.map((b) => (b.id === banner.id ? updated : b)));
-      setMessage({ type: "success", text: `Banner status updated.` });
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to update banner status." });
+      toast.success("Banner updated", "Banner status updated.");
+    } catch (err) {
+      toast.apiError(err, "Failed to update banner status.");
     }
   };
 
@@ -86,15 +86,15 @@ export function BannerManager() {
     try {
       await deleteBanner(id);
       setBanners((prev) => prev.filter((b) => b.id !== id));
-      setMessage({ type: "success", text: "Banner deleted." });
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to delete banner." });
+      toast.success("Banner deleted", "Banner deleted.");
+    } catch (err) {
+      toast.apiError(err, "Failed to delete banner.");
     }
   };
 
   const handleSaveBanner = async () => {
     if (!editingBanner || !editingBanner.desktopImageUrl) {
-      alert("Desktop Image URL is required.");
+      toast.warning("Desktop image required", "Desktop Image URL is required.");
       return;
     }
 
@@ -103,18 +103,18 @@ export function BannerManager() {
       if (editingBanner.id) {
         const updated = await updateBanner(editingBanner.id, editingBanner);
         setBanners((prev) => prev.map((b) => (b.id === editingBanner.id ? updated : b)));
-        setMessage({ type: "success", text: "Banner updated successfully!" });
+        toast.success("Banner updated", "Banner updated successfully!");
       } else {
         const created = await createBanner(editingBanner);
         setBanners((prev) => [...prev, created]);
-        setMessage({ type: "success", text: "New banner created successfully!" });
+        toast.success("Banner created", "New banner created successfully!");
       }
       setIsDialogOpen(false);
       setEditingBanner(null);
       setDesktopCompressionStats(null);
       setMobileCompressionStats(null);
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.response?.data?.error?.message || "Failed to save banner." });
+    } catch (err) {
+      toast.apiError(err, "Failed to save banner.");
     } finally {
       setSaving(false);
     }
@@ -123,7 +123,7 @@ export function BannerManager() {
   const handleFileUpload = async (file: File, isDesktop: boolean) => {
     const validation = validateImageFile(file);
     if (!validation.valid) {
-      alert(validation.error);
+      toast.warning("Invalid image", validation.error);
       return;
     }
 
@@ -150,8 +150,8 @@ export function BannerManager() {
           isDesktop ? { ...prev, desktopImageUrl: publicUrl } : { ...prev, mobileImageUrl: publicUrl }
         );
       }
-    } catch (err: any) {
-      alert("Failed to compress and upload banner image.");
+    } catch (err) {
+      toast.apiError(err, "Failed to compress and upload banner image.");
     } finally {
       setUploading(false);
     }
@@ -161,9 +161,9 @@ export function BannerManager() {
     try {
       setSavingMarquee(true);
       await apiClient.put("/admin/settings/marquee", marqueeItems);
-      setMessage({ type: "success", text: "Brand Marquee items saved successfully!" });
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to save brand marquee settings." });
+      toast.success("Marquee saved", "Brand Marquee items saved successfully!");
+    } catch (err) {
+      toast.apiError(err, "Failed to save brand marquee settings.");
     } finally {
       setSavingMarquee(false);
     }
@@ -220,23 +220,6 @@ export function BannerManager() {
             <span>Add New Banner</span>
           </button>
         </div>
-
-        {message && (
-          <div
-            className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
-              message.type === "success"
-                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                : "bg-rose-50 text-rose-800 border-rose-200"
-            }`}
-          >
-            {message.type === "success" ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-            ) : (
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-            )}
-            <span>{message.text}</span>
-          </div>
-        )}
 
         {banners.length === 0 ? (
           <div className="p-12 text-center border border-dashed border-slate-200/80 rounded-md text-slate-500 text-xs">

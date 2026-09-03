@@ -43,7 +43,7 @@ export default function ProductsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
 
-  const { data, isPending, isFetching, isError, error } = useProducts({
+  const { data, isPending, isFetching } = useProducts({
     page,
     limit: 10,
     search: search || undefined,

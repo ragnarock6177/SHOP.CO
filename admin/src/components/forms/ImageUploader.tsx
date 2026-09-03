@@ -29,6 +29,7 @@ import {
   ProductImage,
 } from "@/hooks/queries/useProductImages";
 import { compressImage, validateImageFile } from "@/utils/imageCompressor";
+import { toast } from "@/lib/toast";
 
 export interface VariantItem {
   id: string;
@@ -106,6 +107,27 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   // Filter state (for filtering gallery by variant or primary)
   const [filterVariantId, setFilterVariantId] = useState<string>("ALL");
+
+  const uploadSuccessBatchRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({
+    count: 0,
+    timer: null,
+  });
+
+  const notifyUploadSuccess = useCallback(() => {
+    uploadSuccessBatchRef.current.count += 1;
+    if (uploadSuccessBatchRef.current.timer) {
+      clearTimeout(uploadSuccessBatchRef.current.timer);
+    }
+    uploadSuccessBatchRef.current.timer = setTimeout(() => {
+      const count = uploadSuccessBatchRef.current.count;
+      uploadSuccessBatchRef.current.count = 0;
+      uploadSuccessBatchRef.current.timer = null;
+      toast.success(
+        count === 1 ? "Image Uploaded" : "Images Uploaded",
+        count === 1 ? "Product image added successfully." : `${count} images added successfully.`,
+      );
+    }, 400);
+  }, []);
 
   // React Query hooks (for live productId mode)
   const { data: remoteImages = [], isLoading: isRemoteLoading } = useProductImages(
@@ -296,7 +318,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           isPrimary: isFirst,
           sortOrder: images.length,
           variantIds: autoVariantIds,
+          silentSuccess: true,
         });
+
+        notifyUploadSuccess();
 
         setUploading((prev) =>
           prev.map((u) => (u.id === tempId ? { ...u, progress: "done" } : u))
@@ -306,17 +331,18 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           setUploading((prev) => prev.filter((u) => u.id !== tempId));
           URL.revokeObjectURL(preview);
         }, 1200);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        toast.apiError(err, "Upload failed");
         setUploading((prev) =>
           prev.map((u) =>
             u.id === tempId
-              ? { ...u, progress: "error", errorMessage: err?.message || "Upload failed" }
+              ? { ...u, progress: "error", errorMessage: err instanceof Error ? err.message : "Upload failed" }
               : u
           )
         );
       }
     },
-    [isStagedMode, productId, stagedImages, onStagedImagesChange, presignMutation, images.length, addImageMutation, filterVariantId]
+    [isStagedMode, productId, stagedImages, onStagedImagesChange, presignMutation, images.length, addImageMutation, filterVariantId, notifyUploadSuccess]
   );
 
   const handleFiles = (files: FileList | File[]) => {
@@ -326,7 +352,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     fileList.forEach((f) => {
       const validation = validateImageFile(f);
       if (!validation.valid) {
-        alert(validation.error);
+        toast.warning("Invalid image", validation.error);
         return;
       }
       valid.push(f);

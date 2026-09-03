@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import apiClient from "@/lib/apiClient";
+import { toast } from "@/lib/toast";
 
 export interface AdminUser {
   id: string;
@@ -159,6 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem("airave_admin_user");
       setUser(null);
       setPermissions([]);
+      toast.success("Signed out", "You have been logged out successfully.");
       if (typeof window !== "undefined") {
         window.location.href = "/login";
       }

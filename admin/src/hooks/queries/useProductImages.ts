@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse } from "@/types/api";
+import { toast } from "@/lib/toast";
 
 export interface ProductImage {
   id: string;
@@ -66,16 +67,21 @@ export const useAddProductImage = (productId: string) => {
       isPrimary?: boolean;
       sortOrder?: number;
       variantIds?: string[];
+      silentSuccess?: boolean;
     }) => {
+      const { silentSuccess: _silent, ...payload } = data;
       const res = await apiClient.post<ApiResponse<ProductImage>>(
         `/admin/products/${productId}/images`,
-        data
+        payload
       );
       return res.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: imageQueryKey(productId) });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", productId] });
+      if (!variables.silentSuccess) {
+        toast.success("Image Added", "Product image uploaded successfully.");
+      }
     },
   });
 };
@@ -88,6 +94,7 @@ export const useUpdateProductImage = (productId: string) => {
     mutationFn: async ({
       imageId,
       data,
+      silentSuccess: _silent,
     }: {
       imageId: string;
       data: {
@@ -96,6 +103,7 @@ export const useUpdateProductImage = (productId: string) => {
         sortOrder?: number;
         variantIds?: string[];
       };
+      silentSuccess?: boolean;
     }) => {
       const res = await apiClient.patch<ApiResponse<ProductImage>>(
         `/admin/products/${productId}/images/${imageId}`,
@@ -103,9 +111,12 @@ export const useUpdateProductImage = (productId: string) => {
       );
       return res.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: imageQueryKey(productId) });
       queryClient.invalidateQueries({ queryKey: ["admin", "products", productId] });
+      if (!variables.silentSuccess) {
+        toast.success("Image Updated", "Image details saved successfully.");
+      }
     },
   });
 };
@@ -123,6 +134,7 @@ export const useDeleteProductImage = (productId: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: imageQueryKey(productId) });
+      toast.success("Image Deleted", "Product image was removed.");
     },
   });
 };
@@ -132,15 +144,20 @@ export const useDeleteProductImage = (productId: string) => {
 export const useReorderProductImages = (productId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (orderedIds: string[]) => {
+    mutationFn: async (input: string[] | { orderedIds: string[]; silentSuccess?: boolean }) => {
+      const orderedIds = Array.isArray(input) ? input : input.orderedIds;
       const res = await apiClient.put<ApiResponse<ProductImage[]>>(
         `/admin/products/${productId}/images/reorder`,
         { orderedIds }
       );
       return res.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: imageQueryKey(productId) });
+      const silent = !Array.isArray(variables) && variables.silentSuccess;
+      if (!silent) {
+        toast.success("Images Reordered", "Image order updated successfully.");
+      }
     },
   });
 };

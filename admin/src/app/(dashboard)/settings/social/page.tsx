@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchAdminSettings } from "@/lib/settingsApi";
 import { SocialSettingsForm } from "@/components/settings/SocialSettingsForm";
+import { toast } from "@/lib/toast";
 
 export default function SocialSettingsPage() {
   const [settingsData, setSettingsData] = useState<Record<string, any>>({});
@@ -14,7 +15,7 @@ export default function SocialSettingsPage() {
       const data = await fetchAdminSettings();
       setSettingsData(data);
     } catch (err) {
-      console.warn("Failed to load settings:", err);
+      toast.apiError(err, "Failed to load settings");
     } finally {
       setLoading(false);
     }

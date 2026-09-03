@@ -5,6 +5,7 @@ import { ImagePlus, Loader2, Trash2, Plus } from "lucide-react";
 import { usePresignUpload, useAddProductImage, useDeleteProductImage, useProductImages } from "@/hooks/queries/useProductImages";
 import { StagedImageItem } from "./ImageUploader";
 import { compressImage, validateImageFile } from "@/utils/imageCompressor";
+import { toast } from "@/lib/toast";
 
 interface ColorGroupImageUploaderProps {
   productId?: string;
@@ -59,7 +60,7 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
     for (const f of rawFiles) {
       const validation = validateImageFile(f);
       if (!validation.valid) {
-        alert(validation.error);
+        toast.warning("Invalid image", validation.error);
         continue;
       }
       files.push(f);
@@ -134,16 +135,26 @@ export const ColorGroupImageUploader: React.FC<ColorGroupImageUploaderProps> = (
             isPrimary: currentCount === 0,
             sortOrder: currentCount,
             variantIds: variantIds,
+            silentSuccess: true,
           });
         }
         currentCount++;
+      }
+
+      if (!isStagedMode && files.length > 0) {
+        toast.success(
+          files.length === 1 ? "Image Uploaded" : "Images Uploaded",
+          files.length === 1
+            ? "Color image added successfully."
+            : `${files.length} color images added successfully.`,
+        );
       }
 
       if (isStagedMode && newStagedItems.length > 0) {
         onStagedImagesChange?.([...(stagedImages || []), ...newStagedItems]);
       }
     } catch (err) {
-      console.error("Upload failed", err);
+      toast.apiError(err, "Upload failed");
     } finally {
       setIsUploading(false);
       setUploadPreview(null);

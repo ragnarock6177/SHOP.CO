@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { InventoryItem, StockAdjustPayload } from "@/hooks/queries/useInventory";
 import { CustomSelect } from "@/components/ui/select";
+import { toast } from "@/lib/toast";
 
 export interface StockAdjustModalProps {
   item: InventoryItem | null;
@@ -22,7 +23,6 @@ export const StockAdjustModal: React.FC<StockAdjustModalProps> = ({
   const [movementType, setMovementType] = useState<StockAdjustPayload["movementType"]>("PURCHASE");
   const [quantityChange, setQuantityChange] = useState<number>(0);
   const [notes, setNotes] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen || !item) return null;
 
@@ -30,15 +30,14 @@ export const StockAdjustModal: React.FC<StockAdjustModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
 
     if (resultingStock < 0) {
-      setErrorMessage("Stock adjustment resulting balance cannot be negative.");
+      toast.warning("Invalid adjustment", "Stock balance cannot be negative.");
       return;
     }
 
     if (quantityChange === 0) {
-      setErrorMessage("Quantity change must be non-zero.");
+      toast.warning("Invalid adjustment", "Quantity change must be non-zero.");
       return;
     }
 
@@ -73,18 +72,12 @@ export const StockAdjustModal: React.FC<StockAdjustModalProps> = ({
           </div>
         </div>
 
-        {errorMessage && (
-          <div className="rounded-md border border-rose-200 bg-rose-50/80 p-3 text-xs font-semibold text-rose-700">
-            {errorMessage}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
             <label className="block text-slate-700 font-semibold mb-1">Movement Type</label>
             <CustomSelect
               value={movementType}
-              onChange={(val) => setMovementType(val as any)}
+              onChange={(val) => setMovementType(val as StockAdjustPayload["movementType"])}
               options={[
                 { value: "PURCHASE", label: "PURCHASE (Stock In)" },
                 { value: "ADJUSTMENT", label: "ADJUSTMENT (Correction)" },

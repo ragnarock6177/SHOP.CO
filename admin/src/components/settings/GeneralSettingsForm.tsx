@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { GeneralSettings } from "@/types/settings";
 import { updateGeneralSettings } from "@/lib/settingsApi";
-import { CheckCircle2, AlertCircle, Save } from "lucide-react";
+import { toast } from "@/lib/toast";
+import { Save } from "lucide-react";
 
 interface GeneralSettingsFormProps {
   initialData?: GeneralSettings;
@@ -23,7 +24,6 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
   });
 
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleChange = (field: keyof GeneralSettings, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -32,13 +32,12 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
     try {
       await updateGeneralSettings(formData);
-      setMessage({ type: "success", text: "General store settings updated successfully!" });
+      toast.success("Settings saved", "General store settings updated successfully!");
       if (onSaved) onSaved();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.response?.data?.error?.message || "Failed to update general settings." });
+    } catch (err) {
+      toast.apiError(err, "Failed to update general settings.");
     } finally {
       setSaving(false);
     }
@@ -50,23 +49,6 @@ export function GeneralSettingsForm({ initialData, onSaved }: GeneralSettingsFor
         <h2 className="text-base font-bold text-slate-900">General Store Configuration</h2>
         <p className="text-xs text-slate-500 mt-0.5">Manage store identity, default currency, locale, and maintenance status</p>
       </div>
-
-      {message && (
-        <div
-          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
-            message.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
-          }`}
-        >
-          {message.type === "success" ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-          )}
-          <span>{message.text}</span>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="space-y-1.5">

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchAdminSettings } from "@/lib/settingsApi";
 import { ContactSettingsForm } from "@/components/settings/ContactSettingsForm";
+import { toast } from "@/lib/toast";
 
 export default function ContactSettingsPage() {
   const [settingsData, setSettingsData] = useState<Record<string, any>>({});
@@ -14,7 +15,7 @@ export default function ContactSettingsPage() {
       const data = await fetchAdminSettings();
       setSettingsData(data);
     } catch (err) {
-      console.warn("Failed to load settings:", err);
+      toast.apiError(err, "Failed to load settings");
     } finally {
       setLoading(false);
     }

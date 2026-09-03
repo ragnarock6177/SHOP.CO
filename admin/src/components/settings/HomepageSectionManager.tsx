@@ -9,14 +9,14 @@ import {
   deleteHomepageSection,
   createHomepageSection,
 } from "@/lib/settingsApi";
+import { toast } from "@/lib/toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle2, AlertCircle, Plus, Save, ChevronUp, ChevronDown, Edit, Trash2 } from "lucide-react";
+import { Plus, Save, ChevronUp, ChevronDown, Edit, Trash2 } from "lucide-react";
 
 export function HomepageSectionManager() {
   const [sections, setSections] = useState<HomepageSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Modal Editing State
   const [editingSection, setEditingSection] = useState<HomepageSection | null>(null);
@@ -32,8 +32,8 @@ export function HomepageSectionManager() {
       setLoading(true);
       const data = await fetchHomepageSections();
       setSections(data);
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to load homepage sections." });
+    } catch (err) {
+      toast.apiError(err, "Failed to load homepage sections.");
     } finally {
       setLoading(false);
     }
@@ -47,9 +47,9 @@ export function HomepageSectionManager() {
     try {
       const updated = await updateHomepageSection(id, { isEnabled: !currentStatus });
       setSections((prev) => prev.map((sec) => (sec.id === id ? updated : sec)));
-      setMessage({ type: "success", text: `Section '${updated.sectionKey}' visibility updated.` });
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to update section visibility." });
+      toast.success("Section updated", `Section '${updated.sectionKey}' visibility updated.`);
+    } catch (err) {
+      toast.apiError(err, "Failed to update section visibility.");
     }
   };
 
@@ -80,9 +80,9 @@ export function HomepageSectionManager() {
         isEnabled: sec.isEnabled,
       }));
       await bulkReorderHomepageSections(payload);
-      setMessage({ type: "success", text: "Homepage section order saved successfully!" });
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to save section ordering." });
+      toast.success("Order saved", "Homepage section order saved successfully!");
+    } catch (err) {
+      toast.apiError(err, "Failed to save section ordering.");
     } finally {
       setSaving(false);
     }
@@ -100,9 +100,9 @@ export function HomepageSectionManager() {
       setSections((prev) => prev.map((sec) => (sec.id === editingSection.id ? updated : sec)));
       setIsDialogOpen(false);
       setEditingSection(null);
-      setMessage({ type: "success", text: "Section configuration updated!" });
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to save section changes." });
+      toast.success("Section updated", "Section configuration updated!");
+    } catch (err) {
+      toast.apiError(err, "Failed to save section changes.");
     } finally {
       setSaving(false);
     }
@@ -122,9 +122,9 @@ export function HomepageSectionManager() {
       setSections((prev) => [...prev, created]);
       setIsAddOpen(false);
       setNewSectionKey("");
-      setMessage({ type: "success", text: "New section added successfully!" });
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.response?.data?.error?.message || "Failed to create section." });
+      toast.success("Section created", "New section added successfully!");
+    } catch (err) {
+      toast.apiError(err, "Failed to create section.");
     } finally {
       setSaving(false);
     }
@@ -135,9 +135,9 @@ export function HomepageSectionManager() {
     try {
       await deleteHomepageSection(id);
       setSections((prev) => prev.filter((sec) => sec.id !== id));
-      setMessage({ type: "success", text: "Section removed!" });
-    } catch (err: any) {
-      setMessage({ type: "error", text: "Failed to delete section." });
+      toast.success("Section deleted", "Section removed!");
+    } catch (err) {
+      toast.apiError(err, "Failed to delete section.");
     }
   };
 
@@ -176,23 +176,6 @@ export function HomepageSectionManager() {
           </button>
         </div>
       </div>
-
-      {message && (
-        <div
-          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
-            message.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
-          }`}
-        >
-          {message.type === "success" ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-          )}
-          <span>{message.text}</span>
-        </div>
-      )}
 
       <div className="space-y-3">
         {sections.map((sec, index) => (

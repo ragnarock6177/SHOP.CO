@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
 import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
+import { toast } from "@/lib/toast";
 
 export interface CustomerItem {
   id: string;
@@ -61,6 +62,7 @@ export const useUpdateCustomerStatus = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin", "customers"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "customers", variables.id] });
+      toast.success("Customer Updated", `Status changed to ${variables.status}.`);
     },
   });
 };

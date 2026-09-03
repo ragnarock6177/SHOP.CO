@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { FooterSettings } from "@/types/settings";
 import { updateFooterSettings } from "@/lib/settingsApi";
-import { CheckCircle2, AlertCircle, Save } from "lucide-react";
+import { toast } from "@/lib/toast";
+import { Save } from "lucide-react";
 
 interface FooterSettingsFormProps {
   initialData?: FooterSettings;
@@ -30,18 +31,16 @@ export function FooterSettingsForm({ initialData, onSaved }: FooterSettingsFormP
   });
 
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
     try {
       await updateFooterSettings(formData);
-      setMessage({ type: "success", text: "Footer settings saved successfully!" });
+      toast.success("Settings saved", "Footer settings saved successfully!");
       if (onSaved) onSaved();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.response?.data?.error?.message || "Failed to update footer settings." });
+    } catch (err) {
+      toast.apiError(err, "Failed to update footer settings.");
     } finally {
       setSaving(false);
     }
@@ -53,23 +52,6 @@ export function FooterSettingsForm({ initialData, onSaved }: FooterSettingsFormP
         <h2 className="text-base font-bold text-slate-900">Footer Configuration</h2>
         <p className="text-xs text-slate-500 mt-0.5">Customize footer blurb, newsletter visibility, copyright notice, and badges</p>
       </div>
-
-      {message && (
-        <div
-          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
-            message.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
-          }`}
-        >
-          {message.type === "success" ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-          )}
-          <span>{message.text}</span>
-        </div>
-      )}
 
       <div className="space-y-1.5">
         <label htmlFor="footerDescription" className="text-xs font-semibold text-slate-700">

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/apiClient";
 import { ApiResponse, ApiPaginatedResponse, AdminQueryParams } from "@/types/api";
 import { usePaginatedQuery } from "@/hooks/usePaginatedQuery";
+import { toast } from "@/lib/toast";
 
 export type OrderStatus =
   | "PENDING"
@@ -76,6 +77,7 @@ export const useUpdateOrderStatus = () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "orders", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
+      toast.success("Order Updated", `Status changed to ${variables.status}.`);
     },
   });
 };

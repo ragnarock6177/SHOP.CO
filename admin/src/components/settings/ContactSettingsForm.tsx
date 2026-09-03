@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { ContactSettings } from "@/types/settings";
 import { updateContactSettings } from "@/lib/settingsApi";
-import { CheckCircle2, AlertCircle, Save } from "lucide-react";
+import { toast } from "@/lib/toast";
+import { Save } from "lucide-react";
 
 interface ContactSettingsFormProps {
   initialData?: ContactSettings;
@@ -27,7 +28,6 @@ export function ContactSettingsForm({ initialData, onSaved }: ContactSettingsFor
   });
 
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleChange = (field: keyof ContactSettings, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -36,13 +36,12 @@ export function ContactSettingsForm({ initialData, onSaved }: ContactSettingsFor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
     try {
       await updateContactSettings(formData);
-      setMessage({ type: "success", text: "Contact information saved successfully!" });
+      toast.success("Settings saved", "Contact information saved successfully!");
       if (onSaved) onSaved();
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.response?.data?.error?.message || "Failed to update contact settings." });
+    } catch (err) {
+      toast.apiError(err, "Failed to update contact settings.");
     } finally {
       setSaving(false);
     }
@@ -54,23 +53,6 @@ export function ContactSettingsForm({ initialData, onSaved }: ContactSettingsFor
         <h2 className="text-base font-bold text-slate-900">Contact Information Settings</h2>
         <p className="text-xs text-slate-500 mt-0.5">Centralize concierge numbers, support emails, physical atelier address, and business hours</p>
       </div>
-
-      {message && (
-        <div
-          className={`flex items-center gap-2 p-3 text-xs font-semibold rounded-md border ${
-            message.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
-          }`}
-        >
-          {message.type === "success" ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-          )}
-          <span>{message.text}</span>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="space-y-1.5">

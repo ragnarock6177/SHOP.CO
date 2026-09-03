@@ -44,14 +44,11 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
   const [tempProductId, setTempProductId] = useState(() => generateValidUuid());
   const [stagedImages, setStagedImages] = useState<StagedImageItem[]>([]);
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   // Reset temp ID and staged images whenever modal opens
   useEffect(() => {
     if (isOpen) {
       setTempProductId(generateValidUuid());
       setStagedImages([]);
-      setErrorMessage(null);
     }
   }, [isOpen]);
 
@@ -81,7 +78,6 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
   if (!isOpen) return null;
 
   const handleCreateProduct = (formData: ProductFormInput) => {
-    setErrorMessage(null);
     const formattedImages = stagedImages.map((img, idx) => ({
       imageUrl: img.imageUrl,
       altText: img.altText || formData.name || undefined,
@@ -102,13 +98,6 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
           if (onSuccess) {
             onSuccess();
           }
-        },
-        onError: (error: any) => {
-          const msg =
-            error?.response?.data?.message ||
-            error?.message ||
-            "Failed to create product. Please check inputs and try again.";
-          setErrorMessage(msg);
         },
       }
     );
@@ -150,13 +139,6 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
             <X className="h-5 w-5" />
           </button>
         </div>
-
-        {errorMessage && (
-          <div className="mx-6 mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700">
-            {errorMessage}
-          </div>
-        )}
-
 
         {/* Scrollable Form Body */}
         <div className="flex-1 overflow-y-auto px-6 py-6 sidebar-scrollbar">
