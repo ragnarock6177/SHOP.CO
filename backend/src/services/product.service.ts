@@ -1,6 +1,7 @@
 import prisma from "../lib/prisma.js";
 import { NotFoundError } from "../utils/errors.js";
 import { parsePaginationParams, buildPaginationMeta } from "../utils/pagination.js";
+import { getExpandedSearchTokens } from "../utils/dynamicSearch.js";
 
 export class ProductService {
   static async listProducts(query: {
@@ -105,18 +106,49 @@ export class ProductService {
       }
     }
 
-    if (query.search) {
-      where.OR = [
-        { name: { contains: query.search, mode: "insensitive" } },
-        { description: { contains: query.search, mode: "insensitive" } },
-        { shortDescription: { contains: query.search, mode: "insensitive" } },
-        { slug: { contains: query.search, mode: "insensitive" } },
-        { productCategories: { some: { category: { name: { contains: query.search, mode: "insensitive" } } } } },
-      ];
+    // ── 100% Dynamic Multi-Token & Database Taxonomy Search Engine ──────
+    if (query.search && query.search.trim()) {
+      const expandedTokenGroups = await getExpandedSearchTokens(query.search);
+
+      const tokenClauses = expandedTokenGroups.map((synonyms) => {
+        return {
+          OR: synonyms.flatMap((term) => [
+            { name: { contains: term, mode: "insensitive" } },
+            { slug: { contains: term, mode: "insensitive" } },
+            { productType: { contains: term, mode: "insensitive" } },
+            { shortDescription: { contains: term, mode: "insensitive" } },
+            { description: { contains: term, mode: "insensitive" } },
+            { productCategories: { some: { category: { name: { contains: term, mode: "insensitive" } } } } },
+            { productCollections: { some: { collection: { name: { contains: term, mode: "insensitive" } } } } },
+            {
+              variants: {
+                some: {
+                  OR: [
+                    { variantName: { contains: term, mode: "insensitive" } },
+                    {
+                      variantAttributeValues: {
+                        some: {
+                          attributeValue: {
+                            value: { contains: term, mode: "insensitive" },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ]),
+        };
+      });
+
+      if (tokenClauses.length > 0) {
+        where.AND = [...(where.AND || []), ...tokenClauses];
+      }
     }
 
     const orderBy: any = {};
-    let sortBy = query.sortBy || "createdAt";
+    let sortBy = query.sortBy || (query.search ? "relevance" : "createdAt");
     let sortOrder = (query.sortOrder || "desc").toLowerCase();
 
     if (query.selectionMode === "LATEST") {
@@ -133,30 +165,31 @@ export class ProductService {
       orderBy["basePrice"] = "desc";
     } else if (sortBy === "basePrice" || sortBy === "name" || sortBy === "createdAt") {
       orderBy[sortBy] = sortOrder;
-    } else {
+    } else if (sortBy !== "relevance") {
       orderBy["createdAt"] = sortOrder;
     }
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        skip,
-        take: limit,
-        orderBy,
+        skip: sortBy === "relevance" ? 0 : skip,
+        take: sortBy === "relevance" ? 100 : limit,
+        orderBy: sortBy === "relevance" ? undefined : orderBy,
         select: {
           id: true,
           name: true,
           slug: true,
           shortDescription: true,
+          productType: true,
           basePrice: true,
           compareAtPrice: true,
           currency: true,
           status: true,
           createdAt: true,
           images: {
-            where: { isPrimary: true },
-            take: 1,
-            select: { imageUrl: true, altText: true },
+            orderBy: { sortOrder: "asc" },
+            take: 2,
+            select: { imageUrl: true, altText: true, isPrimary: true },
           },
           productCategories: {
             select: {
@@ -164,17 +197,109 @@ export class ProductService {
               category: { select: { id: true, name: true, slug: true } },
             },
           },
+          variants: {
+            select: {
+              id: true,
+              variantName: true,
+              price: true,
+              compareAtPrice: true,
+              inventory: { select: { quantityOnHand: true, quantityReserved: true } },
+              variantAttributeValues: {
+                select: {
+                  attributeValue: {
+                    select: {
+                      value: true,
+                      colorHex: true,
+                      attribute: { select: { slug: true, name: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       }),
       prisma.product.count({ where }),
     ]);
 
-    const formattedProducts = products.map((p) => ({
-      ...p,
-      basePrice: p.basePrice ? p.basePrice.toNumber() : null,
-      compareAtPrice: p.compareAtPrice ? p.compareAtPrice.toNumber() : null,
-      primaryImage: p.images[0]?.imageUrl || null,
-    }));
+    let formattedProducts = products.map((p) => {
+      const primaryImg = p.images.find((img) => img.isPrimary) || p.images[0];
+      const hoverImg = p.images[1] || primaryImg;
+
+      return {
+        ...p,
+        basePrice: p.basePrice ? p.basePrice.toNumber() : null,
+        compareAtPrice: p.compareAtPrice ? p.compareAtPrice.toNumber() : null,
+        primaryImage: primaryImg?.imageUrl || null,
+        hoverImage: hoverImg?.imageUrl || null,
+        variants: p.variants.map((v) => {
+          const colorVal = v.variantAttributeValues.find(
+            (vav) =>
+              vav.attributeValue.attribute?.slug === "color" ||
+              Boolean(vav.attributeValue.colorHex)
+          )?.attributeValue;
+          const sizeVal = v.variantAttributeValues.find(
+            (vav) => vav.attributeValue.attribute?.slug === "size"
+          )?.attributeValue;
+          const stockAvailable = Math.max(
+            0,
+            (v.inventory?.quantityOnHand || 0) - (v.inventory?.quantityReserved || 0)
+          );
+
+          return {
+            id: v.id,
+            price: v.price.toNumber(),
+            compareAtPrice: v.compareAtPrice ? v.compareAtPrice.toNumber() : null,
+            colorName: colorVal?.value || null,
+            colorHex: colorVal?.colorHex || null,
+            sizeName: sizeVal?.value || null,
+            stockAvailable,
+          };
+        }),
+      };
+    });
+
+    // ── Relevance Scoring (Rerank when searching) ────────────────────────
+    if (query.search && query.search.trim()) {
+      const searchTerms = query.search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const exactPhrase = query.search.trim().toLowerCase();
+
+      const scoredProducts = formattedProducts.map((p) => {
+        let score = 0;
+        const nameLower = p.name.toLowerCase();
+        const slugLower = p.slug.toLowerCase();
+        const typeLower = (p.productType || "").toLowerCase();
+        const catNames = p.productCategories.map((pc) => pc.category.name.toLowerCase()).join(" ");
+
+        // 1. Exact phrase in name (+120)
+        if (nameLower.includes(exactPhrase)) score += 120;
+        if (slugLower.includes(exactPhrase.replace(/\s+/g, "-"))) score += 100;
+
+        // 2. Token matches across dimensions
+        for (const term of searchTerms) {
+          if (nameLower.includes(term)) score += 40;
+          if (typeLower.includes(term)) score += 30;
+          if (catNames.includes(term)) score += 25;
+
+          const hasColorMatch = p.variants.some((v) =>
+            v.colorName?.toLowerCase().includes(term)
+          );
+          if (hasColorMatch) score += 35;
+
+          const hasSizeMatch = p.variants.some((v) =>
+            v.sizeName?.toLowerCase() === term
+          );
+          if (hasSizeMatch) score += 20;
+
+          if (p.shortDescription?.toLowerCase().includes(term)) score += 10;
+        }
+
+        return { ...p, _relevanceScore: score };
+      });
+
+      scoredProducts.sort((a, b) => b._relevanceScore - a._relevanceScore);
+      formattedProducts = scoredProducts.slice(skip, skip + limit);
+    }
 
     const meta = buildPaginationMeta(page, limit, total);
     return { data: formattedProducts, meta };

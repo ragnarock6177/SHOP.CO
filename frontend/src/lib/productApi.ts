@@ -2,7 +2,10 @@ import { Product, Category } from "@/types/ecommerce";
 import { PRODUCTS, CATEGORIES } from "@/data/mockData";
 import { dedupedFetch } from "@/lib/fetchCache";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.BACKEND_API_URL ||
+  "https://backend-rho-umber-75.vercel.app/api/v1";
 
 /**
  * Normalizes backend Prisma product schema into frontend Product contract.

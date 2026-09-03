@@ -12,10 +12,67 @@ const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-be-vietnam-pro",
 });
 
+const siteBaseUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://frontend-beta-murex-33.vercel.app");
+
 export const metadata: Metadata = {
-  title: "AIRAVÉ | Find Clothes That Matches Your Style",
+  metadataBase: new URL(siteBaseUrl),
+  title: {
+    default: "AIRAVÉ — High-Fashion Streetwear & Contemporary Apparel",
+    template: "%s | AIRAVÉ",
+  },
   description:
-    "Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style.",
+    "Discover minimalist luxury streetwear, heavyweight oversized tailoring, and contemporary monochrome apparel.",
+  keywords: [
+    "AIRAVÉ",
+    "streetwear",
+    "luxury fashion",
+    "oversized t-shirts",
+    "linen shirts",
+    "pleated trousers",
+    "monochrome apparel",
+  ],
+  authors: [{ name: "Janak Katariya" }],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteBaseUrl,
+    siteName: "AIRAVÉ",
+    title: "AIRAVÉ — High-Fashion Streetwear & Contemporary Apparel",
+    description:
+      "Discover minimalist luxury streetwear, heavyweight oversized tailoring, and contemporary monochrome apparel.",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=1200",
+        width: 1200,
+        height: 630,
+        alt: "AIRAVÉ Luxury Fashion & Streetwear",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AIRAVÉ — High-Fashion Streetwear & Contemporary Apparel",
+    description:
+      "Discover minimalist luxury streetwear, heavyweight oversized tailoring, and contemporary monochrome apparel.",
+    images: [
+      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=1200",
+    ],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({
