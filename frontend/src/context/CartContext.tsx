@@ -1,7 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef } from 'react';
 import { Product, CartItem } from '../types/ecommerce';
+import { useAuth } from './AuthContext';
+import { syncLocalWishlistToServer } from '@/lib/wishlistApi';
+
+export interface WishlistItem {
+  product: Product;
+  addedAt: string;
+}
 
 export interface OrderRecord {
   id: string;
@@ -24,16 +31,19 @@ export interface OrderRecord {
 
 interface CartContextType {
   cart: CartItem[];
-  wishlist: string[];
+  wishlistItems: WishlistItem[];
+  wishlistProducts: Product[];
   orders: OrderRecord[];
   isCartOpen: boolean;
+  isStorageReady: boolean;
   setIsCartOpen: (open: boolean) => void;
   addToCart: (product: Product, quantity?: number, color?: string, size?: string, variantId?: string) => void;
   removeFromCart: (productId: string, color?: string, size?: string) => void;
   updateQuantity: (productId: string, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
   addOrder: (order: OrderRecord) => void;
-  toggleWishlist: (productId: string) => void;
+  toggleWishlist: (product: Product) => void;
+  removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   clearWishlist: () => void;
   cartCount: number;
@@ -41,99 +51,88 @@ interface CartContextType {
   cartSubtotal: number;
 }
 
-const DEFAULT_ORDERS: OrderRecord[] = [
-  {
-    id: 'ORD-98214',
-    date: 'August 10, 2026',
-    status: 'Delivered',
-    statusColor: 'bg-green-100 text-green-700',
-    total: 390.00,
-    trackingNum: 'TRK90281471',
-    items: [
-      {
-        title: 'ONE LIFE GRAPHIC T-SHIRT',
-        price: 260,
-        color: 'Olive Green',
-        size: 'Large',
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&q=80&w=200',
-      },
-      {
-        title: 'Sleeve Striped T-shirt',
-        price: 130,
-        color: 'Orange Black',
-        size: 'Large',
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=200',
-      }
-    ],
-    shippingAddress: '742 Evergreen Terrace, Springfield, IL',
-    paymentMethod: 'Credit Card (Visa •••• 4242)'
-  },
-  {
-    id: 'ORD-97642',
-    date: 'July 28, 2026',
-    status: 'In Transit',
-    statusColor: 'bg-blue-100 text-blue-700',
-    total: 212.00,
-    trackingNum: 'TRK84729103',
-    items: [
-      {
-        title: 'Vertical Striped Shirt',
-        price: 212,
-        color: 'Sage Green',
-        size: 'Medium',
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&q=80&w=200',
-      }
-    ],
-    shippingAddress: '742 Evergreen Terrace, Springfield, IL',
-    paymentMethod: 'Apple Pay'
-  }
-];
+const STORAGE_KEYS = {
+  cart: 'ecommerce_cart',
+  wishlistItems: 'ecommerce_wishlist_items',
+  orders: 'ecommerce_orders',
+} as const;
+
+const DEFAULT_ORDERS: OrderRecord[] = [];
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+function loadWishlistItems(): WishlistItem[] {
+  try {
+    const savedItems = localStorage.getItem(STORAGE_KEYS.wishlistItems);
+    if (savedItems) {
+      const parsed = JSON.parse(savedItems) as WishlistItem[];
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
+
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { isAuthenticated, token, isHydrated } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isStorageReady, setIsStorageReady] = useState(false);
+  const hasSyncedWishlistRef = useRef(false);
 
-  // Load cart, wishlist, and orders from localStorage on mount
   useEffect(() => {
     try {
-      const savedCart = localStorage.getItem('ecommerce_cart');
-      const savedWishlist = localStorage.getItem('ecommerce_wishlist');
-      const savedOrders = localStorage.getItem('ecommerce_orders');
-      
+      const savedCart = localStorage.getItem(STORAGE_KEYS.cart);
+      const savedOrders = localStorage.getItem(STORAGE_KEYS.orders);
+
       if (savedCart) setCart(JSON.parse(savedCart));
-      if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
+      setWishlistItems(loadWishlistItems());
       if (savedOrders) {
         setOrders(JSON.parse(savedOrders));
       } else {
         setOrders(DEFAULT_ORDERS);
       }
     } catch (e) {
-      console.error('Failed to load state', e);
+      console.error('Failed to load cart state', e);
       setOrders(DEFAULT_ORDERS);
     } finally {
-      setIsInitialized(true);
+      setIsStorageReady(true);
     }
   }, []);
 
-  // Save to localStorage on state changes
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!isStorageReady) return;
     try {
-      localStorage.setItem('ecommerce_cart', JSON.stringify(cart));
-      localStorage.setItem('ecommerce_wishlist', JSON.stringify(wishlist));
-      localStorage.setItem('ecommerce_orders', JSON.stringify(orders));
+      localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart));
+      localStorage.setItem(STORAGE_KEYS.wishlistItems, JSON.stringify(wishlistItems));
+      localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(orders));
     } catch (e) {
-      console.error('Failed to persist state', e);
+      console.error('Failed to persist cart state', e);
     }
-  }, [cart, wishlist, orders, isInitialized]);
+  }, [cart, wishlistItems, orders, isStorageReady]);
+
+  useEffect(() => {
+    if (!isStorageReady || !isHydrated || !isAuthenticated || !token) return;
+    if (hasSyncedWishlistRef.current) return;
+
+    hasSyncedWishlistRef.current = true;
+    const productIds = wishlistItems.map((item) => item.product.id);
+    if (productIds.length === 0) return;
+
+    syncLocalWishlistToServer(token, productIds).catch((err) => {
+      console.warn('Wishlist server sync failed (local wishlist preserved):', err);
+      hasSyncedWishlistRef.current = false;
+    });
+  }, [isStorageReady, isHydrated, isAuthenticated, token, wishlistItems]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      hasSyncedWishlistRef.current = false;
+    }
+  }, [isAuthenticated]);
 
   const addToCart = (product: Product, quantity = 1, color?: string, size?: string, variantId?: string) => {
     setCart((prevCart) => {
@@ -164,7 +163,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           selectedColor,
           selectedSize,
           variantId,
-        }
+        },
       ];
     });
     setIsCartOpen(true);
@@ -210,20 +209,34 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setOrders((prev) => [newOrder, ...prev]);
   };
 
-  const toggleWishlist = (productId: string) => {
-    setWishlist((prev) =>
-      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
-    );
+  const toggleWishlist = (product: Product) => {
+    setWishlistItems((prev) => {
+      const exists = prev.some((item) => item.product.id === product.id);
+      if (exists) {
+        return prev.filter((item) => item.product.id !== product.id);
+      }
+      return [...prev, { product, addedAt: new Date().toISOString() }];
+    });
   };
 
-  const isInWishlist = (productId: string) => wishlist.includes(productId);
+  const removeFromWishlist = (productId: string) => {
+    setWishlistItems((prev) => prev.filter((item) => item.product.id !== productId));
+  };
+
+  const isInWishlist = (productId: string) =>
+    wishlistItems.some((item) => item.product.id === productId);
 
   const clearWishlist = () => {
-    setWishlist([]);
+    setWishlistItems([]);
   };
 
+  const wishlistProducts = useMemo(
+    () => wishlistItems.map((item) => item.product),
+    [wishlistItems],
+  );
+
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const wishlistCount = wishlist.length;
+  const wishlistCount = wishlistItems.length;
 
   const cartSubtotal = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
@@ -234,9 +247,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <CartContext.Provider
       value={{
         cart,
-        wishlist,
+        wishlistItems,
+        wishlistProducts,
         orders,
         isCartOpen,
+        isStorageReady,
         setIsCartOpen,
         addToCart,
         removeFromCart,
@@ -244,11 +259,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         clearCart,
         addOrder,
         toggleWishlist,
+        removeFromWishlist,
         isInWishlist,
         clearWishlist,
         cartCount,
         wishlistCount,
-        cartSubtotal
+        cartSubtotal,
       }}
     >
       {children}

@@ -108,7 +108,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              toggleWishlist(product.id);
+              toggleWishlist(product);
             }}
             className={`p-1 sm:p-1.5 rounded-full backdrop-blur-md transition-all shadow-xs ${
               isWished

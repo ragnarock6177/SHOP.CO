@@ -17,14 +17,14 @@ import { useCart } from '@/context/CartContext';
 import { ProductCard } from '@/components/product/ProductCard';
 
 export default function WishlistPage() {
-  const { wishlist, toggleWishlist, clearWishlist, addToCart, wishlistCount } = useCart();
+  const { wishlistProducts, toggleWishlist, clearWishlist, addToCart, wishlistCount } = useCart();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Filter products that are in the wishlist
-  const wishedProducts = PRODUCTS.filter((product) => wishlist.includes(product.id));
+  const wishedProducts = wishlistProducts;
 
-  // Recommended products (products not in wishlist)
-  const recommendedProducts = PRODUCTS.filter((product) => !wishlist.includes(product.id)).slice(0, 6);
+  const recommendedProducts = PRODUCTS.filter(
+    (product) => !wishedProducts.some((item) => item.id === product.id),
+  ).slice(0, 6);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -148,7 +148,7 @@ export default function WishlistPage() {
                 {/* Remove Wishlist Button */}
                 <button
                   onClick={() => {
-                    toggleWishlist(product.id);
+                    toggleWishlist(product);
                     showToast(`Removed from wishlist`);
                   }}
                   className="absolute top-3 right-3 z-20 p-1.5 rounded-full bg-white/90 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-xs"

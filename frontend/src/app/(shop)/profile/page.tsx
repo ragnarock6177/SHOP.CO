@@ -16,13 +16,12 @@ import {
 } from "lucide-react";
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
-import { PRODUCTS } from "../../../data/mockData";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { wishlist, orders, addToCart, toggleWishlist } = useCart();
+  const { wishlistProducts, orders, addToCart, toggleWishlist, wishlistCount } = useCart();
   const { user: authUser, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
@@ -84,7 +83,7 @@ export default function ProfilePage() {
   ]);
 
   // Wishlist products
-  const wishedProducts = PRODUCTS.filter((p) => wishlist.includes(p.id));
+  const wishedProducts = wishlistProducts;
 
   const handleLogout = async () => {
     try {
@@ -193,7 +192,7 @@ export default function ProfilePage() {
 
           <div>
             <span className="font-be-vietnam-pro-black text-lg sm:text-2xl font-black text-black block">
-              {wishlist.length}
+              {wishlistCount}
             </span>
             <span className="text-[10px] sm:text-[11px] text-gray-500 font-bold uppercase">
               Wishlist
@@ -268,7 +267,7 @@ export default function ProfilePage() {
             >
               <div className="flex items-center gap-2">
                 <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>Wishlist ({wishlist.length})</span>
+                <span>Wishlist ({wishlistCount})</span>
               </div>
             </button>
 
@@ -574,7 +573,7 @@ export default function ProfilePage() {
                           className="object-cover"
                         />
                         <button
-                          onClick={() => toggleWishlist(prod.id)}
+                          onClick={() => toggleWishlist(prod)}
                           className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white text-rose-500 shadow-xs cursor-pointer"
                           title="Remove from Wishlist"
                         >

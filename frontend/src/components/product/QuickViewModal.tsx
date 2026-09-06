@@ -84,7 +84,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
               <div className="p-6 bg-[#F8F8F8] flex flex-col justify-between items-center relative">
                 {/* Wishlist Button Overlay */}
                 <button
-                  onClick={() => toggleWishlist(product.id)}
+                  onClick={() => toggleWishlist(product)}
                   className={`absolute top-6 left-6 p-2.5 rounded-full shadow-md backdrop-blur-md transition-all z-10 ${
                     isWished
                       ? "bg-black text-white"

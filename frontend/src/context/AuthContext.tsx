@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { SanitizedUser, AuthResponseData, getMeApi, logoutApi } from "@/lib/authApi";
+import { syncAuthCookie } from "@/lib/authSession";
 
 interface AuthContextType {
   user: SanitizedUser | null;
@@ -29,6 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const storedUser = localStorage.getItem("user");
 
         if (storedToken) {
+          syncAuthCookie(storedToken);
           setToken(storedToken);
           if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
             try {
@@ -47,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           } catch {
             localStorage.removeItem("accessToken");
             localStorage.removeItem("user");
+            syncAuthCookie(null);
             setToken(null);
             setUser(null);
           }
@@ -66,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(authData.accessToken);
     setUser(authData.user);
     localStorage.setItem("accessToken", authData.accessToken);
+    syncAuthCookie(authData.accessToken);
     if (authData.user) {
       localStorage.setItem("user", JSON.stringify(authData.user));
     } else {
@@ -94,6 +98,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
+    syncAuthCookie(null);
   };
 
   const refreshUser = async () => {

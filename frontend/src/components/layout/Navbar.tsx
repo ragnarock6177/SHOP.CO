@@ -23,9 +23,11 @@ import { useAuth } from "@/context/AuthContext";
 import { CATEGORIES } from "@/data/mockData";
 import { getProductsApi, getCategoriesApi } from "@/lib/productApi";
 import { Product, Category } from "@/types/ecommerce";
+import { useAuthRedirectUrls } from "@/hooks/useAuthRedirectUrls";
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
+  const { loginUrl } = useAuthRedirectUrls();
   const { cartCount, wishlistCount, setIsCartOpen } = useCart();
   const { user, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -280,7 +282,7 @@ export const Navbar: React.FC = () => {
               </Link>
             ) : (
               <Link
-                href="/login"
+                href={loginUrl}
                 className="p-2 text-black hover:text-gray-600 transition-colors"
                 aria-label="User Account"
                 title="Account Login"

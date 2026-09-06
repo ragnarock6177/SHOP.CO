@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,6 +31,12 @@ import {
   verifyFirebasePhoneOtp,
 } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { buildSignupUrl } from "@/lib/routeGuard";
+import {
+  navigateAfterLogin,
+  persistReturnUrl,
+  resolveReturnUrl,
+} from "@/lib/postLoginRedirect";
 
 // Zod Validation Schemas for Step 1
 const mobileStepSchema = z.object({
@@ -68,9 +74,25 @@ type PasswordFormData = {
   password: string;
 };
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { saveAuth } = useAuth();
+
+  const redirectUrl = resolveReturnUrl(searchParams.get("redirect"));
+
+  useEffect(() => {
+    const queryRedirect = searchParams.get("redirect");
+    if (queryRedirect) {
+      persistReturnUrl(queryRedirect);
+    }
+  }, [searchParams]);
+
+  const finishLogin = (authData: Parameters<typeof saveAuth>[0], message: string) => {
+    saveAuth(authData);
+    toast.success(message);
+    navigateAfterLogin(resolveReturnUrl(searchParams.get("redirect")));
+  };
 
   const [inputMode, setInputMode] = useState<"mobile" | "email">("mobile");
   const [step, setStep] = useState<"input" | "otp" | "password" | "success">(
@@ -96,14 +118,10 @@ export default function LoginPage() {
     try {
       const firebaseToken = await signInWithGoogleFirebase();
       const authData = await registerFirebaseApi("google", firebaseToken);
-      saveAuth(authData);
-      setStep("success");
-      toast.success(
+      finishLogin(
+        authData,
         `Welcome, ${authData.user.email || authData.user.firstName || "User"}!`,
       );
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
     } catch (err: any) {
       toast.error(err.message || "Google Sign-In failed. Please try again.");
     } finally {
@@ -217,8 +235,10 @@ export default function LoginPage() {
           }
         }
       } else {
+        const signupBase = buildSignupUrl(redirectUrl);
+        const signupSeparator = signupBase.includes("?") ? "&" : "?";
         router.push(
-          `/signup?identifier=${encodeURIComponent(data.identifier)}&mode=${inputMode}`,
+          `${signupBase}${signupSeparator}identifier=${encodeURIComponent(data.identifier)}&mode=${inputMode}`,
         );
       }
     } catch (err: any) {
@@ -301,12 +321,7 @@ export default function LoginPage() {
         fullOtp,
       );
       const authData = await registerFirebaseApi("phone", firebaseToken);
-      saveAuth(authData);
-      setStep("success");
-      toast.success("Logged in successfully!");
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+      finishLogin(authData, "Logged in successfully!");
     } catch (err: any) {
       toast.error(err.message || "OTP verification failed. Please try again.");
     } finally {
@@ -341,12 +356,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const authData = await loginApi(savedIdentifier, data.password);
-      saveAuth(authData);
-      setStep("success");
-      toast.success("Logged in successfully!");
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+      finishLogin(authData, "Logged in successfully!");
     } catch (err: any) {
       toast.error(err.message || "Invalid email or password credentials.");
     } finally {
@@ -410,10 +420,10 @@ export default function LoginPage() {
                 </p>
               </div>
               <Link
-                href="/profile"
+                href={redirectUrl !== "/" ? redirectUrl : "/profile"}
                 className="inline-flex w-full py-3.5 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
               >
-                <span>Go to My Profile</span>
+                <span>{redirectUrl !== "/" ? "Continue Shopping" : "Go to My Profile"}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -712,7 +722,10 @@ export default function LoginPage() {
           {step === "input" && (
             <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
               Don't have an account yet?{" "}
-              <Link href="/signup" className="font-bold text-black underline">
+              <Link
+                href={buildSignupUrl(redirectUrl)}
+                className="font-bold text-black underline"
+              >
                 Sign Up
               </Link>
             </div>
@@ -720,5 +733,13 @@ export default function LoginPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[50vh]" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

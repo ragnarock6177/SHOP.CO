@@ -318,7 +318,7 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
             </button>
 
             <button
-              onClick={() => toggleWishlist(product.id)}
+              onClick={() => toggleWishlist(product)}
               className={`p-3 sm:p-3.5 rounded-full border border-gray-200 transition-all flex items-center justify-center cursor-pointer shrink-0 ${
                 isWished
                   ? 'bg-rose-50 border-rose-500 text-rose-500'

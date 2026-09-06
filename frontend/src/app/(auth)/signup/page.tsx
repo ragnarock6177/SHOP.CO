@@ -38,6 +38,12 @@ import {
   verifyFirebasePhoneOtp,
 } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { buildLoginUrl } from "@/lib/routeGuard";
+import {
+  navigateAfterLogin,
+  persistReturnUrl,
+  resolveReturnUrl,
+} from "@/lib/postLoginRedirect";
 
 // Zod Validation Schema for Registration Form
 const signUpSchema = z
@@ -100,6 +106,15 @@ function SignUpFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { saveAuth } = useAuth();
+
+  const redirectUrl = resolveReturnUrl(searchParams.get("redirect"));
+
+  useEffect(() => {
+    const queryRedirect = searchParams.get("redirect");
+    if (queryRedirect) {
+      persistReturnUrl(queryRedirect);
+    }
+  }, [searchParams]);
 
   const [step, setStep] = useState<"details" | "otp" | "success">("details");
   const [showPassword, setShowPassword] = useState(false);
@@ -187,7 +202,7 @@ function SignUpFormContent() {
           );
         }
         setTimeout(() => {
-          router.push("/login");
+          router.push(buildLoginUrl(redirectUrl));
         }, 1500);
         return;
       }
@@ -314,9 +329,7 @@ function SignUpFormContent() {
       saveAuth(authData);
       setStep("success");
       toast.success("Account created & mobile number verified successfully!");
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+      navigateAfterLogin(resolveReturnUrl(searchParams.get("redirect")));
     } catch (err: any) {
       setOtpError(err.message || "OTP verification or registration failed.");
       toast.error(err.message || "OTP verification or registration failed.");
@@ -651,10 +664,10 @@ function SignUpFormContent() {
                 </p>
               </div>
               <Link
-                href="/product"
+                href={redirectUrl !== "/" ? redirectUrl : "/product"}
                 className="inline-flex w-full py-3.5 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
               >
-                <span>Explore Collection</span>
+                <span>{redirectUrl !== "/" ? "Continue Shopping" : "Explore Collection"}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -664,7 +677,7 @@ function SignUpFormContent() {
           {step === "details" && (
             <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
               Already have an account?{" "}
-              <Link href="/login" className="font-bold text-black underline">
+              <Link href={buildLoginUrl(redirectUrl)} className="font-bold text-black underline">
                 Log In
               </Link>
             </div>
