@@ -37,43 +37,43 @@ export function TopSelling({ section, initialProducts = [] }: TopSellingProps) {
           setProducts(fetched.slice(0, limit));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [limit, selectionMode]);
 
   return (
-    <section className="w-full bg-white py-8 sm:py-14 px-3 sm:px-8 max-w-7xl mx-auto border-b border-black/10 overflow-hidden">
-      {/* Header */}
-      <div className="text-center mb-6 sm:mb-8">
-        {displaySubtitle && (
-          <span className="text-[9px] sm:text-xs font-bold tracking-widest text-gray-500 uppercase block mb-1 font-be-vietnam-pro">
-            {displaySubtitle}
-          </span>
-        )}
-        <h2 className="font-be-vietnam-pro-black text-xl sm:text-3xl lg:text-4xl font-black text-black uppercase tracking-tight leading-tight">
-          {displayTitle}
-        </h2>
-      </div>
+    <section className="w-full bg-white py-12 sm:py-16 px-3 sm:px-8 lg:px-12 my-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
+          <div>
+            {displaySubtitle && (
+              <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1.5 font-be-vietnam-pro">
+                {displaySubtitle}
+              </span>
+            )}
+            <h2 className="font-be-vietnam-pro-black text-2xl sm:text-4xl lg:text-5xl font-black uppercase text-black tracking-tight">
+              {displayTitle}
+            </h2>
+          </div>
+          <Link
+            href="/product?sort=rating"
+            className="inline-flex items-center gap-2 text-xs font-black uppercase text-black hover:opacity-70 transition-opacity"
+          >
+            <span>Explore All Bestsellers</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
 
-      {/* 3-Column Mobile / 6-Column Desktop Grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onQuickView={setQuickViewProduct}
-          />
-        ))}
-      </div>
-
-      {/* View All Button */}
-      <div className="w-full flex justify-center mt-6 sm:mt-10">
-        <Link
-          href="/product?sort=rating"
-          className="w-full sm:w-60 h-10 sm:h-12 bg-white border border-black/15 rounded-full font-be-vietnam-pro font-bold text-black hover:bg-black hover:text-white text-xs cursor-pointer transition-all duration-300 shadow-xs hover:shadow-lg flex items-center justify-center gap-2 group"
-        >
-          <span>View All Bestsellers</span>
-          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-        </Link>
+        {/* 3-Column Mobile / 6-Column Desktop Grid */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onQuickView={setQuickViewProduct}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Quick View Modal */}

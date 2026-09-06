@@ -23,15 +23,15 @@ export const NewsletterBanner: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mb-20 sm:-mb-24">
+    <div className="max-w-7xl mx-auto px-3 sm:px-8 lg:px-12 relative z-20 -mb-20 sm:-mb-24">
       <div className="bg-black text-white rounded-3xl p-6 sm:p-10 md:p-12 shadow-2xl border border-white/10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative overflow-hidden">
         {/* Left Side Title & Description */}
         <div className="lg:col-span-7 space-y-3">
-          <span className="text-xs font-extrabold tracking-widest text-gray-400 uppercase block font-be-vietnam-pro">
+          <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-gray-400 uppercase block font-be-vietnam-pro">
             VIP CLUB MEMBERSHIP
           </span>
-          <h2 className="font-be-vietnam-pro-black text-2xl sm:text-3xl lg:text-4xl font-black leading-tight tracking-tight uppercase">
-            STAY UPTO DATE ABOUT OUR LATEST OFFERS & DROPS
+          <h2 className="font-be-vietnam-pro-black text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight uppercase">
+            STAY UP TO DATE ABOUT OUR LATEST OFFERS & DROPS
           </h2>
           <p className="text-gray-400 text-xs sm:text-sm max-w-lg font-be-vietnam-pro">
             Subscribe to receive exclusive access to limited edition drops, seasonal private sales, and an instant <strong>20% discount code</strong> for your first order.
@@ -51,7 +51,7 @@ export const NewsletterBanner: React.FC = () => {
               <p className="text-xs text-gray-300">
                 Here is your 20% OFF discount code for your first purchase:
               </p>
-              <div className="flex items-center justify-between bg-white text-black font-mono font-extrabold text-sm px-4 py-2.5 rounded-xl">
+              <div className="flex items-center justify-between bg-white text-black font-be-vietnam-pro font-extrabold text-sm px-4 py-2.5 rounded-xl">
                 <span>WELCOME20</span>
                 <button
                   onClick={handleCopyCode}

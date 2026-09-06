@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ArrowRight } from "lucide-react";
 
 const DRESS_STYLES = [
   {
@@ -50,16 +50,25 @@ const DRESS_STYLES = [
 
 export function CategoryGrid() {
   return (
-    <section className="w-full bg-[#F0F0F0] py-12 lg:py-20 px-4 sm:px-10 lg:px-16 overflow-hidden">
-      <div className="max-w-7xl mx-auto flex flex-col justify-center">
+    <section className="w-full bg-[#F0F0F0] py-12 sm:py-16 px-3 sm:px-8 lg:px-12 my-6 border-y border-gray-200/80">
+      <div className="max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-8 lg:mb-14">
-          <span className="text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-2 font-be-vietnam-pro">
-            CURATED LOOKS FOR EVERY OCCASION
-          </span>
-          <h2 className="font-be-vietnam-pro-black text-[28px] sm:text-[40px] lg:text-[48px] font-black text-black uppercase tracking-tight leading-none">
-            BROWSE BY DRESS STYLE
-          </h2>
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
+          <div>
+            <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1.5 font-be-vietnam-pro">
+              CURATED LOOKS FOR EVERY OCCASION
+            </span>
+            <h2 className="font-be-vietnam-pro-black text-2xl sm:text-4xl lg:text-5xl font-black uppercase text-black tracking-tight">
+              BROWSE BY DRESS STYLE
+            </h2>
+          </div>
+          <Link
+            href="/product"
+            className="inline-flex items-center gap-2 text-xs font-black uppercase text-black hover:opacity-70 transition-opacity"
+          >
+            <span>Explore All Styles</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
 
         {/* Bento Grid Container */}

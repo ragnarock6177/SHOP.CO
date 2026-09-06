@@ -58,18 +58,19 @@ export const SocialProofUGC: React.FC = () => {
     : null;
 
   return (
-    <section className="w-full bg-[#F9F9F9] py-14 px-4 sm:px-10 lg:px-16 overflow-hidden my-6 border-y border-gray-200/60">
+    <section className="w-full bg-[#F9F9F9] py-12 sm:py-16 px-3 sm:px-8 lg:px-12 overflow-hidden my-6 border-y border-gray-200/80">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-rose-600 font-bold text-xs mb-3 border border-rose-200">
-            <InstagramIcon className="w-3.5 h-3.5" />
-            <span>COMMUNITY LOOKBOOK</span>
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
+          <div>
+            <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1.5 font-be-vietnam-pro">
+              COMMUNITY LOOKBOOK
+            </span>
+            <h2 className="font-be-vietnam-pro-black text-2xl sm:text-4xl lg:text-5xl font-black uppercase text-black tracking-tight">
+              #AIRAVESTYLE ON INSTAGRAM
+            </h2>
           </div>
-          <h2 className="font-be-vietnam-pro-black text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-black">
-            #AIRAVESTYLE ON INSTAGRAM
-          </h2>
-          <p className="text-gray-500 text-sm mt-2 max-w-md mx-auto">
+          <p className="text-gray-500 text-xs sm:text-sm max-w-sm font-be-vietnam-pro">
             Tag @airave_official on Instagram or TikTok for a chance to be featured on our homepage.
           </p>
         </div>

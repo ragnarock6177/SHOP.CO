@@ -6,9 +6,9 @@ import { AnimatedFooter } from "../ui/animated-footer";
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="relative bg-[#F0F0F0] text-gray-600 pt-32 xs:pt-36 sm:pt-40 lg:pt-44 border-t border-gray-200 overflow-hidden">
+    <footer className="relative w-full bg-[#F0F0F0] text-gray-600 pt-12 sm:pt-16 px-3 sm:px-8 lg:px-12 border-t border-gray-200 overflow-hidden">
       {/* 1. Main Upper Footer Content Container */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-12 mb-4">
+      <div className="relative z-10 max-w-7xl mx-auto space-y-8 sm:space-y-12 mb-4">
         {/* Main Footer Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-10 lg:gap-12">
           {/* Brand Info & Social Icons */}

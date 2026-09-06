@@ -68,9 +68,9 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
             initial={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden bg-black text-white"
+            className="overflow-hidden bg-black text-white w-full px-3 sm:px-8 lg:px-12"
           >
-            <div className="py-2 px-7 sm:px-12 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-9 sm:min-h-10">
+            <div className="max-w-7xl mx-auto py-2 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-9 sm:min-h-10">
               <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap">
                 <span className="opacity-90">{announcementText}</span>
                 {announcementLink && (
@@ -85,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
 
               <button
                 onClick={() => setSessionDismissed(true)}
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
                 aria-label="Close Announcement"
               >
                 <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

@@ -40,31 +40,26 @@ export const PromoCountdown: React.FC = () => {
   const flashProducts = PRODUCTS.slice(0, 4);
 
   return (
-    <section className="w-full bg-linear-to-b from-[#111111] to-black text-white py-14 px-4 sm:px-10 lg:px-16 overflow-hidden relative my-6">
-      {/* Background Decorative Glow */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-red-600/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
-
+    <section className="w-full bg-[#111111] text-white py-12 sm:py-16 px-3 sm:px-8 lg:px-12 overflow-hidden relative my-6 border-y border-white/10">
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header Row: Title, Countdown Clock & Coupon Banner */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pb-10 border-b border-white/10 mb-10">
-          <div className="space-y-2 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 font-bold text-xs">
-              <Flame className="w-4 h-4 fill-current animate-bounce" />
-              <span>LIMITED TIME DROP</span>
-            </div>
-            <h2 className="font-be-vietnam-pro-black text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-white/10 mb-8 sm:mb-12">
+          <div className="space-y-2">
+            <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-gray-400 uppercase block mb-1.5 font-be-vietnam-pro">
+              LIMITED TIME DROP
+            </span>
+            <h2 className="font-be-vietnam-pro-black text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white">
               FLASH SALE — UP TO 50% OFF
             </h2>
-            <p className="text-gray-400 text-sm max-w-lg font-be-vietnam-pro">
+            <p className="text-gray-400 text-xs sm:text-sm max-w-lg font-be-vietnam-pro">
               Grab premium luxury garments at unprecedented prices before stock runs out.
             </p>
           </div>
 
           {/* Countdown Clock Box */}
           <div className="flex flex-col sm:flex-row items-center gap-4 bg-white/5 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-white/10 shadow-2xl">
-            <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
-              <Timer className="w-5 h-5 text-amber-400" />
+            <div className="flex items-center gap-2 text-white/70 font-bold text-xs font-be-vietnam-pro">
+              <Timer className="w-4 h-4 text-white/70" />
               <span>ENDS IN:</span>
             </div>
 
@@ -84,7 +79,7 @@ export const PromoCountdown: React.FC = () => {
               </div>
               <span className="text-xl font-bold text-white/40">:</span>
               <div className="bg-white text-black rounded-xl px-3 py-2 font-be-vietnam-pro-black min-w-[52px]">
-                <span className="text-xl sm:text-2xl font-black block text-red-600">
+                <span className="text-xl sm:text-2xl font-black block text-black">
                   {String(timeLeft.seconds).padStart(2, "0")}
                 </span>
                 <span className="text-[9px] font-bold text-gray-500 uppercase block">SECS</span>
@@ -94,11 +89,11 @@ export const PromoCountdown: React.FC = () => {
             {/* Claim Coupon Button */}
             <button
               onClick={handleCopyCoupon}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#FFC633] hover:bg-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-gray-200 text-black font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer font-be-vietnam-pro"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-900" /> Code FLASH25 Copied!
+                  <Check className="w-4 h-4 text-black" /> Code FLASH25 Copied!
                 </>
               ) : (
                 <>
@@ -110,29 +105,17 @@ export const PromoCountdown: React.FC = () => {
         </div>
 
         {/* Flash Deals Product Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
           {flashProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-3xl p-3 sm:p-4 text-black shadow-xl">
-              {/* Limited Stock Meter */}
-              <div className="mb-2 flex items-center justify-between text-[11px] font-bold text-red-600">
-                <span className="flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> Almost Sold Out
-                </span>
-                <span>4 Left</span>
-              </div>
-              <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden mb-3">
-                <div className="bg-red-500 h-full w-[85%] rounded-full animate-pulse" />
-              </div>
-
-              <ProductCard
-                product={{
-                  ...product,
-                  discount: product.discount || 30,
-                  originalPrice: product.originalPrice || Math.round(product.price * 1.4),
-                }}
-                onQuickView={setQuickViewProduct}
-              />
-            </div>
+            <ProductCard
+              key={product.id}
+              product={{
+                ...product,
+                discount: product.discount || 30,
+                originalPrice: product.originalPrice || Math.round(product.price * 1.4),
+              }}
+              onQuickView={setQuickViewProduct}
+            />
           ))}
         </div>
 

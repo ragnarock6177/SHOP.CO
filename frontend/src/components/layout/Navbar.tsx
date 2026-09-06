@@ -127,11 +127,11 @@ export const Navbar: React.FC = () => {
 
   return (
     <div
-      className={`bg-white transition-all duration-300 ${
+      className={`w-full bg-white transition-all duration-300 px-3 sm:px-8 lg:px-12 ${
         isScrolled ? "shadow-xs border-b border-gray-200" : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between h-16 md:h-20 gap-4 md:gap-8">
           {/* Left: Mobile Menu Trigger & Brand Logo */}
           <div className="flex items-center gap-3">
@@ -214,9 +214,6 @@ export const Navbar: React.FC = () => {
                 <Search className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
                 <span className="truncate text-gray-500 font-medium">Search garments, styles...</span>
               </div>
-              <span className="text-[10px] font-bold bg-white text-gray-400 border border-gray-200 px-2 py-0.5 rounded-md font-mono shrink-0">
-                ⌘K
-              </span>
             </button>
           </div>
 

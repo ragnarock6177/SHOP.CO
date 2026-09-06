@@ -10,7 +10,6 @@ import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { EditorialShowcase } from "@/components/home/EditorialShowcase";
 import { TopSelling } from "@/components/home/TopSelling";
 import { PersonalizedRecommendations } from "@/components/home/PersonalizedRecommendations";
-import { NewsletterBanner } from "@/components/home/NewsletterBanner";
 import { ProductGridSection } from "@/components/home/ProductGridSection";
 
 // Dynamically import CustomerReviews (GSAP marquee animation) to split heavy JS bundle
@@ -72,14 +71,14 @@ export function HomepageSectionRenderer({
     case "CUSTOMER_REVIEWS":
       return <CustomerReviews />;
 
-    case "NEWSLETTER":
-      return <NewsletterBanner />;
-
     case "PRODUCT_GRID":
     case "SALE_PRODUCTS":
     case "FEATURED_PRODUCTS":
     case "MANUAL":
       return <ProductGridSection section={section} initialProducts={initialProducts} />;
+
+    case "NEWSLETTER":
+      return null;
 
     default:
       console.warn(`Unknown homepage section type: '${section.sectionType}'. Skipping render.`);

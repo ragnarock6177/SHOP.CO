@@ -15,7 +15,7 @@ export const EditorialShowcase: React.FC = () => {
   const featuredItems = PRODUCTS.slice(0, 6);
 
   return (
-    <section className="w-full bg-white py-12 sm:py-16 px-3 sm:px-8 lg:px-12 my-4">
+    <section className="w-full bg-white py-12 sm:py-16 px-3 sm:px-8 lg:px-12 my-6">
       <div className="max-w-7xl mx-auto space-y-10 sm:space-y-12">
         {/* Editorial Split Hero Banner */}
         <div className="bg-black text-white rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[420px]">
@@ -72,21 +72,21 @@ export const EditorialShowcase: React.FC = () => {
 
         {/* Editorial Products Row (3 Columns Mobile / 6 Columns Desktop) */}
         <div>
-          <div className="flex items-center justify-between mb-6 sm:mb-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
             <div>
-              <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1 font-be-vietnam-pro">
+              <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1.5 font-be-vietnam-pro">
                 FEATURED IN THIS EDITORIAL
               </span>
-              <h3 className="font-be-vietnam-pro-black text-xl sm:text-3xl font-black uppercase text-black">
+              <h3 className="font-be-vietnam-pro-black text-2xl sm:text-4xl lg:text-5xl font-black uppercase text-black tracking-tight">
                 CAMPAIGN SELECTIONS
               </h3>
             </div>
             <Link
               href="/product"
-              className="text-xs font-bold uppercase text-black hover:underline flex items-center gap-1"
+              className="inline-flex items-center gap-2 text-xs font-black uppercase text-black hover:opacity-70 transition-opacity"
             >
-              <span>View All</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>Explore All Pieces</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 

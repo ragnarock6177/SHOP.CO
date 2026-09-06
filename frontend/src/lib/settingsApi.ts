@@ -36,7 +36,6 @@ export const DEFAULT_STOREFRONT_SETTINGS: StorefrontSettingsResponse = {
       { id: "sec-7", sectionKey: "top_selling", sectionType: "TOP_SELLING", title: "TOP SELLING", subtitle: "Most requested items", displayOrder: 7, isEnabled: true, config: { limit: 6, selectionMode: "BEST_SELLING" } },
       { id: "sec-8", sectionKey: "recommendations", sectionType: "RECOMMENDATIONS", title: "RECOMMENDED FOR YOU", displayOrder: 8, isEnabled: true, config: {} },
       { id: "sec-9", sectionKey: "customer_reviews", sectionType: "CUSTOMER_REVIEWS", title: "OUR HAPPY CUSTOMERS", displayOrder: 9, isEnabled: true, config: {} },
-      { id: "sec-10", sectionKey: "newsletter", sectionType: "NEWSLETTER", title: "STAY UP TO DATE ABOUT OUR LATEST OFFERS", displayOrder: 10, isEnabled: true, config: {} },
     ],
     banners: [],
   },

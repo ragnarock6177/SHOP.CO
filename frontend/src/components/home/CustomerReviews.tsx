@@ -9,17 +9,15 @@ const MARQUEE_REVIEWS = [...REVIEWS, ...REVIEWS, ...REVIEWS, ...REVIEWS];
 
 export const CustomerReviews: React.FC = () => {
   return (
-    <section className="w-full my-10 sm:my-16 space-y-6 sm:space-y-8 overflow-hidden">
-      {/* Header with Title */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div>
-          <span className="text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1 font-be-vietnam-pro">
-            VERIFIED CUSTOMER TESTIMONIALS
-          </span>
-          <h2 className="font-be-vietnam-pro-black text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-black text-black uppercase tracking-tight leading-tight">
-            OUR HAPPY CUSTOMERS
-          </h2>
-        </div>
+    <section className="w-full py-12 sm:py-16 my-6 overflow-hidden">
+      {/* Header with Title - Always Centered */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-8 lg:px-12 mb-8 sm:mb-12 text-center">
+        <span className="text-[10px] sm:text-xs font-extrabold tracking-widest text-black/50 uppercase block mb-1.5 font-be-vietnam-pro">
+          VERIFIED CUSTOMER TESTIMONIALS
+        </span>
+        <h2 className="font-be-vietnam-pro-black text-2xl sm:text-4xl lg:text-5xl font-black text-black uppercase tracking-tight">
+          OUR HAPPY CUSTOMERS
+        </h2>
       </div>
 
       {/* Full-Width Edge-to-Edge Continuous Pure CSS GPU Marquee Track */}
