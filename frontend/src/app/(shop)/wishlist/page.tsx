@@ -12,19 +12,27 @@ import {
   CheckCircle2,
   Star,
 } from 'lucide-react';
-import { PRODUCTS } from '@/data/mockData';
 import { useCart } from '@/context/CartContext';
 import { ProductCard } from '@/components/product/ProductCard';
+import { Product } from '@/types/ecommerce';
+import { getProductsApi } from '@/lib/productApi';
 
 export default function WishlistPage() {
   const { wishlistProducts, toggleWishlist, clearWishlist, addToCart, wishlistCount } = useCart();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
 
   const wishedProducts = wishlistProducts;
 
-  const recommendedProducts = PRODUCTS.filter(
-    (product) => !wishedProducts.some((item) => item.id === product.id),
-  ).slice(0, 6);
+  React.useEffect(() => {
+    getProductsApi({ limit: 8, sortBy: 'popular' })
+      .then(({ products }) => {
+        setRecommendedProducts(
+          products.filter((product) => !wishedProducts.some((item) => item.id === product.id)).slice(0, 6),
+        );
+      })
+      .catch(() => setRecommendedProducts([]));
+  }, [wishedProducts]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -33,7 +41,7 @@ export default function WishlistPage() {
     }, 3000);
   };
 
-  const handleMoveToCart = (product: (typeof PRODUCTS)[0]) => {
+  const handleMoveToCart = (product: Product) => {
     addToCart(product);
     showToast(`Added "${product.title}" to cart!`);
   };

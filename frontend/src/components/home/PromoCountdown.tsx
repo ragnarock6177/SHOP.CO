@@ -4,14 +4,13 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Timer, Flame, Copy, Check, Sparkles, ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
-import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
-import { PRODUCTS } from "@/data/mockData";
+import { getProductsApi } from "@/lib/productApi";
 
 export const PromoCountdown: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 5, minutes: 42, seconds: 18 });
   const [copied, setCopied] = useState(false);
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [flashProducts, setFlashProducts] = useState<Product[]>([]);
 
   // Real-time countdown timer tick
   useEffect(() => {
@@ -30,14 +29,18 @@ export const PromoCountdown: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    getProductsApi({ limit: 4, onSale: true })
+      .then(({ products }) => setFlashProducts(products))
+      .catch(() => setFlashProducts([]));
+  }, []);
+
   const handleCopyCoupon = () => {
     navigator.clipboard.writeText("FLASH25");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Select on-sale or flash products
-  const flashProducts = PRODUCTS.slice(0, 4);
 
   return (
     <section className="w-full bg-[#111111] text-white py-12 sm:py-16 px-3 sm:px-8 lg:px-12 overflow-hidden relative my-6 border-y border-white/10">
@@ -114,7 +117,6 @@ export const PromoCountdown: React.FC = () => {
                 discount: product.discount || 30,
                 originalPrice: product.originalPrice || Math.round(product.price * 1.4),
               }}
-              onQuickView={setQuickViewProduct}
             />
           ))}
         </div>
@@ -130,12 +132,6 @@ export const PromoCountdown: React.FC = () => {
           </Link>
         </div>
       </div>
-
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
     </section>
   );
 };

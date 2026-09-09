@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
-import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
-import { PRODUCTS } from "@/data/mockData";
 
-export const EditorialShowcase: React.FC = () => {
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+interface EditorialShowcaseProps {
+  featuredProducts?: Product[];
+}
 
-  const featuredItems = PRODUCTS.slice(0, 6);
+export const EditorialShowcase: React.FC<EditorialShowcaseProps> = ({
+  featuredProducts = [],
+}) => {
+  const featuredItems = featuredProducts.slice(0, 6);
 
   return (
     <section className="w-full bg-white py-12 sm:py-16 px-3 sm:px-8 lg:px-12 my-6">
@@ -95,17 +97,11 @@ export const EditorialShowcase: React.FC = () => {
               <ProductCard
                 key={product.id}
                 product={product}
-                onQuickView={setQuickViewProduct}
               />
             ))}
           </div>
         </div>
       </div>
-
-      <QuickViewModal
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
     </section>
   );
 };

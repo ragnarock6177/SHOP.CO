@@ -2,6 +2,11 @@ import prisma from "../lib/prisma.js";
 import { NotFoundError } from "../utils/errors.js";
 import { parsePaginationParams, buildPaginationMeta } from "../utils/pagination.js";
 import { getExpandedSearchTokens } from "../utils/dynamicSearch.js";
+import {
+  buildImagesByColor,
+  formatPublicImages,
+  getVariantColorName,
+} from "../utils/productMedia.js";
 
 export class ProductService {
   static async listProducts(query: {
@@ -188,13 +193,14 @@ export class ProductService {
           createdAt: true,
           images: {
             orderBy: { sortOrder: "asc" },
-            take: 2,
-            select: { imageUrl: true, altText: true, isPrimary: true },
+            include: {
+              variantImages: { select: { variantId: true } },
+            },
           },
           productCategories: {
             select: {
               isPrimary: true,
-              category: { select: { id: true, name: true, slug: true } },
+              category: { select: { id: true, name: true, slug: true, imageUrl: true } },
             },
           },
           variants: {
@@ -223,39 +229,50 @@ export class ProductService {
     ]);
 
     let formattedProducts = products.map((p) => {
-      const primaryImg = p.images.find((img) => img.isPrimary) || p.images[0];
-      const hoverImg = p.images[1] || primaryImg;
+      const formattedImages = formatPublicImages(p.images as any);
+      const primaryImg =
+        formattedImages.find((img) => img.isPrimary) || formattedImages[0];
+      const hoverImg = formattedImages[1] || primaryImg;
+      const primaryCategory =
+        p.productCategories.find((pc) => pc.isPrimary) || p.productCategories[0];
+      const categoryImage = primaryCategory?.category?.imageUrl || null;
+
+      const formattedVariants = p.variants.map((v) => {
+        const colorVal = v.variantAttributeValues.find(
+          (vav) =>
+            vav.attributeValue.attribute?.slug === "color" ||
+            Boolean(vav.attributeValue.colorHex),
+        )?.attributeValue;
+        const sizeVal = v.variantAttributeValues.find(
+          (vav) => vav.attributeValue.attribute?.slug === "size",
+        )?.attributeValue;
+        const stockAvailable = Math.max(
+          0,
+          (v.inventory?.quantityOnHand || 0) - (v.inventory?.quantityReserved || 0),
+        );
+
+        return {
+          id: v.id,
+          price: v.price.toNumber(),
+          compareAtPrice: v.compareAtPrice ? v.compareAtPrice.toNumber() : null,
+          colorName: colorVal?.value || null,
+          colorHex: colorVal?.colorHex || null,
+          sizeName: sizeVal?.value || null,
+          stockAvailable,
+        };
+      });
+
+      const imagesByColor = buildImagesByColor(formattedImages, formattedVariants);
 
       return {
         ...p,
         basePrice: p.basePrice ? p.basePrice.toNumber() : null,
         compareAtPrice: p.compareAtPrice ? p.compareAtPrice.toNumber() : null,
-        primaryImage: primaryImg?.imageUrl || null,
-        hoverImage: hoverImg?.imageUrl || null,
-        variants: p.variants.map((v) => {
-          const colorVal = v.variantAttributeValues.find(
-            (vav) =>
-              vav.attributeValue.attribute?.slug === "color" ||
-              Boolean(vav.attributeValue.colorHex)
-          )?.attributeValue;
-          const sizeVal = v.variantAttributeValues.find(
-            (vav) => vav.attributeValue.attribute?.slug === "size"
-          )?.attributeValue;
-          const stockAvailable = Math.max(
-            0,
-            (v.inventory?.quantityOnHand || 0) - (v.inventory?.quantityReserved || 0)
-          );
-
-          return {
-            id: v.id,
-            price: v.price.toNumber(),
-            compareAtPrice: v.compareAtPrice ? v.compareAtPrice.toNumber() : null,
-            colorName: colorVal?.value || null,
-            colorHex: colorVal?.colorHex || null,
-            sizeName: sizeVal?.value || null,
-            stockAvailable,
-          };
-        }),
+        primaryImage: primaryImg?.imageUrl || categoryImage,
+        hoverImage: hoverImg?.imageUrl || categoryImage,
+        images: formattedImages,
+        imagesByColor,
+        variants: formattedVariants,
       };
     });
 
@@ -322,7 +339,12 @@ export class ProductService {
     const product = await prisma.product.findFirst({
       where: whereCondition,
       include: {
-        images: { orderBy: { sortOrder: "asc" } },
+        images: {
+          orderBy: { sortOrder: "asc" },
+          include: {
+            variantImages: { select: { variantId: true } },
+          },
+        },
         videos: { orderBy: { sortOrder: "asc" } },
         productCategories: { include: { category: true } },
         variants: {
@@ -370,6 +392,17 @@ export class ProductService {
       };
     });
 
+    const formattedImages = formatPublicImages(product.images as any);
+    const imagesByColor = buildImagesByColor(formattedImages, formattedVariants);
+    const defaultVariant =
+      formattedVariants.find((variant) => variant.isDefault) || formattedVariants[0];
+    const defaultColor = defaultVariant
+      ? getVariantColorName(defaultVariant)
+      : null;
+    const defaultGallery =
+      (defaultColor && imagesByColor[defaultColor]) ||
+      formattedImages.map((img) => img.imageUrl);
+
     return {
       id: product.id,
       name: product.name,
@@ -381,9 +414,13 @@ export class ProductService {
       compareAtPrice: product.compareAtPrice ? product.compareAtPrice.toNumber() : null,
       currency: product.currency,
       careInstructions: product.careInstructions,
-      images: product.images,
+      images: formattedImages,
+      imagesByColor,
+      defaultColor,
+      defaultGallery,
       videos: product.videos,
       variants: formattedVariants,
+      productCategories: product.productCategories,
     };
   }
 

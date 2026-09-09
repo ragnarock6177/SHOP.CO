@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getProductsApi } from "@/lib/productApi";
 import { ProductCard } from "@/components/product/ProductCard";
-import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
 
 import { StorefrontHomepageSection } from "@/types/settings";
@@ -20,7 +19,6 @@ export function TopSelling({ section, initialProducts = [] }: TopSellingProps) {
   const selectionMode = section?.config?.selectionMode || "BEST_SELLING";
 
   const [products, setProducts] = useState<Product[]>(initialProducts.slice(0, limit));
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   const displayTitle = section?.title || "TOP SELLING";
   const displaySubtitle = section?.subtitle || "MOST-COVETED PIECES";
@@ -70,17 +68,10 @@ export function TopSelling({ section, initialProducts = [] }: TopSellingProps) {
             <ProductCard
               key={product.id}
               product={product}
-              onQuickView={setQuickViewProduct}
             />
           ))}
         </div>
       </div>
-
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
     </section>
   );
 }

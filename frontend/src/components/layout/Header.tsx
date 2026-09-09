@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
   }, [isAuthenticated]);
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 font-be-vietnam-pro">
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 font-be-vietnam-pro overflow-x-clip">
       <AnimatePresence initial={false}>
         {shouldShowAnnouncement && (
           <motion.div
@@ -70,9 +70,9 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden bg-black text-white w-full px-3 sm:px-8 lg:px-12"
           >
-            <div className="max-w-7xl mx-auto py-2 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-9 sm:min-h-10">
-              <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap">
-                <span className="opacity-90">{announcementText}</span>
+            <div className="max-w-7xl mx-auto py-2 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-9 sm:min-h-10 px-8 sm:px-10">
+              <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap max-w-full">
+                <span className="opacity-90 line-clamp-2 sm:line-clamp-none">{announcementText}</span>
                 {announcementLink && (
                   <Link
                     href={announcementLink}

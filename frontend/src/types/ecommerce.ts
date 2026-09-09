@@ -4,6 +4,7 @@ export interface ProductVariant {
   price: number;
   compareAtPrice?: number | null;
   stockAvailable: number;
+  isDefault?: boolean;
   attributes: {
     attributeSlug: string;
     attributeName: string;
@@ -11,6 +12,14 @@ export interface ProductVariant {
     value: string;
     colorHex?: string;
   }[];
+}
+
+export interface ProductImageMeta {
+  id?: string;
+  url: string;
+  altText?: string | null;
+  variantIds?: string[];
+  isPrimary?: boolean;
 }
 
 export interface Product {
@@ -21,12 +30,15 @@ export interface Product {
   description: string;
   price: number;
   originalPrice?: number;
-  discount?: number; // e.g. 20 for 20% OFF
+  discount?: number;
   rating: number;
   reviewsCount: number;
   category: string;
   image: string;
   images: string[];
+  allImages?: ProductImageMeta[];
+  imagesByColor?: Record<string, string[]>;
+  defaultColor?: string;
   colors?: { name: string; hex: string }[];
   sizes?: string[];
   tags?: string[];
@@ -35,6 +47,7 @@ export interface Product {
   variants?: ProductVariant[];
   featured?: boolean;
   isNew?: boolean;
+  careInstructions?: string;
   specs?: Record<string, string>;
 }
 
@@ -59,7 +72,7 @@ export interface FilterState {
   category: string;
   priceRange: [number, number];
   minRating: number;
-  sortBy: 'featured' | 'price-low' | 'price-high' | 'rating' | 'newest';
+  sortBy: "featured" | "price-low" | "price-high" | "rating" | "newest";
   searchQuery: string;
   inStockOnly: boolean;
 }

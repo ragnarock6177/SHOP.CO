@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -11,45 +11,188 @@ import {
   Plus,
   SlidersHorizontal,
   MoreHorizontal,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { ColorSwatch } from '@/components/product/ColorSwatch';
 import { ProductCard } from '@/components/product/ProductCard';
 import { WriteReviewModal } from '@/components/product/WriteReviewModal';
 import { Product, Review } from '@/types/ecommerce';
-import { REVIEWS } from '@/data/mockData';
+import {
+  getImagesForColor,
+  getProductImageProps,
+  PRODUCT_DETAIL_MAIN_SIZES,
+  PRODUCT_DETAIL_THUMB_SIZES,
+} from '@/lib/productMedia';
 
 interface ProductDetailClientProps {
   product: Product;
   relatedProducts: Product[];
 }
 
+function getDefaultColor(product: Product): string {
+  if (product.defaultColor) return product.defaultColor;
+  if (product.colors?.[0]?.name) return product.colors[0].name;
+  return '';
+}
+
+function getDefaultSize(product: Product, colorName: string): string {
+  const colorVariants =
+    product.variants?.filter((variant) => {
+      const colorAttr = variant.attributes.find(
+        (attr) =>
+          attr.attributeSlug === 'color' || attr.attributeName.toLowerCase() === 'color',
+      );
+      return !colorName || !colorAttr || colorAttr.value.toLowerCase() === colorName.toLowerCase();
+    }) || [];
+
+  const inStockVariant = colorVariants.find((variant) => variant.stockAvailable > 0);
+  const sizeAttr = (inStockVariant || colorVariants[0])?.attributes.find(
+    (attr) => attr.attributeSlug === 'size' || attr.attributeName.toLowerCase() === 'size',
+  );
+
+  return sizeAttr?.value || product.sizes?.[0] || '';
+}
+
 export function ProductDetailClient({ product, relatedProducts }: ProductDetailClientProps) {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const isWished = isInWishlist(product.id);
 
-  const [selectedImage, setSelectedImage] = useState(
-    product.images && product.images.length > 0 ? product.images[0] : product.image
+  const initialColor = getDefaultColor(product);
+  const [selectedColor, setSelectedColor] = useState(initialColor);
+  const [selectedSize, setSelectedSize] = useState(getDefaultSize(product, initialColor));
+  const [colorGallery, setColorGallery] = useState<string[]>(
+    getImagesForColor(product, initialColor),
   );
-  const [selectedColor, setSelectedColor] = useState(
-    product.colors && product.colors.length > 0 ? product.colors[0].name : 'Olive Green'
-  );
-  const [selectedSize, setSelectedSize] = useState(
-    product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'Large'
-  );
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isGalleryLoading, setIsGalleryLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<'desc' | 'reviews' | 'faqs'>('reviews');
+  const [activeTab, setActiveTab] = useState<'desc' | 'reviews' | 'faqs'>('desc');
+  const prevColorRef = useRef(initialColor);
+  const touchStartX = useRef<number | null>(null);
 
-  // Match selected color and size to authoritative variant
-  const activeVariant = React.useMemo(() => {
+  useEffect(() => {
+    const gallery = getImagesForColor(product, selectedColor);
+    const nextGallery = gallery.length > 0 ? gallery : [product.image];
+    const colorChanged = prevColorRef.current !== selectedColor;
+    prevColorRef.current = selectedColor;
+
+    setActiveIndex(0);
+
+    if (!colorChanged) {
+      setColorGallery(nextGallery);
+      return;
+    }
+
+    setIsGalleryLoading(true);
+
+    let cancelled = false;
+    const minDelay = new Promise<void>((resolve) => {
+      window.setTimeout(resolve, 180);
+    });
+    const imageLoad = new Promise<void>((resolve) => {
+      const img = new window.Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = nextGallery[0];
+    });
+
+    Promise.all([minDelay, imageLoad]).then(() => {
+      if (cancelled) return;
+      setColorGallery(nextGallery);
+      setIsGalleryLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product, selectedColor]);
+
+  useEffect(() => {
+    colorGallery.forEach((url) => {
+      const img = new window.Image();
+      img.src = url;
+    });
+  }, [colorGallery]);
+
+  const goToImage = (index: number) => {
+    if (index === activeIndex || index < 0 || index >= colorGallery.length) return;
+    setActiveIndex(index);
+  };
+
+  const goToNextImage = () => {
+    if (colorGallery.length <= 1 || isGalleryLoading) return;
+    setActiveIndex((prev) => (prev + 1) % colorGallery.length);
+  };
+
+  const goToPrevImage = () => {
+    if (colorGallery.length <= 1 || isGalleryLoading) return;
+    setActiveIndex((prev) => (prev - 1 + colorGallery.length) % colorGallery.length);
+  };
+
+  const handleGalleryTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
+  };
+
+  const handleGalleryTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartX.current === null) return;
+
+    const endX = event.changedTouches[0]?.clientX ?? touchStartX.current;
+    const delta = endX - touchStartX.current;
+    touchStartX.current = null;
+
+    if (Math.abs(delta) < 48) return;
+    if (delta > 0) goToPrevImage();
+    else goToNextImage();
+  };
+
+  const availableSizes = useMemo(() => {
+    if (!product.variants?.length) return product.sizes || [];
+
+    const sizes = new Set<string>();
+    product.variants.forEach((variant) => {
+      const colorAttr = variant.attributes.find(
+        (attr) =>
+          attr.attributeSlug === 'color' || attr.attributeName.toLowerCase() === 'color',
+      );
+      const sizeAttr = variant.attributes.find(
+        (attr) =>
+          attr.attributeSlug === 'size' || attr.attributeName.toLowerCase() === 'size',
+      );
+
+      const matchesColor =
+        !selectedColor ||
+        !colorAttr ||
+        colorAttr.value.toLowerCase() === selectedColor.toLowerCase();
+
+      if (matchesColor && sizeAttr?.value) {
+        sizes.add(sizeAttr.value);
+      }
+    });
+
+    return sizes.size > 0 ? Array.from(sizes) : product.sizes || [];
+  }, [product.sizes, product.variants, selectedColor]);
+
+  useEffect(() => {
+    if (availableSizes.length > 0 && !availableSizes.includes(selectedSize)) {
+      setSelectedSize(availableSizes[0]);
+    }
+  }, [availableSizes, selectedSize]);
+
+  const activeVariant = useMemo(() => {
     if (!product.variants || product.variants.length === 0) return null;
     return (
-      product.variants.find((v) => {
-        const colorAttr = v.attributes.find(
-          (a) => a.attributeSlug === "color" || a.attributeName.toLowerCase() === "color"
+      product.variants.find((variant) => {
+        const colorAttr = variant.attributes.find(
+          (attr) =>
+            attr.attributeSlug === 'color' || attr.attributeName.toLowerCase() === 'color',
         );
-        const sizeAttr = v.attributes.find(
-          (a) => a.attributeSlug === "size" || a.attributeName.toLowerCase() === "size"
+        const sizeAttr = variant.attributes.find(
+          (attr) =>
+            attr.attributeSlug === 'size' || attr.attributeName.toLowerCase() === 'size',
         );
         const matchesColor =
           !selectedColor ||
@@ -64,17 +207,42 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
     );
   }, [product.variants, selectedColor, selectedSize]);
 
+  const getSizeStock = (size: string) => {
+    if (!product.variants?.length) return product.stockAvailable ?? 0;
+
+    const variant = product.variants.find((item) => {
+      const colorAttr = item.attributes.find(
+        (attr) =>
+          attr.attributeSlug === 'color' || attr.attributeName.toLowerCase() === 'color',
+      );
+      const sizeAttr = item.attributes.find(
+        (attr) =>
+          attr.attributeSlug === 'size' || attr.attributeName.toLowerCase() === 'size',
+      );
+
+      const matchesColor =
+        !selectedColor ||
+        !colorAttr ||
+        colorAttr.value.toLowerCase() === selectedColor.toLowerCase();
+      const matchesSize =
+        sizeAttr?.value.toLowerCase() === size.toLowerCase();
+
+      return matchesColor && matchesSize;
+    });
+
+    return variant?.stockAvailable ?? 0;
+  };
+
   const currentPrice = activeVariant ? activeVariant.price : product.price;
   const currentOriginalPrice = activeVariant?.compareAtPrice
     ? activeVariant.compareAtPrice
     : product.originalPrice;
   const stockAvailable = activeVariant
     ? activeVariant.stockAvailable
-    : (product.stockAvailable ?? 50);
+    : (product.stockAvailable ?? 0);
   const isOutOfStock = stockAvailable <= 0;
 
-  // Reviews state
-  const [reviewsList, setReviewsList] = useState<Review[]>(REVIEWS);
+  const [reviewsList, setReviewsList] = useState<Review[]>([]);
   const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(6);
@@ -118,55 +286,133 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
       {/* Main Product Details Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start">
         
-        {/* Left Column: Gallery (Vertical Stack Desktop / Horizontal Mobile) */}
-        <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
-          
-          {/* Desktop Vertical Thumbnails (3 Cols) */}
-          <div className="hidden md:flex md:col-span-3 flex-col gap-3">
-            {product.images && product.images.map((imgUrl, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedImage(imgUrl)}
-                className={`relative aspect-3/4 w-full rounded-2xl overflow-hidden bg-[#F0EEED] border-2 transition-all cursor-pointer ${
-                  selectedImage === imgUrl ? 'border-black scale-102 shadow-xs' : 'border-transparent opacity-80 hover:opacity-100'
-                }`}
+        {/* Left Column: Gallery */}
+        <div className="lg:col-span-6 -mx-3.5 flex flex-col gap-3 sm:-mx-6 sm:gap-4 md:mx-0">
+          <div className="flex items-start justify-center gap-2.5 sm:gap-3 lg:justify-start">
+            {/* Desktop vertical thumbnails */}
+            <div className="hidden md:flex w-14 shrink-0 flex-col gap-2">
+              {colorGallery.map((imgUrl, idx) => (
+                <button
+                  key={`${selectedColor}-${idx}-${imgUrl}`}
+                  type="button"
+                  onClick={() => goToImage(idx)}
+                  className={`relative aspect-[3/4] w-full overflow-hidden rounded-xl border transition-all cursor-pointer ${
+                    activeIndex === idx
+                      ? 'border-black opacity-100 shadow-sm'
+                      : 'border-transparent opacity-70 hover:opacity-100'
+                  }`}
+                  aria-label={`View image ${idx + 1}`}
+                  aria-current={activeIndex === idx}
+                >
+                  <Image
+                    src={imgUrl}
+                    alt={`${product.title} ${idx + 1}`}
+                    fill
+                    {...getProductImageProps(imgUrl, PRODUCT_DETAIL_THUMB_SIZES)}
+                    className="object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+
+            {/* Main hero slider */}
+            <div className="relative w-full max-w-none md:max-w-[360px] lg:max-w-[380px]">
+              <div
+                className="group relative aspect-[4/5] overflow-hidden rounded-none bg-neutral-200 select-none md:aspect-[3/4] md:rounded-2xl"
+                onTouchStart={handleGalleryTouchStart}
+                onTouchEnd={handleGalleryTouchEnd}
               >
-                <Image src={imgUrl} alt={`${product.title} ${idx + 1}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" />
-              </button>
-            ))}
-          </div>
+                <div
+                  className="flex h-full transition-transform duration-[380ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+                  style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+                >
+                  {colorGallery.map((imgUrl, idx) => {
+                    const slideImageProps = getProductImageProps(imgUrl, PRODUCT_DETAIL_MAIN_SIZES);
 
-          {/* Main Hero Preview Frame (9 Cols) */}
-          <div className="md:col-span-9 relative aspect-square w-full rounded-3xl bg-[#F0EEED] overflow-hidden">
-            <Image
-              src={selectedImage}
-              alt={product.title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          </div>
+                    return (
+                      <div
+                        key={`${selectedColor}-${idx}-${imgUrl}`}
+                        className="relative h-full w-full shrink-0 basis-full"
+                      >
+                        <Image
+                          src={imgUrl}
+                          alt={`${product.title} view ${idx + 1}`}
+                          fill
+                          priority={idx === 0}
+                          unoptimized={slideImageProps.unoptimized}
+                          quality={slideImageProps.quality}
+                          sizes={slideImageProps.sizes}
+                          className="object-cover pointer-events-none"
+                          draggable={false}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
 
-          {/* Mobile Horizontal Thumbnails */}
-          <div className="flex md:hidden items-center gap-2.5 overflow-x-auto whitespace-nowrap scrollbar-none pb-1 pt-1">
-            {product.images && product.images.map((imgUrl, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedImage(imgUrl)}
-                className={`relative w-16 h-20 rounded-xl overflow-hidden bg-[#F0EEED] border-2 transition-all shrink-0 cursor-pointer ${
-                  selectedImage === imgUrl ? 'border-black' : 'border-transparent opacity-70'
-                }`}
-              >
-                <Image src={imgUrl} alt={`${product.title} ${idx + 1}`} fill className="object-cover" sizes="64px" />
-              </button>
-            ))}
-          </div>
+              {isGalleryLoading && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/55 backdrop-blur-[1px]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm">
+                    <Loader2 className="h-4 w-4 animate-spin text-neutral-600" />
+                  </div>
+                </div>
+              )}
 
+              {colorGallery.length > 1 && !isGalleryLoading && (
+                <>
+                  {/* Desktop: dark edge overlays on hover for visible arrows */}
+                  <div className="pointer-events-none absolute inset-y-0 left-0 z-[15] hidden w-14 bg-gradient-to-r from-black/55 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:block" />
+                  <div className="pointer-events-none absolute inset-y-0 right-0 z-[15] hidden w-14 bg-gradient-to-l from-black/55 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:block" />
+
+                  <button
+                    type="button"
+                    onClick={goToPrevImage}
+                    className="absolute left-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center text-white/90 opacity-0 transition-all duration-300 group-hover:opacity-100 md:flex"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft
+                      className="h-7 w-7 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
+                      strokeWidth={2.25}
+                    />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={goToNextImage}
+                    className="absolute right-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center text-white/90 opacity-0 transition-all duration-300 group-hover:opacity-100 md:flex"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight
+                      className="h-7 w-7 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
+                      strokeWidth={2.25}
+                    />
+                  </button>
+
+                  {/* Mobile: Myntra-style swipe dots */}
+                  <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 md:hidden">
+                    {colorGallery.map((_, idx) => (
+                      <span
+                        key={`dot-${selectedColor}-${idx}`}
+                        className={`rounded-full bg-white transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.35)] ${
+                          activeIndex === idx ? 'h-1.5 w-4' : 'h-1.5 w-1.5 opacity-55'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Desktop: subtle counter on hover */}
+                  <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 hidden -translate-x-1/2 rounded-full bg-black/35 px-2.5 py-1 text-[10px] font-bold tracking-wide text-white opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100 md:block">
+                    {activeIndex + 1} / {colorGallery.length}
+                  </div>
+                </>
+              )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Title, Ratings, Pricing, Selectors, Add to Cart */}
-        <div className="lg:col-span-5 space-y-5">
+        <div className="lg:col-span-6 space-y-5">
           
           <div className="space-y-2 border-b border-gray-200/80 pb-4">
             <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl lg:text-4xl font-black text-black leading-tight uppercase tracking-tight">
@@ -187,12 +433,12 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           {/* Pricing Row */}
           <div className="flex items-center gap-3">
             <span className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black">
-              ${currentPrice}
+              ₹{currentPrice.toLocaleString('en-IN')}
             </span>
 
             {currentOriginalPrice && (
               <span className="font-be-vietnam-pro-black text-xl sm:text-2xl font-bold text-gray-400 line-through">
-                ${currentOriginalPrice}
+                ₹{currentOriginalPrice.toLocaleString('en-IN')}
               </span>
             )}
 
@@ -235,21 +481,18 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
               <label className="text-xs font-extrabold text-gray-500 uppercase tracking-wider block">
                 Select Color: <span className="text-black capitalize">{selectedColor}</span>
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 {product.colors.map((c) => (
-                  <button
+                  <ColorSwatch
                     key={c.name}
-                    onClick={() => setSelectedColor(c.name)}
-                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                      selectedColor === c.name ? 'ring-2 ring-black ring-offset-2 scale-105' : 'hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  >
-                    {selectedColor === c.name && (
-                      <Check className="w-3.5 h-3.5 text-white" />
-                    )}
-                  </button>
+                    name={c.name}
+                    hex={c.hex}
+                    selected={selectedColor === c.name}
+                    onClick={() => {
+                      setSelectedColor(c.name);
+                      setQuantity(1);
+                    }}
+                  />
                 ))}
               </div>
             </div>
@@ -258,25 +501,33 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           <hr className="border-gray-200/80" />
 
           {/* Choose Size */}
-          {product.sizes && product.sizes.length > 0 && (
+          {availableSizes.length > 0 && (
             <div className="space-y-2.5">
               <label className="text-xs font-extrabold text-gray-500 uppercase tracking-wider block">
                 Choose Size
               </label>
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map((sz) => (
+                {availableSizes.map((sz) => {
+                  const sizeStock = getSizeStock(sz);
+                  const isDisabled = sizeStock <= 0;
+
+                  return (
                   <button
                     key={sz}
-                    onClick={() => setSelectedSize(sz)}
+                    onClick={() => !isDisabled && setSelectedSize(sz)}
+                    disabled={isDisabled}
                     className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                       selectedSize === sz
                         ? 'bg-black text-white font-extrabold shadow-xs'
-                        : 'bg-[#F4F4F4] text-gray-700 hover:bg-gray-200'
+                        : isDisabled
+                          ? 'bg-gray-100 text-gray-300 cursor-not-allowed line-through'
+                          : 'bg-[#F4F4F4] text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     {sz}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

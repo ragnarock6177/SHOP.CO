@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getProductsApi } from "@/lib/productApi";
 import { ProductCard } from "@/components/product/ProductCard";
-import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
 import { StorefrontHomepageSection } from "@/types/settings";
 
@@ -17,7 +16,6 @@ interface ProductGridSectionProps {
 export function ProductGridSection({ section, initialProducts = [] }: ProductGridSectionProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   const title = section.title || "FEATURED COLLECTION";
   const subtitle = section.subtitle || "Handpicked contemporary styles";
@@ -95,18 +93,11 @@ export function ProductGridSection({ section, initialProducts = [] }: ProductGri
               <ProductCard
                 key={product.id}
                 product={product}
-                onQuickView={setQuickViewProduct}
               />
             ))}
           </div>
         )}
       </div>
-
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
     </section>
   );
 }
