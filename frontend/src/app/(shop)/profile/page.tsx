@@ -13,11 +13,14 @@ import {
   Plus,
   Trash2,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { ProfileAddressesPanel } from "@/components/address/ProfileAddressesPanel";
+import type { UserAddress } from "@/types/address";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -56,19 +59,7 @@ export default function ProfilePage() {
     ? `${authUser.authProvider} ACCOUNT`
     : "VERIFIED ACCOUNT";
 
-  // Mock Addresses
-  const [addresses, setAddresses] = useState([
-    {
-      id: "addr-1",
-      type: "Home (Default)",
-      name: displayName,
-      street: "742 Evergreen Terrace",
-      city: "Springfield",
-      state: "IL",
-      zip: "62704",
-      isDefault: true,
-    },
-  ]);
+  const [addresses, setAddresses] = useState<UserAddress[]>([]);
 
   // Mock Payment Cards
   const [cards] = useState([
@@ -82,7 +73,6 @@ export default function ProfilePage() {
     },
   ]);
 
-  // Wishlist products
   const wishedProducts = wishlistProducts;
 
   const handleLogout = async () => {
@@ -239,7 +229,7 @@ export default function ProfilePage() {
             >
               <div className="flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>Addresses</span>
+                <span>Addresses ({addresses.length})</span>
               </div>
             </button>
 
@@ -415,66 +405,7 @@ export default function ProfilePage() {
 
           {/* TAB 2: SAVED ADDRESSES */}
           {activeTab === "addresses" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black uppercase text-black">
-                  Saved Addresses
-                </h2>
-                <button
-                  onClick={() => alert("Add New Address Modal")}
-                  className="inline-flex items-center gap-1 px-3.5 py-2 bg-black text-white text-xs font-bold rounded-full hover:bg-neutral-800 transition-colors uppercase cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Address</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {addresses.map((addr) => (
-                  <div
-                    key={addr.id}
-                    className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-5 space-y-2.5 shadow-2xs"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs sm:text-sm text-black">
-                        {addr.type}
-                      </span>
-                      {addr.isDefault && (
-                        <span className="bg-black text-white font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase">
-                          Default
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                      <strong className="text-black block font-bold">{addr.name}</strong>
-                      {addr.street}
-                      <br />
-                      {addr.city}, {addr.state} {addr.zip}
-                    </p>
-
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
-                      <button
-                        onClick={() => alert(`Edit address ${addr.id}`)}
-                        className="font-bold text-black hover:underline cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() =>
-                          setAddresses(
-                            addresses.filter((a) => a.id !== addr.id),
-                          )
-                        }
-                        className="text-red-500 hover:text-red-700 font-semibold cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ProfileAddressesPanel onAddressesChange={setAddresses} />
           )}
 
           {/* TAB 3: PAYMENT METHODS */}

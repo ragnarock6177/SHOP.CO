@@ -276,6 +276,7 @@ model UserAddress {
   id           String      @id @default(uuid()) @db.Uuid
   userId       String      @map("user_id") @db.Uuid
   type         AddressType @default(SHIPPING)
+  label        String      @default("Home") @db.VarChar(50)
   firstName    String      @map("first_name") @db.VarChar(100)
   lastName     String?     @map("last_name") @db.VarChar(100)
   addressLine1 String      @map("address_line_1") @db.VarChar(255)

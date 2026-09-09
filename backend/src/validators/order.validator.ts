@@ -46,18 +46,34 @@ export const CheckoutSummarySchema = z.object({
 });
 
 export const CreateOrderSchema = z.object({
-  body: z.object({
-    items: z
-      .array(ItemInputSchema)
-      .min(1, "Order must contain at least one item"),
-    shippingAddress: AddressInputSchema,
-    billingAddress: AddressInputSchema.optional(),
-    couponId: z.string().optional(),
-    couponCode: z.string().optional(),
-    shippingSpeed: z.enum(["STANDARD", "EXPRESS"]).optional().default("STANDARD"),
-    paymentMethod: z.string().optional().default("COD"),
-    notes: z.string().optional(),
-  }),
+  body: z
+    .object({
+      items: z
+        .array(ItemInputSchema)
+        .min(1, "Order must contain at least one item"),
+      shippingAddressId: z.string().uuid().optional(),
+      shippingAddress: AddressInputSchema.extend({
+        label: z.enum(["Home", "Work", "Other"]).optional(),
+        isDefault: z.boolean().optional(),
+      }).optional(),
+      billingAddress: AddressInputSchema.optional(),
+      billingAddressId: z.string().uuid().optional(),
+      saveShippingAddress: z.boolean().optional().default(false),
+      couponId: z.string().optional(),
+      couponCode: z.string().optional(),
+      shippingSpeed: z.enum(["STANDARD", "EXPRESS"]).optional().default("STANDARD"),
+      paymentMethod: z.string().optional().default("COD"),
+      notes: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (!data.shippingAddressId && !data.shippingAddress) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Either shippingAddressId or shippingAddress is required",
+          path: ["shippingAddress"],
+        });
+      }
+    }),
 });
 
 export const OrderNumberParamSchema = z.object({

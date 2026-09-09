@@ -14,7 +14,16 @@ import {
   Loader2,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { CheckoutOrderItem } from "@/components/shop/CheckoutOrderItem";
+import {
+  AddressCheckoutSection,
+  buildCheckoutOrderAddressPayload,
+  getCheckoutSummaryLocation,
+  type CheckoutAddressState,
+} from "@/components/address/AddressCheckoutSection";
+import { EMPTY_ADDRESS_FORM } from "@/types/address";
+import type { UserAddress } from "@/types/address";
 import { getCartItemsMissingSelection } from "@/lib/productVariants";
 import { toast } from "sonner";
 import {
@@ -26,7 +35,8 @@ import {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart, updateCartItemVariant } = useCart();
+  const { cart, clearCart } = useCart();
+  const { user, token } = useAuth();
 
   const [paymentMethod, setPaymentMethod] = useState<
     "card" | "paypal" | "applepay" | "cod"
@@ -39,20 +49,28 @@ export default function CheckoutPage() {
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState("");
 
-  // Shipping form state
+  // Payment form state
   const [formData, setFormData] = useState({
-    firstName: "Alex",
-    lastName: "Morgan",
-    email: "alex.morgan@example.com",
-    phone: "+91 98765 43210",
-    address: "104 Atelier Boulevard",
-    city: "Mumbai",
-    state: "Maharashtra",
-    zip: "400001",
     cardNumber: "4242 8819 9021 4242",
     expDate: "08/28",
     cvv: "921",
   });
+
+  const [addressState, setAddressState] = useState<CheckoutAddressState>({
+    mode: "saved",
+    selectedAddressId: null,
+    editingAddressId: null,
+    newAddress: {
+      ...EMPTY_ADDRESS_FORM,
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      email: user?.email || "",
+      phone: user?.phone || user?.phoneNumber || "",
+      isDefault: true,
+    },
+  });
+
+  const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([]);
 
   // Server calculation states
   const [summary, setSummary] = useState<CheckoutSummaryData | null>(null);
@@ -64,12 +82,31 @@ export default function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
+    setAddressState((prev) => ({
+      ...prev,
+      newAddress: {
+        ...prev.newAddress,
+        firstName: prev.newAddress.firstName || user.firstName || "",
+        lastName: prev.newAddress.lastName || user.lastName || "",
+        email: prev.newAddress.email || user.email || "",
+        phone: prev.newAddress.phone || user.phone || user.phoneNumber || "",
+      },
+    }));
+  }, [user]);
+
+  const summaryLocation = React.useMemo(
+    () => getCheckoutSummaryLocation(addressState, savedAddresses),
+    [addressState, savedAddresses],
+  );
+
+  useEffect(() => {
     if (cart.length === 0) {
       router.replace("/cart");
     }
   }, [cart.length, router]);
 
-  // Fetch backend calculation summary whenever cart, speed, applied promo, or postal code changes
+  // Fetch backend calculation summary whenever cart, speed, applied promo, or address changes
   useEffect(() => {
     if (!cart || cart.length === 0) {
       setSummary(null);
@@ -90,11 +127,7 @@ export default function CheckoutPage() {
       items: itemsPayload,
       couponCode: appliedPromo.trim() || undefined,
       shippingSpeed,
-      shippingAddress: {
-        postalCode: formData.zip,
-        state: formData.state,
-        city: formData.city,
-      },
+      shippingAddress: summaryLocation,
     })
       .then((res) => {
         setSummary(res);
@@ -105,7 +138,7 @@ export default function CheckoutPage() {
       .finally(() => {
         setSummaryLoading(false);
       });
-  }, [cart, shippingSpeed, appliedPromo, formData.zip, formData.state, formData.city]);
+  }, [cart, shippingSpeed, appliedPromo, summaryLocation]);
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +155,32 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (addressState.mode === "saved" && !addressState.selectedAddressId) {
+      toast.error("Please select a delivery address.");
+      return;
+    }
+
+    if (addressState.mode === "edit") {
+      toast.error("Please save your address changes before placing the order.");
+      return;
+    }
+
+    if (addressState.mode === "new") {
+      const required = [
+        addressState.newAddress.firstName,
+        addressState.newAddress.addressLine1,
+        addressState.newAddress.city,
+        addressState.newAddress.state,
+        addressState.newAddress.postalCode,
+        addressState.newAddress.email,
+        addressState.newAddress.phone,
+      ];
+      if (required.some((field) => !field?.trim())) {
+        toast.error("Please complete all required delivery details.");
+        return;
+      }
+    }
+
     setSubmitting(true);
     setSubmitError(null);
 
@@ -135,23 +194,13 @@ export default function CheckoutPage() {
 
       const orderPayload: CreateOrderPayload = {
         items: itemsPayload,
-        shippingAddress: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          addressLine1: formData.address,
-          city: formData.city,
-          state: formData.state,
-          postalCode: formData.zip,
-          countryCode: "IN",
-        },
+        ...buildCheckoutOrderAddressPayload(addressState),
         couponCode: appliedPromo.trim() || undefined,
         shippingSpeed,
         paymentMethod: paymentMethod.toUpperCase(),
       };
 
-      const createdOrder = await placeOrderApi(orderPayload);
+      const createdOrder = await placeOrderApi(orderPayload, token || undefined);
 
       // Clear local cart and redirect to live Order Details page
       clearCart();
@@ -224,131 +273,11 @@ export default function CheckoutPage() {
                 1. Delivery Details
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, firstName: e.target.value })
-                    }
-                    required
-                    className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs text-black font-semibold focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, lastName: e.target.value })
-                    }
-                    required
-                    className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs text-black font-semibold focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    required
-                    className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs text-black font-semibold focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    required
-                    className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs text-black font-semibold focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                  Street Address
-                </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                  required
-                  className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs text-black font-semibold focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2.5">
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                    required
-                    className="w-full bg-[#F4F4F4] rounded-full px-3 py-2.5 text-xs text-black font-semibold focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    State
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.state}
-                    onChange={(e) =>
-                      setFormData({ ...formData, state: e.target.value })
-                    }
-                    required
-                    className="w-full bg-[#F4F4F4] rounded-full px-3 py-2.5 text-xs text-black font-semibold focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    PIN / ZIP Code
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.zip}
-                    onChange={(e) =>
-                      setFormData({ ...formData, zip: e.target.value })
-                    }
-                    required
-                    className="w-full bg-[#F4F4F4] rounded-full px-3 py-2.5 text-xs text-black font-semibold focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-              </div>
+              <AddressCheckoutSection
+                value={addressState}
+                onChange={setAddressState}
+                onAddressesLoaded={setSavedAddresses}
+              />
             </div>
 
             {/* Step 2: Shipping Speed Option */}
@@ -533,10 +462,6 @@ export default function CheckoutPage() {
                   <CheckoutOrderItem
                     key={`${item.product.id}-${item.selectedColor || ""}-${item.selectedSize || ""}-${idx}`}
                     item={item}
-                    itemIndex={idx}
-                    onSizeChange={(itemIndex, selection) =>
-                      updateCartItemVariant(itemIndex, selection)
-                    }
                   />
                 ))}
               </div>

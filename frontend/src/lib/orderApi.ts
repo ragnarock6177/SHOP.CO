@@ -66,20 +66,27 @@ export interface CheckoutSummaryData {
 
 export interface CreateOrderPayload {
   items: CheckoutItemPayload[];
-  shippingAddress: {
+  shippingAddressId?: string;
+  shippingAddress?: {
+    label?: "Home" | "Work" | "Other";
     firstName: string;
     lastName?: string;
     email?: string;
     phone?: string;
     addressLine1?: string;
     address?: string;
+    addressLine2?: string;
+    landmark?: string;
     city: string;
     state: string;
     postalCode?: string;
     zip?: string;
     countryCode?: string;
+    isDefault?: boolean;
   };
   billingAddress?: any;
+  billingAddressId?: string;
+  saveShippingAddress?: boolean;
   couponId?: string;
   couponCode?: string;
   shippingSpeed?: "STANDARD" | "EXPRESS";

@@ -19,8 +19,11 @@ export class OrderService {
         title?: string;
         image?: string;
       }[];
-      shippingAddress: any;
+      shippingAddress?: any;
+      shippingAddressId?: string;
       billingAddress?: any;
+      billingAddressId?: string;
+      saveShippingAddress?: boolean;
       couponId?: string;
       couponCode?: string;
       shippingSpeed?: "STANDARD" | "EXPRESS";
@@ -39,6 +42,78 @@ export class OrderService {
         if (dbUser) {
           validUserId = dbUser.id;
         }
+      }
+
+      let resolvedShipping: any = payload.shippingAddress;
+
+      if (payload.shippingAddressId) {
+        if (!validUserId) {
+          throw new ForbiddenError("You must be logged in to use a saved address");
+        }
+
+        const savedAddress = await tx.userAddress.findFirst({
+          where: {
+            id: payload.shippingAddressId,
+            userId: validUserId,
+            deletedAt: null,
+            type: AddressType.SHIPPING,
+          },
+        });
+
+        if (!savedAddress) {
+          throw new NotFoundError("Saved shipping address not found");
+        }
+
+        resolvedShipping = {
+          firstName: savedAddress.firstName,
+          lastName: savedAddress.lastName || "",
+          addressLine1: savedAddress.addressLine1,
+          addressLine2: savedAddress.addressLine2 || "",
+          landmark: savedAddress.landmark || "",
+          city: savedAddress.city,
+          state: savedAddress.state,
+          postalCode: savedAddress.postalCode,
+          countryCode: savedAddress.countryCode,
+          phone: savedAddress.phone || "",
+          email: customerEmail,
+        };
+      }
+
+      if (!resolvedShipping) {
+        throw new UnprocessableEntityError("Shipping address is required");
+      }
+
+      let resolvedBilling: any = payload.billingAddress;
+
+      if (payload.billingAddressId) {
+        if (!validUserId) {
+          throw new ForbiddenError("You must be logged in to use a saved billing address");
+        }
+
+        const savedBilling = await tx.userAddress.findFirst({
+          where: {
+            id: payload.billingAddressId,
+            userId: validUserId,
+            deletedAt: null,
+          },
+        });
+
+        if (!savedBilling) {
+          throw new NotFoundError("Saved billing address not found");
+        }
+
+        resolvedBilling = {
+          firstName: savedBilling.firstName,
+          lastName: savedBilling.lastName || "",
+          addressLine1: savedBilling.addressLine1,
+          addressLine2: savedBilling.addressLine2 || "",
+          landmark: savedBilling.landmark || "",
+          city: savedBilling.city,
+          state: savedBilling.state,
+          postalCode: savedBilling.postalCode,
+          countryCode: savedBilling.countryCode,
+          phone: savedBilling.phone || "",
+        };
       }
 
       // 1. Resolve item details & validate stock directly from DB as single source of truth
@@ -196,7 +271,7 @@ export class OrderService {
         data: {
           orderNumber,
           userId: validUserId,
-          customerEmail: customerEmail || payload.shippingAddress.email || "guest@airave.com",
+          customerEmail: customerEmail || resolvedShipping.email || "guest@airave.com",
           status: OrderStatus.CONFIRMED,
           subtotal,
           discountAmount,
@@ -209,40 +284,43 @@ export class OrderService {
             create: [
               {
                 type: AddressType.SHIPPING,
-                firstName: payload.shippingAddress.firstName,
-                lastName: payload.shippingAddress.lastName || "",
-                addressLine1: payload.shippingAddress.addressLine1 || payload.shippingAddress.address || "Street Address",
-                addressLine2: payload.shippingAddress.addressLine2 || "",
-                city: payload.shippingAddress.city,
-                state: payload.shippingAddress.state,
-                postalCode: payload.shippingAddress.postalCode || payload.shippingAddress.zip || "400001",
-                countryCode: payload.shippingAddress.countryCode || "IN",
-                phone: payload.shippingAddress.phone || "",
+                firstName: resolvedShipping.firstName,
+                lastName: resolvedShipping.lastName || "",
+                addressLine1: resolvedShipping.addressLine1 || resolvedShipping.address || "Street Address",
+                addressLine2: resolvedShipping.addressLine2 || "",
+                landmark: resolvedShipping.landmark || "",
+                city: resolvedShipping.city,
+                state: resolvedShipping.state,
+                postalCode: resolvedShipping.postalCode || resolvedShipping.zip || "400001",
+                countryCode: resolvedShipping.countryCode || "IN",
+                phone: resolvedShipping.phone || "",
               },
               {
                 type: AddressType.BILLING,
-                ...(payload.billingAddress
+                ...(resolvedBilling
                   ? {
-                      firstName: payload.billingAddress.firstName,
-                      lastName: payload.billingAddress.lastName || "",
-                      addressLine1: payload.billingAddress.addressLine1 || payload.billingAddress.address || "Street Address",
-                      addressLine2: payload.billingAddress.addressLine2 || "",
-                      city: payload.billingAddress.city,
-                      state: payload.billingAddress.state,
-                      postalCode: payload.billingAddress.postalCode || payload.billingAddress.zip || "400001",
-                      countryCode: payload.billingAddress.countryCode || "IN",
-                      phone: payload.billingAddress.phone || "",
+                      firstName: resolvedBilling.firstName,
+                      lastName: resolvedBilling.lastName || "",
+                      addressLine1: resolvedBilling.addressLine1 || resolvedBilling.address || "Street Address",
+                      addressLine2: resolvedBilling.addressLine2 || "",
+                      landmark: resolvedBilling.landmark || "",
+                      city: resolvedBilling.city,
+                      state: resolvedBilling.state,
+                      postalCode: resolvedBilling.postalCode || resolvedBilling.zip || "400001",
+                      countryCode: resolvedBilling.countryCode || "IN",
+                      phone: resolvedBilling.phone || "",
                     }
                   : {
-                      firstName: payload.shippingAddress.firstName,
-                      lastName: payload.shippingAddress.lastName || "",
-                      addressLine1: payload.shippingAddress.addressLine1 || payload.shippingAddress.address || "Street Address",
-                      addressLine2: payload.shippingAddress.addressLine2 || "",
-                      city: payload.shippingAddress.city,
-                      state: payload.shippingAddress.state,
-                      postalCode: payload.shippingAddress.postalCode || payload.shippingAddress.zip || "400001",
-                      countryCode: payload.shippingAddress.countryCode || "IN",
-                      phone: payload.shippingAddress.phone || "",
+                      firstName: resolvedShipping.firstName,
+                      lastName: resolvedShipping.lastName || "",
+                      addressLine1: resolvedShipping.addressLine1 || resolvedShipping.address || "Street Address",
+                      addressLine2: resolvedShipping.addressLine2 || "",
+                      landmark: resolvedShipping.landmark || "",
+                      city: resolvedShipping.city,
+                      state: resolvedShipping.state,
+                      postalCode: resolvedShipping.postalCode || resolvedShipping.zip || "400001",
+                      countryCode: resolvedShipping.countryCode || "IN",
+                      phone: resolvedShipping.phone || "",
                     }),
               },
             ],
@@ -347,6 +425,46 @@ export class OrderService {
         if (userCart) {
           await tx.cartItem.deleteMany({ where: { cartId: userCart.id } });
         }
+      }
+
+      // 7. Persist new shipping address for future orders when requested
+      if (
+        validUserId &&
+        payload.saveShippingAddress &&
+        payload.shippingAddress &&
+        !payload.shippingAddressId
+      ) {
+        const addr = payload.shippingAddress;
+        const existingCount = await tx.userAddress.count({
+          where: { userId: validUserId, deletedAt: null, type: AddressType.SHIPPING },
+        });
+        const shouldBeDefault = addr.isDefault ?? existingCount === 0;
+
+        if (shouldBeDefault) {
+          await tx.userAddress.updateMany({
+            where: { userId: validUserId, type: AddressType.SHIPPING, deletedAt: null },
+            data: { isDefault: false },
+          });
+        }
+
+        await tx.userAddress.create({
+          data: {
+            userId: validUserId,
+            type: AddressType.SHIPPING,
+            label: addr.label || "Home",
+            firstName: addr.firstName,
+            lastName: addr.lastName || "",
+            addressLine1: addr.addressLine1 || addr.address,
+            addressLine2: addr.addressLine2 || "",
+            landmark: addr.landmark || "",
+            city: addr.city,
+            state: addr.state,
+            postalCode: addr.postalCode || addr.zip,
+            countryCode: addr.countryCode || "IN",
+            phone: addr.phone || "",
+            isDefault: shouldBeDefault,
+          },
+        });
       }
 
       return order;

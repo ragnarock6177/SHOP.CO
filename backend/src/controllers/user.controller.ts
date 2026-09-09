@@ -44,6 +44,26 @@ export class UserController {
     }
   }
 
+  static async updateAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) throw new UnauthorizedError();
+      const address = await UserService.updateUserAddress(req.user.id, req.params.id, req.body);
+      sendSuccess(res, address, "Address updated successfully");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async setDefaultAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) throw new UnauthorizedError();
+      const address = await UserService.setDefaultAddress(req.user.id, req.params.id);
+      sendSuccess(res, address, "Default address updated successfully");
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async deleteAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) throw new UnauthorizedError();

@@ -1,5 +1,22 @@
 import prisma from "../lib/prisma.js";
 import { NotFoundError } from "../utils/errors.js";
+import { AddressType } from "@prisma/client";
+
+type AddressInput = {
+  type?: AddressType;
+  label?: string;
+  firstName?: string;
+  lastName?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  landmark?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  countryCode?: string;
+  phone?: string;
+  isDefault?: boolean;
+};
 
 export class UserService {
   static async getUserById(userId: string) {
@@ -62,20 +79,87 @@ export class UserService {
     });
   }
 
-  static async addUserAddress(userId: string, data: any) {
-    // If setting as default, clear other default addresses for user
-    if (data.isDefault) {
-      await prisma.userAddress.updateMany({
-        where: { userId, type: data.type },
-        data: { isDefault: false },
-      });
+  private static async clearDefaultAddresses(
+    userId: string,
+    type: AddressType,
+    excludeId?: string,
+  ) {
+    await prisma.userAddress.updateMany({
+      where: {
+        userId,
+        type,
+        deletedAt: null,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      data: { isDefault: false },
+    });
+  }
+
+  static async addUserAddress(userId: string, data: AddressInput & {
+    firstName: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+    postalCode: string;
+  }) {
+    const type = data.type || AddressType.SHIPPING;
+    const existingCount = await prisma.userAddress.count({
+      where: { userId, deletedAt: null, type },
+    });
+    const shouldBeDefault = data.isDefault || existingCount === 0;
+
+    if (shouldBeDefault) {
+      await this.clearDefaultAddresses(userId, type);
     }
 
     return prisma.userAddress.create({
       data: {
         ...data,
+        type,
+        isDefault: shouldBeDefault,
         userId,
       },
+    });
+  }
+
+  static async updateUserAddress(userId: string, addressId: string, data: AddressInput) {
+    const address = await prisma.userAddress.findFirst({
+      where: { id: addressId, userId, deletedAt: null },
+    });
+
+    if (!address) {
+      throw new NotFoundError("Address record not found or already deleted");
+    }
+
+    const type = data.type || address.type;
+
+    if (data.isDefault) {
+      await this.clearDefaultAddresses(userId, type, addressId);
+    }
+
+    return prisma.userAddress.update({
+      where: { id: addressId },
+      data: {
+        ...data,
+        ...(data.isDefault ? { isDefault: true } : {}),
+      },
+    });
+  }
+
+  static async setDefaultAddress(userId: string, addressId: string) {
+    const address = await prisma.userAddress.findFirst({
+      where: { id: addressId, userId, deletedAt: null },
+    });
+
+    if (!address) {
+      throw new NotFoundError("Address record not found or already deleted");
+    }
+
+    await this.clearDefaultAddresses(userId, address.type, addressId);
+
+    return prisma.userAddress.update({
+      where: { id: addressId },
+      data: { isDefault: true },
     });
   }
 
@@ -88,9 +172,25 @@ export class UserService {
       throw new NotFoundError("Address record not found or already deleted");
     }
 
-    return prisma.userAddress.update({
+    const deleted = await prisma.userAddress.update({
       where: { id: addressId },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: new Date(), isDefault: false },
     });
+
+    if (address.isDefault) {
+      const nextDefault = await prisma.userAddress.findFirst({
+        where: { userId, deletedAt: null, type: address.type },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (nextDefault) {
+        await prisma.userAddress.update({
+          where: { id: nextDefault.id },
+          data: { isDefault: true },
+        });
+      }
+    }
+
+    return deleted;
   }
 }
