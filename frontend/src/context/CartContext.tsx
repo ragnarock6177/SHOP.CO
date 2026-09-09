@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef } from 'react';
 import { Product, CartItem } from '../types/ecommerce';
+import { resolveProductColor } from '@/lib/productVariants';
 import { useAuth } from './AuthContext';
 import { syncLocalWishlistToServer } from '@/lib/wishlistApi';
 
@@ -37,7 +38,18 @@ interface CartContextType {
   isCartOpen: boolean;
   isStorageReady: boolean;
   setIsCartOpen: (open: boolean) => void;
-  addToCart: (product: Product, quantity?: number, color?: string, size?: string, variantId?: string) => void;
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    color?: string,
+    size?: string,
+    variantId?: string,
+    options?: { openDrawer?: boolean },
+  ) => void;
+  updateCartItemVariant: (
+    itemIndex: number,
+    selection: { color?: string; size?: string; variantId?: string },
+  ) => void;
   removeFromCart: (productId: string, color?: string, size?: string) => void;
   updateQuantity: (productId: string, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
@@ -52,7 +64,7 @@ interface CartContextType {
 }
 
 const STORAGE_KEYS = {
-  cart: 'ecommerce_cart',
+  cart: 'ecommerce_cart_v2',
   wishlistItems: 'ecommerce_wishlist_items',
   orders: 'ecommerce_orders',
 } as const;
@@ -134,16 +146,23 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [isAuthenticated]);
 
-  const addToCart = (product: Product, quantity = 1, color?: string, size?: string, variantId?: string) => {
+  const addToCart = (
+    product: Product,
+    quantity = 1,
+    color?: string,
+    size?: string,
+    variantId?: string,
+    options?: { openDrawer?: boolean },
+  ) => {
     setCart((prevCart) => {
-      const selectedColor = color || (product.colors && product.colors.length > 0 ? product.colors[0].name : undefined);
-      const selectedSize = size || (product.sizes && product.sizes.length > 0 ? product.sizes[0] : undefined);
+      const selectedColor = resolveProductColor(product, color);
+      const selectedSize = size;
 
       const existingIndex = prevCart.findIndex(
         (item) =>
           item.product.id === product.id &&
           item.selectedColor === selectedColor &&
-          item.selectedSize === selectedSize
+          item.selectedSize === selectedSize,
       );
 
       if (existingIndex > -1) {
@@ -166,7 +185,48 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
       ];
     });
-    setIsCartOpen(true);
+
+    if (options?.openDrawer === true) {
+      setIsCartOpen(true);
+    }
+  };
+
+  const updateCartItemVariant = (
+    itemIndex: number,
+    selection: { color?: string; size?: string; variantId?: string },
+  ) => {
+    setCart((prevCart) => {
+      const current = prevCart[itemIndex];
+      if (!current) return prevCart;
+
+      const updatedItem: CartItem = {
+        ...current,
+        selectedColor: selection.color ?? current.selectedColor,
+        selectedSize: selection.size ?? current.selectedSize,
+        variantId: selection.variantId || current.variantId,
+      };
+
+      const duplicateIndex = prevCart.findIndex(
+        (item, index) =>
+          index !== itemIndex &&
+          item.product.id === updatedItem.product.id &&
+          item.selectedColor === updatedItem.selectedColor &&
+          item.selectedSize === updatedItem.selectedSize,
+      );
+
+      if (duplicateIndex > -1) {
+        const merged = [...prevCart];
+        merged[duplicateIndex] = {
+          ...merged[duplicateIndex],
+          quantity: merged[duplicateIndex].quantity + updatedItem.quantity,
+          variantId: selection.variantId || merged[duplicateIndex].variantId,
+        };
+        merged.splice(itemIndex, 1);
+        return merged;
+      }
+
+      return prevCart.map((item, index) => (index === itemIndex ? updatedItem : item));
+    });
   };
 
   const removeFromCart = (productId: string, color?: string, size?: string) => {
@@ -254,6 +314,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isStorageReady,
         setIsCartOpen,
         addToCart,
+        updateCartItemVariant,
         removeFromCart,
         updateQuantity,
         clearCart,

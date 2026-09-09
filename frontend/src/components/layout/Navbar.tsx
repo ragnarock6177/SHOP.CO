@@ -23,12 +23,17 @@ import { useAuth } from "@/context/AuthContext";
 import { getProductsApi, getCategoriesApi } from "@/lib/productApi";
 import { Category, Product } from "@/types/ecommerce";
 import { useAuthRedirectUrls } from "@/hooks/useAuthRedirectUrls";
+import { cn } from "@/lib/utils";
 import { MegaMenu } from "@/components/layout/MegaMenu";
 import {
   NavUnderlineButton,
   NavUnderlineLink,
   isNavLinkActive,
 } from "@/components/layout/NavUnderlineLink";
+import {
+  NavActionIconLink,
+  NavActionMobileLink,
+} from "@/components/layout/NavActionIconLink";
 import {
   COLLECTION_MOBILE_BROWSE_LINKS,
   COLLECTION_NAV_LABEL,
@@ -42,7 +47,7 @@ export const Navbar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { loginUrl } = useAuthRedirectUrls();
-  const { cartCount, wishlistCount, setIsCartOpen } = useCart();
+  const { cartCount, wishlistCount } = useCart();
   const { user, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -169,6 +174,9 @@ export const Navbar: React.FC = () => {
   };
 
   const isCollectionActive = isNavLinkActive("/product", pathname);
+  const isWishlistActive = isNavLinkActive("/wishlist", pathname);
+  const isCartActive = isNavLinkActive("/cart", pathname);
+  const isProfileActive = isNavLinkActive("/profile", pathname);
 
   return (
     <div
@@ -291,7 +299,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Right Action Icons */}
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
             {/* Mobile Search Icon Button */}
             <button
               onClick={() => setIsSearchOpen(true)}
@@ -301,63 +309,75 @@ export const Navbar: React.FC = () => {
               <Search className="w-6 h-6" />
             </button>
 
-            {/* Wishlist Link */}
-            <Link
+            <NavActionIconLink
               href="/wishlist"
-              className="p-2 text-black hover:text-gray-600 transition-colors relative"
-              aria-label="Wishlist"
-              title="My Wishlist"
-            >
-              <Heart className="w-6 h-6" />
-              {wishlistCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
+              label="My Wishlist"
+              count={wishlistCount}
+              isActive={isWishlistActive}
+              icon={Heart}
+              fillWhenActive
+            />
 
-            {/* Shopping Cart Button */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="p-2 text-black hover:text-gray-600 transition-colors relative"
-              aria-label="Shopping Cart"
-            >
-              <ShoppingBag className="w-6 h-6" />
-              {cartCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+            <NavActionIconLink
+              href="/cart"
+              label="My Cart"
+              count={cartCount}
+              isActive={isCartActive}
+              icon={ShoppingBag}
+            />
 
             {/* User Account / Profile */}
             {isAuthenticated && user ? (
               <Link
                 href="/profile"
-                className="p-1 hover:opacity-80 transition-all flex items-center"
+                className="group relative flex h-9 w-9 items-center justify-center transition-all duration-300 ease-out hover:opacity-90"
                 aria-label="User Profile"
+                aria-current={isProfileActive ? "page" : undefined}
                 title={user.firstName || user.email || "Profile"}
               >
                 {user.profileImage ? (
                   <img
                     src={user.profileImage}
                     alt={user.firstName || "User"}
-                    className="w-8 h-8 rounded-full object-cover border border-black/20"
+                    className={cn(
+                      "h-9 w-9 rounded-full object-cover transition-all duration-300",
+                      isProfileActive
+                        ? "shadow-[0_8px_28px_-10px_rgba(0,0,0,0.45)] ring-1 ring-neutral-950/10"
+                        : "ring-1 ring-neutral-200/80 group-hover:ring-neutral-300",
+                    )}
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-black text-white font-black text-xs flex items-center justify-center">
+                  <div
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold tracking-wide transition-all duration-300",
+                      isProfileActive
+                        ? "bg-neutral-950 text-white shadow-[0_8px_28px_-10px_rgba(0,0,0,0.45)]"
+                        : "bg-neutral-100 text-neutral-800 group-hover:bg-neutral-200/80 group-hover:text-neutral-950",
+                    )}
+                  >
                     {userInitial}
                   </div>
+                )}
+                {isProfileActive && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-white/10"
+                  />
                 )}
               </Link>
             ) : (
               <Link
                 href={loginUrl}
-                className="p-2 text-black hover:text-gray-600 transition-colors"
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out",
+                  isProfileActive
+                    ? "bg-neutral-950 text-white shadow-[0_8px_28px_-10px_rgba(0,0,0,0.45)]"
+                    : "text-neutral-800/80 hover:bg-neutral-100/90 hover:text-neutral-950",
+                )}
                 aria-label="User Account"
                 title="Account Login"
               >
-                <User className="w-6 h-6" />
+                <User className="h-[19px] w-[19px]" strokeWidth={isProfileActive ? 2 : 1.5} />
               </Link>
             )}
           </div>
@@ -643,29 +663,40 @@ export const Navbar: React.FC = () => {
               </div>
             ))}
 
-            <Link
-              href="/wishlist"
+            <NavActionMobileLink
+              href="/cart"
+              label="My Cart"
+              count={cartCount}
+              isActive={isCartActive}
+              icon={ShoppingBag}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <span>My Wishlist</span>
-                {wishlistCount > 0 && (
-                  <span className="bg-gray-100 text-black font-bold text-[10px] px-2.5 py-0.5 rounded-full">
-                    {wishlistCount}
-                  </span>
-                )}
-              </span>
-              <Heart className="w-4 h-4 text-black" />
-            </Link>
+            />
+
+            <NavActionMobileLink
+              href="/wishlist"
+              label="My Wishlist"
+              count={wishlistCount}
+              isActive={isWishlistActive}
+              icon={Heart}
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
 
             <Link
               href="/profile"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between py-2 border-b border-gray-100 hover:text-gray-600 transition-colors"
+              aria-current={isProfileActive ? "page" : undefined}
+              className={cn(
+                "mb-1.5 flex items-center gap-2.5 rounded-xl border px-4 py-3 text-[13px] font-semibold tracking-wide transition-all duration-300",
+                isProfileActive
+                  ? "border-neutral-200 bg-neutral-50 text-neutral-950 shadow-[inset_3px_0_0_0_#0a0a0a]"
+                  : "border-transparent text-neutral-700 hover:border-neutral-100 hover:bg-neutral-50/80 hover:text-neutral-950",
+              )}
             >
+              <User
+                className={cn("h-4 w-4", isProfileActive ? "text-neutral-950" : "text-neutral-500")}
+                strokeWidth={isProfileActive ? 2 : 1.5}
+              />
               <span>My Profile & Orders</span>
-              <User className="w-4 h-4 text-gray-400" />
             </Link>
           </nav>
         </div>

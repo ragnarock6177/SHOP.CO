@@ -17,6 +17,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useSizeSelection } from '@/context/SizeSelectionContext';
 import { ColorSwatch } from '@/components/product/ColorSwatch';
 import { ProductCard } from '@/components/product/ProductCard';
 import { WriteReviewModal } from '@/components/product/WriteReviewModal';
@@ -27,6 +28,12 @@ import {
   PRODUCT_DETAIL_MAIN_SIZES,
   PRODUCT_DETAIL_THUMB_SIZES,
 } from '@/lib/productMedia';
+import {
+  getAvailableSizes,
+  productRequiresSize,
+  resolveProductColor,
+  resolveVariant,
+} from '@/lib/productVariants';
 
 interface ProductDetailClientProps {
   product: Product;
@@ -34,36 +41,17 @@ interface ProductDetailClientProps {
 }
 
 function getDefaultColor(product: Product): string {
-  if (product.defaultColor) return product.defaultColor;
-  if (product.colors?.[0]?.name) return product.colors[0].name;
-  return '';
-}
-
-function getDefaultSize(product: Product, colorName: string): string {
-  const colorVariants =
-    product.variants?.filter((variant) => {
-      const colorAttr = variant.attributes.find(
-        (attr) =>
-          attr.attributeSlug === 'color' || attr.attributeName.toLowerCase() === 'color',
-      );
-      return !colorName || !colorAttr || colorAttr.value.toLowerCase() === colorName.toLowerCase();
-    }) || [];
-
-  const inStockVariant = colorVariants.find((variant) => variant.stockAvailable > 0);
-  const sizeAttr = (inStockVariant || colorVariants[0])?.attributes.find(
-    (attr) => attr.attributeSlug === 'size' || attr.attributeName.toLowerCase() === 'size',
-  );
-
-  return sizeAttr?.value || product.sizes?.[0] || '';
+  return resolveProductColor(product) || '';
 }
 
 export function ProductDetailClient({ product, relatedProducts }: ProductDetailClientProps) {
-  const { addToCart, toggleWishlist, isInWishlist } = useCart();
+  const { toggleWishlist, isInWishlist } = useCart();
+  const { requestAddToCart } = useSizeSelection();
   const isWished = isInWishlist(product.id);
 
   const initialColor = getDefaultColor(product);
   const [selectedColor, setSelectedColor] = useState(initialColor);
-  const [selectedSize, setSelectedSize] = useState(getDefaultSize(product, initialColor));
+  const [selectedSize, setSelectedSize] = useState("");
   const [colorGallery, setColorGallery] = useState<string[]>(
     getImagesForColor(product, initialColor),
   );
@@ -150,62 +138,15 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
   };
 
   const availableSizes = useMemo(() => {
-    if (!product.variants?.length) return product.sizes || [];
-
-    const sizes = new Set<string>();
-    product.variants.forEach((variant) => {
-      const colorAttr = variant.attributes.find(
-        (attr) =>
-          attr.attributeSlug === 'color' || attr.attributeName.toLowerCase() === 'color',
-      );
-      const sizeAttr = variant.attributes.find(
-        (attr) =>
-          attr.attributeSlug === 'size' || attr.attributeName.toLowerCase() === 'size',
-      );
-
-      const matchesColor =
-        !selectedColor ||
-        !colorAttr ||
-        colorAttr.value.toLowerCase() === selectedColor.toLowerCase();
-
-      if (matchesColor && sizeAttr?.value) {
-        sizes.add(sizeAttr.value);
-      }
-    });
-
-    return sizes.size > 0 ? Array.from(sizes) : product.sizes || [];
-  }, [product.sizes, product.variants, selectedColor]);
-
-  useEffect(() => {
-    if (availableSizes.length > 0 && !availableSizes.includes(selectedSize)) {
-      setSelectedSize(availableSizes[0]);
-    }
-  }, [availableSizes, selectedSize]);
+    return getAvailableSizes(product, selectedColor || undefined);
+  }, [product, selectedColor]);
 
   const activeVariant = useMemo(() => {
     if (!product.variants || product.variants.length === 0) return null;
-    return (
-      product.variants.find((variant) => {
-        const colorAttr = variant.attributes.find(
-          (attr) =>
-            attr.attributeSlug === 'color' || attr.attributeName.toLowerCase() === 'color',
-        );
-        const sizeAttr = variant.attributes.find(
-          (attr) =>
-            attr.attributeSlug === 'size' || attr.attributeName.toLowerCase() === 'size',
-        );
-        const matchesColor =
-          !selectedColor ||
-          !colorAttr ||
-          colorAttr.value.toLowerCase() === selectedColor.toLowerCase();
-        const matchesSize =
-          !selectedSize ||
-          !sizeAttr ||
-          sizeAttr.value.toLowerCase() === selectedSize.toLowerCase();
-        return matchesColor && matchesSize;
-      }) || product.variants[0]
-    );
-  }, [product.variants, selectedColor, selectedSize]);
+    if (productRequiresSize(product) && !selectedSize) return null;
+
+    return resolveVariant(product, selectedColor || undefined, selectedSize || undefined);
+  }, [product, selectedColor, selectedSize]);
 
   const getSizeStock = (size: string) => {
     if (!product.variants?.length) return product.stockAvailable ?? 0;
@@ -240,7 +181,8 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
   const stockAvailable = activeVariant
     ? activeVariant.stockAvailable
     : (product.stockAvailable ?? 0);
-  const isOutOfStock = stockAvailable <= 0;
+  const isOutOfStock = activeVariant ? activeVariant.stockAvailable <= 0 : !product.inStock;
+  const selectionIncomplete = productRequiresSize(product) && !selectedSize;
 
   const [reviewsList, setReviewsList] = useState<Review[]>([]);
   const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
@@ -248,8 +190,11 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(6);
 
   const handleAddToCart = () => {
-    if (isOutOfStock) return;
-    addToCart(product, quantity, selectedColor, selectedSize, activeVariant?.id);
+    if (selectionIncomplete || isOutOfStock) return;
+    requestAddToCart(product, selectedColor || undefined, quantity, {
+      size: selectedSize || undefined,
+      variantId: activeVariant?.id,
+    });
   };
 
   const handleAddReview = (newReview: Review) => {
@@ -479,7 +424,8 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           {product.colors && product.colors.length > 0 && (
             <div className="space-y-2.5">
               <label className="text-xs font-extrabold text-gray-500 uppercase tracking-wider block">
-                Select Color: <span className="text-black capitalize">{selectedColor}</span>
+                Select Color:{" "}
+                <span className="text-black capitalize">{selectedColor}</span>
               </label>
               <div className="flex flex-wrap items-center gap-3">
                 {product.colors.map((c) => (
@@ -490,6 +436,7 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
                     selected={selectedColor === c.name}
                     onClick={() => {
                       setSelectedColor(c.name);
+                      setSelectedSize('');
                       setQuantity(1);
                     }}
                   />
@@ -501,7 +448,7 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           <hr className="border-gray-200/80" />
 
           {/* Choose Size */}
-          {availableSizes.length > 0 && (
+          {productRequiresSize(product) && (
             <div className="space-y-2.5">
               <label className="text-xs font-extrabold text-gray-500 uppercase tracking-wider block">
                 Choose Size
@@ -558,14 +505,18 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
 
             <button
               onClick={handleAddToCart}
-              disabled={isOutOfStock}
+              disabled={isOutOfStock || selectionIncomplete}
               className={`flex-1 py-3 sm:py-3.5 px-4 sm:px-8 rounded-full font-extrabold text-xs sm:text-sm uppercase transition-all shadow-md active:scale-98 ${
-                isOutOfStock
+                isOutOfStock || selectionIncomplete
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : 'bg-black hover:bg-neutral-800 text-white cursor-pointer'
               }`}
             >
-              {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+              {isOutOfStock
+                ? 'Out of Stock'
+                : selectionIncomplete
+                  ? 'Select Size'
+                  : 'Add to Cart'}
             </button>
 
             <button

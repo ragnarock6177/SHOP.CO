@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,6 +14,9 @@ import {
   Loader2,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { CheckoutOrderItem } from "@/components/shop/CheckoutOrderItem";
+import { getCartItemsMissingSelection } from "@/lib/productVariants";
+import { toast } from "sonner";
 import {
   getCheckoutSummaryApi,
   placeOrderApi,
@@ -24,7 +26,7 @@ import {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, updateCartItemVariant } = useCart();
 
   const [paymentMethod, setPaymentMethod] = useState<
     "card" | "paypal" | "applepay" | "cod"
@@ -60,6 +62,12 @@ export default function CheckoutPage() {
   // Order submission state
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (cart.length === 0) {
+      router.replace("/cart");
+    }
+  }, [cart.length, router]);
 
   // Fetch backend calculation summary whenever cart, speed, applied promo, or postal code changes
   useEffect(() => {
@@ -108,6 +116,11 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0 || submitting) return;
+
+    if (getCartItemsMissingSelection(cart).length > 0) {
+      toast.error("Please select a size for all items before placing your order.");
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError(null);
@@ -515,30 +528,16 @@ export default function CheckoutPage() {
               </div>
 
               {/* Items Preview List */}
-              <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+              <div className="max-h-72 space-y-2.5 overflow-y-auto pr-1">
                 {cart.map((item, idx) => (
-                  <div key={idx} className="flex gap-3 items-center text-xs">
-                    <div className="w-10 h-12 aspect-3/4 bg-[#F0EEED] rounded-xl overflow-hidden relative shrink-0 border border-gray-100">
-                      <Image
-                        src={item.product.image}
-                        alt={item.product.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h5 className="font-bold text-black truncate">
-                        {item.product.title}
-                      </h5>
-                      <p className="text-gray-500 text-[11px] font-medium">
-                        Qty: {item.quantity} &bull; {item.selectedSize || "M"}{" "}
-                        &bull; {item.selectedColor || "Standard"}
-                      </p>
-                    </div>
-                    <span className="font-black text-black">
-                      ₹{(item.product.price * item.quantity).toLocaleString()}
-                    </span>
-                  </div>
+                  <CheckoutOrderItem
+                    key={`${item.product.id}-${item.selectedColor || ""}-${item.selectedSize || ""}-${idx}`}
+                    item={item}
+                    itemIndex={idx}
+                    onSizeChange={(itemIndex, selection) =>
+                      updateCartItemVariant(itemIndex, selection)
+                    }
+                  />
                 ))}
               </div>
 

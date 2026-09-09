@@ -120,6 +120,51 @@ export function normalizeProduct(apiItem: any): Product {
       .replace(/(^-|-$)/g, "") ||
     apiItem.id;
 
+  const mapVariantAttributes = (v: any) => {
+    if (Array.isArray(v.attributes) && v.attributes.length > 0) {
+      return v.attributes;
+    }
+
+    if (Array.isArray(v.variantAttributeValues) && v.variantAttributeValues.length > 0) {
+      return v.variantAttributeValues.map((vav: any) => ({
+        attributeSlug: vav.attributeValue?.attribute?.slug || "",
+        attributeName: vav.attributeValue?.attribute?.name || "",
+        valueSlug: vav.attributeValue?.slug || "",
+        value: vav.attributeValue?.value || "",
+        colorHex: vav.attributeValue?.colorHex || undefined,
+      }));
+    }
+
+    const attrs: {
+      attributeSlug: string;
+      attributeName: string;
+      valueSlug: string;
+      value: string;
+      colorHex?: string;
+    }[] = [];
+
+    if (v.colorName) {
+      attrs.push({
+        attributeSlug: "color",
+        attributeName: "Color",
+        valueSlug: String(v.colorName).toLowerCase().replace(/\s+/g, "-"),
+        value: v.colorName,
+        colorHex: v.colorHex || undefined,
+      });
+    }
+
+    if (v.sizeName) {
+      attrs.push({
+        attributeSlug: "size",
+        attributeName: "Size",
+        valueSlug: String(v.sizeName).toLowerCase().replace(/\s+/g, "-"),
+        value: v.sizeName,
+      });
+    }
+
+    return attrs;
+  };
+
   const variants = Array.isArray(apiItem.variants)
     ? apiItem.variants.map((v: any) => ({
         id: v.id,
@@ -133,17 +178,7 @@ export function normalizeProduct(apiItem: any): Product {
               : 0),
         ),
         isDefault: Boolean(v.isDefault),
-        attributes: Array.isArray(v.attributes)
-          ? v.attributes
-          : Array.isArray(v.variantAttributeValues)
-            ? v.variantAttributeValues.map((vav: any) => ({
-                attributeSlug: vav.attributeValue?.attribute?.slug || "",
-                attributeName: vav.attributeValue?.attribute?.name || "",
-                valueSlug: vav.attributeValue?.slug || "",
-                value: vav.attributeValue?.value || "",
-                colorHex: vav.attributeValue?.colorHex || undefined,
-              }))
-            : [],
+        attributes: mapVariantAttributes(v),
       }))
     : undefined;
 

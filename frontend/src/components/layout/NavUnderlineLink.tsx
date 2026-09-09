@@ -3,8 +3,13 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+const navItemClasses =
+  "group relative inline-flex shrink-0 items-center whitespace-nowrap py-1 transition-colors hover:text-neutral-600";
+
 const underlineClasses =
-  "absolute bottom-0 left-0 h-[2px] w-full origin-left bg-black transition-transform duration-300 ease-out";
+  "pointer-events-none absolute bottom-0 left-0 h-px w-0 bg-black transition-[width] duration-300 ease-out group-hover:w-full";
+
+const underlineActiveClasses = "w-full";
 
 interface NavUnderlineLinkProps {
   href: string;
@@ -25,15 +30,12 @@ export function NavUnderlineLink({
     <Link
       href={href}
       onClick={onClick}
-      className={cn(
-        "group relative inline-flex shrink-0 items-center whitespace-nowrap py-1 transition-colors hover:text-neutral-600",
-        className,
-      )}
+      className={cn(navItemClasses, className)}
     >
       {children}
       <span
         aria-hidden
-        className={cn(underlineClasses, isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100")}
+        className={cn(underlineClasses, isActive && underlineActiveClasses)}
       />
     </Link>
   );
@@ -52,16 +54,13 @@ export function NavUnderlineButton({
   return (
     <button
       type="button"
-      className={cn(
-        "group relative inline-flex shrink-0 items-center whitespace-nowrap py-1 transition-colors hover:text-neutral-600 focus:outline-none",
-        className,
-      )}
+      className={cn(navItemClasses, "focus:outline-none", className)}
       {...props}
     >
       {children}
       <span
         aria-hidden
-        className={cn(underlineClasses, isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100")}
+        className={cn(underlineClasses, isActive && underlineActiveClasses)}
       />
     </button>
   );

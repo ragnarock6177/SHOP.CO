@@ -3,16 +3,17 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Star, Heart, ShoppingBag, Check, Zap } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { useCart } from "@/context/CartContext";
+import { useSizeSelection } from "@/context/SizeSelectionContext";
 import { ColorSwatchStack } from "@/components/product/ColorSwatchStack";
 import {
   getProductImageProps,
   PLACEHOLDER_IMAGE,
   PRODUCT_CARD_IMAGE_SIZES,
 } from "@/lib/productMedia";
+import { resolveProductColor } from "@/lib/productVariants";
 
 interface ProductCardProps {
   product: Product;
@@ -32,12 +33,12 @@ export function formatShortSize(size: string): string {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const router = useRouter();
-  const { addToCart, toggleWishlist, isInWishlist } = useCart();
+  const { toggleWishlist, isInWishlist } = useCart();
+  const { requestBuyNow, requestAddToCart } = useSizeSelection();
   const isWished = isInWishlist(product.id);
   const [added, setAdded] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>(
-    product.defaultColor || (product.colors && product.colors.length > 0 ? product.colors[0].name : ""),
+    () => resolveProductColor(product) || "",
   );
 
   const displayImage = useMemo(() => {
@@ -65,16 +66,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1, selectedColor || undefined);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
+    requestAddToCart(product, selectedColor || undefined, 1, {
+      onSuccess: () => {
+        setAdded(true);
+        setTimeout(() => setAdded(false), 1200);
+      },
+    });
   };
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1, selectedColor || undefined);
-    router.push("/checkout");
+    requestBuyNow(product, selectedColor || undefined, 1);
   };
 
   const renderStars = (rating: number) => {
@@ -195,7 +198,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </div>
 
       <div className="relative z-0 flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
-        {product.colors && product.colors.length > 1 && (
+        {product.colors && product.colors.length > 0 && (
           <div className="relative z-[2]">
             <ColorSwatchStack
               colors={product.colors}
