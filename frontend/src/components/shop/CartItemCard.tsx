@@ -11,7 +11,7 @@ import {
   getProductImageProps,
   PRODUCT_CARD_IMAGE_SIZES,
 } from "@/lib/productMedia";
-import { productRequiresSize } from "@/lib/productVariants";
+import { productRequiresSize, getCartItemMaxQuantity } from "@/lib/productVariants";
 import { formatINR } from "@/lib/formatPrice";
 
 interface CartItemCardProps {
@@ -34,6 +34,9 @@ export function CartItemCard({
   const productHref = `/product/${item.product.slug || item.product.id}`;
   const lineTotal = item.product.price * item.quantity;
   const showSizeSelect = productRequiresSize(item.product);
+  const maxQuantity = getCartItemMaxQuantity(item);
+  const atMaxQuantity = maxQuantity > 0 && item.quantity >= maxQuantity;
+  const isLowStock = maxQuantity > 0 && maxQuantity <= 5;
 
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-neutral-200/90 bg-white p-3 shadow-[0_1px_0_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300 hover:border-neutral-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] sm:p-4">
@@ -78,6 +81,12 @@ export function CartItemCard({
                   />
                 )}
               </div>
+
+              {isLowStock && (
+                <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                  Only {maxQuantity} left!
+                </p>
+              )}
             </div>
 
             <button
@@ -115,7 +124,8 @@ export function CartItemCard({
                 <button
                   type="button"
                   onClick={onIncrease}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-black transition-colors hover:bg-white"
+                  disabled={atMaxQuantity}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-black transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
                   aria-label="Increase quantity"
                 >
                   <Plus className="h-3.5 w-3.5" />

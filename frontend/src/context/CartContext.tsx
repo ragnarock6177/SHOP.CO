@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef } from 'react';
 import { Product, CartItem } from '../types/ecommerce';
-import { resolveProductColor } from '@/lib/productVariants';
+import { resolveProductColor, getCartItemMaxQuantity } from '@/lib/productVariants';
 import { useAuth } from './AuthContext';
 import { syncLocalWishlistToServer } from '@/lib/wishlistApi';
 
@@ -11,30 +11,10 @@ export interface WishlistItem {
   addedAt: string;
 }
 
-export interface OrderRecord {
-  id: string;
-  date: string;
-  status: string;
-  statusColor: string;
-  total: number;
-  trackingNum: string;
-  items: {
-    title: string;
-    price: number;
-    color: string;
-    size: string;
-    quantity: number;
-    image: string;
-  }[];
-  shippingAddress?: string;
-  paymentMethod?: string;
-}
-
 interface CartContextType {
   cart: CartItem[];
   wishlistItems: WishlistItem[];
   wishlistProducts: Product[];
-  orders: OrderRecord[];
   isCartOpen: boolean;
   isStorageReady: boolean;
   setIsCartOpen: (open: boolean) => void;
@@ -53,7 +33,6 @@ interface CartContextType {
   removeFromCart: (productId: string, color?: string, size?: string) => void;
   updateQuantity: (productId: string, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
-  addOrder: (order: OrderRecord) => void;
   toggleWishlist: (product: Product) => void;
   removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
@@ -66,10 +45,7 @@ interface CartContextType {
 const STORAGE_KEYS = {
   cart: 'ecommerce_cart_v2',
   wishlistItems: 'ecommerce_wishlist_items',
-  orders: 'ecommerce_orders',
 } as const;
-
-const DEFAULT_ORDERS: OrderRecord[] = [];
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -90,7 +66,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { isAuthenticated, token, isHydrated } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isStorageReady, setIsStorageReady] = useState(false);
   const hasSyncedWishlistRef = useRef(false);
@@ -98,18 +73,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem(STORAGE_KEYS.cart);
-      const savedOrders = localStorage.getItem(STORAGE_KEYS.orders);
 
       if (savedCart) setCart(JSON.parse(savedCart));
       setWishlistItems(loadWishlistItems());
-      if (savedOrders) {
-        setOrders(JSON.parse(savedOrders));
-      } else {
-        setOrders(DEFAULT_ORDERS);
-      }
+      localStorage.removeItem('ecommerce_orders');
     } catch (e) {
       console.error('Failed to load cart state', e);
-      setOrders(DEFAULT_ORDERS);
     } finally {
       setIsStorageReady(true);
     }
@@ -120,11 +89,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart));
       localStorage.setItem(STORAGE_KEYS.wishlistItems, JSON.stringify(wishlistItems));
-      localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(orders));
     } catch (e) {
       console.error('Failed to persist cart state', e);
     }
-  }, [cart, wishlistItems, orders, isStorageReady]);
+  }, [cart, wishlistItems, isStorageReady]);
 
   useEffect(() => {
     if (!isStorageReady || !isHydrated || !isAuthenticated || !token) return;
@@ -167,23 +135,31 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (existingIndex > -1) {
         const updated = [...prevCart];
-        updated[existingIndex].quantity += quantity;
-        if (variantId && !updated[existingIndex].variantId) {
-          updated[existingIndex].variantId = variantId;
+        const nextItem = { ...updated[existingIndex] };
+        const maxQty = getCartItemMaxQuantity(nextItem);
+        nextItem.quantity = Math.min(nextItem.quantity + quantity, Math.max(maxQty, 1));
+        if (variantId && !nextItem.variantId) {
+          nextItem.variantId = variantId;
         }
+        updated[existingIndex] = nextItem;
         return updated;
       }
 
-      return [
-        ...prevCart,
-        {
+      const newItem: CartItem = {
+        product,
+        quantity: Math.min(quantity, Math.max(getCartItemMaxQuantity({
           product,
           quantity,
           selectedColor,
           selectedSize,
           variantId,
-        },
-      ];
+        }), 1)),
+        selectedColor,
+        selectedSize,
+        variantId,
+      };
+
+      return [...prevCart, newItem];
     });
 
     if (options?.openDrawer === true) {
@@ -254,7 +230,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           (color === undefined || item.selectedColor === color) &&
           (size === undefined || item.selectedSize === size)
         ) {
-          return { ...item, quantity };
+          const maxQty = getCartItemMaxQuantity(item);
+          const capped = maxQty > 0 ? Math.min(quantity, maxQty) : quantity;
+          return { ...item, quantity: capped };
         }
         return item;
       })
@@ -263,10 +241,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const clearCart = () => {
     setCart([]);
-  };
-
-  const addOrder = (newOrder: OrderRecord) => {
-    setOrders((prev) => [newOrder, ...prev]);
   };
 
   const toggleWishlist = (product: Product) => {
@@ -309,7 +283,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cart,
         wishlistItems,
         wishlistProducts,
-        orders,
         isCartOpen,
         isStorageReady,
         setIsCartOpen,
@@ -318,7 +291,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         removeFromCart,
         updateQuantity,
         clearCart,
-        addOrder,
         toggleWishlist,
         removeFromWishlist,
         isInWishlist,

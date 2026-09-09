@@ -2,6 +2,7 @@ import prisma from "../../lib/prisma.js";
 import { parseAdminQueryParams } from "../../utils/adminQueryParams.js";
 import { OrderStatus } from "@prisma/client";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import { restoreInventoryForOrder } from "../../utils/inventory.utils.js";
 
 // Valid order status state machine transitions
 const ALLOWED_ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
@@ -178,34 +179,17 @@ export class AdminOrdersService {
         },
       });
 
-      // If transitioning to CANCELLED, release reserved inventory
+      // If transitioning to CANCELLED, restore inventory
       if (newStatus === OrderStatus.CANCELLED) {
         const orderItems = await tx.orderItem.findMany({ where: { orderId } });
-        for (const item of orderItems) {
-          if (item.variantId) {
-            const inv = await tx.inventory.findUnique({ where: { variantId: item.variantId } });
-            if (inv) {
-              await tx.inventory.update({
-                where: { id: inv.id },
-                data: {
-                  quantityOnHand: inv.quantityOnHand + item.quantity,
-                },
-              });
-
-              await tx.inventoryMovement.create({
-                data: {
-                  variantId: item.variantId,
-                  movementType: "RELEASE",
-                  quantity: item.quantity,
-                  referenceType: "ORDER_CANCELLATION",
-                  referenceId: orderId,
-                  notes: `Order #${order.orderNumber} cancelled by admin`,
-                  createdBy: adminUserId,
-                },
-              });
-            }
-          }
-        }
+        await restoreInventoryForOrder(
+          tx,
+          orderId,
+          order.orderNumber,
+          orderItems,
+          notes || `Order #${order.orderNumber} cancelled by admin`,
+          adminUserId
+        );
       }
     });
 

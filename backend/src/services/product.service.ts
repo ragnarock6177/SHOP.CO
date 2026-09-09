@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { getStockStatus, LOW_STOCK_THRESHOLD } from "../utils/inventory.utils.js";
 import { NotFoundError } from "../utils/errors.js";
 import { parsePaginationParams, buildPaginationMeta } from "../utils/pagination.js";
 import { getExpandedSearchTokens } from "../utils/dynamicSearch.js";
@@ -250,6 +251,7 @@ export class ProductService {
           0,
           (v.inventory?.quantityOnHand || 0) - (v.inventory?.quantityReserved || 0),
         );
+        const stockStatus = getStockStatus(stockAvailable);
 
         return {
           id: v.id,
@@ -259,6 +261,9 @@ export class ProductService {
           colorHex: colorVal?.colorHex || null,
           sizeName: sizeVal?.value || null,
           stockAvailable,
+          stockStatus,
+          isLowStock: stockStatus === "LOW_STOCK",
+          lowStockThreshold: LOW_STOCK_THRESHOLD,
         };
       });
 
@@ -371,6 +376,7 @@ export class ProductService {
       const available = v.inventory
         ? Math.max(0, v.inventory.quantityOnHand - v.inventory.quantityReserved)
         : 0;
+      const stockStatus = getStockStatus(available);
 
       return {
         id: v.id,
@@ -382,6 +388,9 @@ export class ProductService {
         weightGrams: v.weightGrams ? v.weightGrams.toNumber() : null,
         isDefault: v.isDefault,
         stockAvailable: available,
+        stockStatus,
+        isLowStock: stockStatus === "LOW_STOCK",
+        lowStockThreshold: LOW_STOCK_THRESHOLD,
         attributes: v.variantAttributeValues.map((vav) => ({
           attributeSlug: vav.attributeValue.attribute.slug,
           attributeName: vav.attributeValue.attribute.name,

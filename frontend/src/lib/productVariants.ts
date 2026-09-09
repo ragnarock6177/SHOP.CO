@@ -1,5 +1,7 @@
 import { CartItem, Product, ProductVariant } from "@/types/ecommerce";
 
+export const LOW_STOCK_THRESHOLD = 5;
+
 const SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL"];
 
 function isColorAttribute(attr: ProductVariant["attributes"][number]) {
@@ -74,21 +76,48 @@ export function getAvailableSizes(product: Product, colorName?: string): string[
 
 export function getSizeStock(product: Product, size: string, colorName?: string): number {
   if (!product.variants?.length) {
-    return product.stockAvailable ?? (product.inStock ? 99 : 0);
+    return product.stockAvailable ?? 0;
   }
 
-  const variant = product.variants.find((item) => {
-    const colorAttr = item.attributes.find((attr) => isColorAttribute(attr));
-    const sizeAttr = item.attributes.find((attr) => isSizeAttribute(attr));
-    const matchesColor =
-      !colorName ||
-      !colorAttr ||
-      colorAttr.value.toLowerCase() === colorName.toLowerCase();
-    const matchesSize = sizeAttr?.value.toLowerCase() === size.toLowerCase();
-    return matchesColor && matchesSize;
-  });
+  const variant = product.variants.find((item) =>
+    variantMatchesSelection(item, colorName, size),
+  );
 
   return variant?.stockAvailable ?? 0;
+}
+
+export function getCartItemMaxQuantity(item: CartItem): number {
+  if (item.selectedSize) {
+    return getSizeStock(item.product, item.selectedSize, item.selectedColor);
+  }
+
+  const variant = resolveVariant(item.product, item.selectedColor, item.selectedSize);
+  if (variant) return variant.stockAvailable;
+
+  return item.product.stockAvailable ?? 0;
+}
+
+function variantMatchesSelection(
+  variant: ProductVariant,
+  colorName?: string,
+  sizeName?: string,
+): boolean {
+  const colorAttr = variant.attributes.find((attr) => isColorAttribute(attr));
+  const sizeAttr = variant.attributes.find((attr) => isSizeAttribute(attr));
+
+  if (colorName) {
+    if (!colorAttr || colorAttr.value.toLowerCase() !== colorName.toLowerCase()) {
+      return false;
+    }
+  }
+
+  if (sizeName) {
+    if (!sizeAttr || sizeAttr.value.toLowerCase() !== sizeName.toLowerCase()) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function resolveVariant(
@@ -98,21 +127,47 @@ export function resolveVariant(
 ): ProductVariant | null {
   if (!product.variants?.length) return null;
 
-  return (
-    product.variants.find((variant) => {
-      const colorAttr = variant.attributes.find((attr) => isColorAttribute(attr));
-      const sizeAttr = variant.attributes.find((attr) => isSizeAttribute(attr));
-      const matchesColor =
-        !colorName ||
-        !colorAttr ||
-        colorAttr.value.toLowerCase() === colorName.toLowerCase();
-      const matchesSize =
-        !sizeName ||
-        !sizeAttr ||
-        sizeAttr.value.toLowerCase() === sizeName.toLowerCase();
-      return matchesColor && matchesSize;
-    }) || null
+  const exact = product.variants.find((variant) =>
+    variantMatchesSelection(variant, colorName, sizeName),
   );
+  if (exact) return exact;
+
+  // Size required but no exact match yet — do not fall back to another variant.
+  if (sizeName) return null;
+
+  if (colorName) {
+    return (
+      product.variants.find((variant) =>
+        variantMatchesSelection(variant, colorName, undefined),
+      ) || null
+    );
+  }
+
+  if (product.variants.length === 1) return product.variants[0];
+  return product.variants.find((variant) => variant.isDefault) || null;
+}
+
+export function getVariantStock(
+  product: Product,
+  colorName?: string,
+  sizeName?: string,
+): number {
+  if (!product.variants?.length) {
+    return product.stockAvailable ?? 0;
+  }
+
+  if (productRequiresSize(product) && !sizeName) {
+    return 0;
+  }
+
+  const variant = resolveVariant(product, colorName, sizeName);
+  if (variant) return variant.stockAvailable;
+
+  if (sizeName) {
+    return getSizeStock(product, sizeName, colorName);
+  }
+
+  return 0;
 }
 
 export function cartItemNeedsSize(item: CartItem): boolean {

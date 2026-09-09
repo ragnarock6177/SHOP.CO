@@ -117,7 +117,9 @@ export default function CheckoutPage() {
     setSummaryError(null);
 
     const itemsPayload = cart.map((i) => ({
-      id: i.product.id,
+      id: i.variantId || i.product.id,
+      variantId: i.variantId,
+      productId: i.product.id,
       quantity: i.quantity,
       selectedColor: i.selectedColor || undefined,
       selectedSize: i.selectedSize || undefined,
@@ -152,6 +154,11 @@ export default function CheckoutPage() {
 
     if (getCartItemsMissingSelection(cart).length > 0) {
       toast.error("Please select a size for all items before placing your order.");
+      return;
+    }
+
+    if (summary?.items?.some((item) => !item.inStock)) {
+      toast.error("Some items exceed available stock. Please update quantities in your cart.");
       return;
     }
 

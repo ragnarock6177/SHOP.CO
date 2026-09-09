@@ -319,6 +319,24 @@ export async function getProductBySlugOrIdApi(slugOrId: string): Promise<Product
   return normalizeProduct(item);
 }
 
+/** Always fetches fresh variant stock from the API (no ISR/cache). Use on PDP. */
+export async function getProductLiveApi(slugOrId: string): Promise<Product | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/${encodeURIComponent(slugOrId)}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) return null;
+
+    const payload = await response.json();
+    const item = (payload as { data?: unknown }).data;
+    if (!item) return null;
+    return normalizeProduct(item);
+  } catch {
+    return null;
+  }
+}
+
 export async function getAllProductSlugsOrIdsApi(): Promise<string[]> {
   const { products } = await getProductsApi({ limit: 100 });
   return products.map((product) => product.slug || product.id);

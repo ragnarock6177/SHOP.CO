@@ -2,6 +2,12 @@ import prisma from "../lib/prisma.js";
 import { NotFoundError, UnprocessableEntityError, ForbiddenError } from "../utils/errors.js";
 import { parsePaginationParams, buildPaginationMeta } from "../utils/pagination.js";
 import { AddressType, OrderStatus, PaymentStatus, InventoryMovementType } from "@prisma/client";
+import { restoreInventoryForOrder } from "../utils/inventory.utils.js";
+import {
+  buildVariantDisplayName,
+  getVariantAvailableStock,
+  resolveLineItemVariant,
+} from "../utils/variantResolver.js";
 
 export class OrderService {
   static async createOrder(
@@ -119,62 +125,28 @@ export class OrderService {
       // 1. Resolve item details & validate stock directly from DB as single source of truth
       const pendingReservations: { variantId: string; inventoryId: string; quantity: number }[] = [];
       for (const item of payload.items) {
-        const targetId = item.id || item.variantId || item.productId;
-        let variant: any = null;
-        let product: any = null;
-
-        if (targetId) {
-          // 1a. Attempt lookup by ProductVariant ID
-          variant = await tx.productVariant.findFirst({
-            where: { id: targetId, isActive: true, deletedAt: null },
-            include: {
-              product: { include: { images: { take: 1, orderBy: { sortOrder: "asc" } } } },
-              inventory: true,
-            },
-          });
-
-          // 1b. If not a variant ID, attempt lookup by Product ID
-          if (!variant) {
-            product = await tx.product.findFirst({
-              where: { id: targetId, status: "ACTIVE", deletedAt: null },
-              include: {
-                variants: {
-                  where: { isActive: true, deletedAt: null },
-                  include: { inventory: true },
-                },
-                images: { take: 1, orderBy: { sortOrder: "asc" } },
-              },
-            });
-
-            if (product && product.variants.length > 0) {
-              variant =
-                product.variants.find(
-                  (v: any) =>
-                    (!item.selectedColor || v.color === item.selectedColor) &&
-                    (!item.selectedSize || v.size === item.selectedSize)
-                ) || product.variants[0];
-              variant.product = product;
-            }
-          }
-        }
+        const { variant, product } = await resolveLineItemVariant(tx, item);
 
         let unitPrice = item.unitPrice || 0;
         let sku = `SKU-${Date.now().toString().slice(-6)}`;
         let productName = item.title || "Selected Garment";
-        let variantName = `${item.selectedColor || "Standard"} / ${item.selectedSize || "Default"}`;
+        let variantName = buildVariantDisplayName(variant, item.selectedColor, item.selectedSize);
         let variantId: string | null = null;
 
         if (variant) {
-          // Authoritative DB pricing, name, and stock
           unitPrice = variant.price ? Number(variant.price) : Number(variant.product.basePrice);
           sku = variant.sku;
           productName = variant.product.name;
-          variantName = variant.variantName || `${item.selectedColor || "Standard"} / ${item.selectedSize || "M"}`;
+          variantName = buildVariantDisplayName(variant, item.selectedColor, item.selectedSize);
           variantId = variant.id;
 
-          const available = variant.inventory
-            ? variant.inventory.quantityOnHand - variant.inventory.quantityReserved
-            : 50;
+          const available = getVariantAvailableStock(variant);
+
+          if (!variant.inventory) {
+            throw new UnprocessableEntityError(
+              `Inventory not configured for ${productName} (${variantName}).`
+            );
+          }
 
           if (available < item.quantity) {
             throw new UnprocessableEntityError(
@@ -182,16 +154,21 @@ export class OrderService {
             );
           }
 
-          if (variant.inventory) {
-            pendingReservations.push({
-              variantId: variant.id,
-              inventoryId: variant.inventory.id,
-              quantity: item.quantity,
-            });
-          }
+          pendingReservations.push({
+            variantId: variant.id,
+            inventoryId: variant.inventory.id,
+            quantity: item.quantity,
+          });
         } else if (product) {
+          if (product.variants?.length > 0) {
+            throw new UnprocessableEntityError(
+              `Please select a valid variant for ${product.name}.`
+            );
+          }
           unitPrice = Number(product.basePrice);
           productName = product.name;
+        } else {
+          throw new UnprocessableEntityError("One or more items in your cart could not be found.");
         }
 
         const qty = Math.max(1, item.quantity);
@@ -368,39 +345,37 @@ export class OrderService {
         });
       }
 
-      // 4c. If COD payment, immediately deduct physical stock and mark reservation fulfilled
-      if (payload.paymentMethod === "COD") {
-        for (const item of order.items) {
-          if (item.variantId) {
-            const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
-            if (inventory) {
-              await tx.inventory.update({
-                where: { id: inventory.id },
-                data: {
-                  quantityOnHand: Math.max(0, inventory.quantityOnHand - item.quantity),
-                  quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
-                },
-              });
+      // 4c. Deduct physical stock immediately (storefront checkout is synchronous)
+      for (const item of order.items) {
+        if (item.variantId) {
+          const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
+          if (inventory) {
+            await tx.inventory.update({
+              where: { id: inventory.id },
+              data: {
+                quantityOnHand: Math.max(0, inventory.quantityOnHand - item.quantity),
+                quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
+              },
+            });
 
-              await tx.inventoryMovement.create({
-                data: {
-                  variantId: item.variantId,
-                  movementType: InventoryMovementType.SALE,
-                  quantity: -item.quantity,
-                  referenceType: "ORDER",
-                  referenceId: order.id,
-                  notes: `Deducted for COD Order ${order.orderNumber}`,
-                },
-              });
-            }
+            await tx.inventoryMovement.create({
+              data: {
+                variantId: item.variantId,
+                movementType: InventoryMovementType.SALE,
+                quantity: -item.quantity,
+                referenceType: "ORDER",
+                referenceId: order.id,
+                notes: `Deducted for Order ${order.orderNumber}`,
+              },
+            });
           }
         }
-
-        await tx.inventoryReservation.updateMany({
-          where: { orderId: order.id, releasedAt: null },
-          data: { releasedAt: new Date() },
-        });
       }
+
+      await tx.inventoryReservation.updateMany({
+        where: { orderId: order.id, releasedAt: null },
+        data: { releasedAt: new Date() },
+      });
 
       // 5. Record Coupon Usage if DB Coupon found
       if (couponRecord) {
@@ -503,8 +478,25 @@ export class OrderService {
       prisma.order.count({ where: { userId, deletedAt: null } }),
     ]);
 
+    const hydratedOrders = orders.map((order) => ({
+      ...order,
+      subtotal: order.subtotal.toNumber(),
+      discountAmount: order.discountAmount.toNumber(),
+      shippingAmount: order.shippingAmount.toNumber(),
+      taxAmount: order.taxAmount.toNumber(),
+      totalAmount: order.totalAmount.toNumber(),
+      items: order.items.map((item) => ({
+        ...item,
+        unitPrice: item.unitPrice.toNumber(),
+        totalAmount: item.totalAmount.toNumber(),
+        image:
+          item.variant?.product?.images?.[0]?.imageUrl ||
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&q=80",
+      })),
+    }));
+
     const meta = buildPaginationMeta(page, limit, total);
-    return { data: orders, meta };
+    return { data: hydratedOrders, meta };
   }
 
   static async getOrderByNumber(orderNumber: string, userId?: string) {
@@ -569,19 +561,14 @@ export class OrderService {
         throw new UnprocessableEntityError(`Cannot cancel order in ${order.status} state.`);
       }
 
-      for (const item of order.items) {
-        if (item.variantId) {
-          const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
-          if (inventory) {
-            await tx.inventory.update({
-              where: { id: inventory.id },
-              data: {
-                quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
-              },
-            });
-          }
-        }
-      }
+      await restoreInventoryForOrder(
+        tx,
+        order.id,
+        order.orderNumber,
+        order.items,
+        "Cancelled by user",
+        userId
+      );
 
       const updated = await tx.order.update({
         where: { id: order.id },

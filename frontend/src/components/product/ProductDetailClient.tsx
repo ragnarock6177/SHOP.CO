@@ -30,10 +30,14 @@ import {
 } from '@/lib/productMedia';
 import {
   getAvailableSizes,
+  getSizeStock,
+  getVariantStock,
+  LOW_STOCK_THRESHOLD,
   productRequiresSize,
   resolveProductColor,
   resolveVariant,
 } from '@/lib/productVariants';
+import { getProductLiveApi } from '@/lib/productApi';
 
 interface ProductDetailClientProps {
   product: Product;
@@ -137,57 +141,65 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
     else goToNextImage();
   };
 
-  const availableSizes = useMemo(() => {
-    return getAvailableSizes(product, selectedColor || undefined);
-  }, [product, selectedColor]);
-
-  const activeVariant = useMemo(() => {
-    if (!product.variants || product.variants.length === 0) return null;
-    if (productRequiresSize(product) && !selectedSize) return null;
-
-    return resolveVariant(product, selectedColor || undefined, selectedSize || undefined);
-  }, [product, selectedColor, selectedSize]);
-
-  const getSizeStock = (size: string) => {
-    if (!product.variants?.length) return product.stockAvailable ?? 0;
-
-    const variant = product.variants.find((item) => {
-      const colorAttr = item.attributes.find(
-        (attr) =>
-          attr.attributeSlug === 'color' || attr.attributeName.toLowerCase() === 'color',
-      );
-      const sizeAttr = item.attributes.find(
-        (attr) =>
-          attr.attributeSlug === 'size' || attr.attributeName.toLowerCase() === 'size',
-      );
-
-      const matchesColor =
-        !selectedColor ||
-        !colorAttr ||
-        colorAttr.value.toLowerCase() === selectedColor.toLowerCase();
-      const matchesSize =
-        sizeAttr?.value.toLowerCase() === size.toLowerCase();
-
-      return matchesColor && matchesSize;
-    });
-
-    return variant?.stockAvailable ?? 0;
-  };
-
-  const currentPrice = activeVariant ? activeVariant.price : product.price;
-  const currentOriginalPrice = activeVariant?.compareAtPrice
-    ? activeVariant.compareAtPrice
-    : product.originalPrice;
-  const stockAvailable = activeVariant
-    ? activeVariant.stockAvailable
-    : (product.stockAvailable ?? 0);
-  const isOutOfStock = activeVariant ? activeVariant.stockAvailable <= 0 : !product.inStock;
-  const selectionIncomplete = productRequiresSize(product) && !selectedSize;
-
   const [reviewsList, setReviewsList] = useState<Review[]>([]);
   const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(6);
+  const [liveProduct, setLiveProduct] = useState<Product | null>(null);
+
+  const catalogProduct = liveProduct ?? product;
+  const productKey = product.slug || product.id;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getProductLiveApi(productKey)
+      .then((fresh) => {
+        if (!cancelled && fresh) {
+          setLiveProduct(fresh);
+        }
+      })
+      .catch(() => {
+        // Keep SSR product as fallback
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [productKey, selectedColor, selectedSize]);
+
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedColor, selectedSize]);
+
+  const availableSizes = useMemo(() => {
+    return getAvailableSizes(catalogProduct, selectedColor || undefined);
+  }, [catalogProduct, selectedColor]);
+
+  const activeVariant = useMemo(() => {
+    if (!catalogProduct.variants || catalogProduct.variants.length === 0) return null;
+    if (productRequiresSize(catalogProduct) && !selectedSize) return null;
+
+    return resolveVariant(
+      catalogProduct,
+      selectedColor || undefined,
+      selectedSize || undefined,
+    );
+  }, [catalogProduct, selectedColor, selectedSize]);
+
+  const currentPrice = activeVariant ? activeVariant.price : catalogProduct.price;
+  const currentOriginalPrice = activeVariant?.compareAtPrice
+    ? activeVariant.compareAtPrice
+    : catalogProduct.originalPrice;
+
+  const stockAvailable = getVariantStock(
+    catalogProduct,
+    selectedColor || undefined,
+    selectedSize || undefined,
+  );
+  const selectionIncomplete = productRequiresSize(catalogProduct) && !selectedSize;
+  const stockKnown = !selectionIncomplete;
+  const isOutOfStock = stockKnown && stockAvailable <= 0;
 
   const handleAddToCart = () => {
     if (selectionIncomplete || isOutOfStock) return;
@@ -394,24 +406,17 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
             )}
           </div>
 
-          {/* Live Variant Stock Status Badge */}
-          <div className="pt-0.5">
-            {isOutOfStock ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 border border-rose-200">
-                <span className="h-2 w-2 rounded-full bg-rose-500"></span>
-                Out of Stock
-              </span>
-            ) : stockAvailable <= 5 ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 border border-amber-200">
-                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-                Only {stockAvailable} left in stock — order soon!
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
-                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                In Stock ({stockAvailable} available)
-              </span>
-            )}
+          {/* Low-stock warning — only for selected variant when stock is 1–5 */}
+          <div className="pt-0.5 min-h-[28px]">
+            {stockKnown &&
+              !isOutOfStock &&
+              stockAvailable > 0 &&
+              stockAvailable <= LOW_STOCK_THRESHOLD && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+                  Only {stockAvailable} left!
+                </span>
+              )}
           </div>
 
           <p className="text-xs sm:text-sm text-gray-600 leading-relaxed font-medium">
@@ -448,31 +453,42 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           <hr className="border-gray-200/80" />
 
           {/* Choose Size */}
-          {productRequiresSize(product) && (
+          {productRequiresSize(catalogProduct) && (
             <div className="space-y-2.5">
               <label className="text-xs font-extrabold text-gray-500 uppercase tracking-wider block">
                 Choose Size
               </label>
               <div className="flex flex-wrap gap-2">
                 {availableSizes.map((sz) => {
-                  const sizeStock = getSizeStock(sz);
-                  const isDisabled = sizeStock <= 0;
+                  const sizeStock = getSizeStock(catalogProduct, sz, selectedColor || undefined);
+                  const isUnavailable = sizeStock <= 0;
+                  const isSelected = selectedSize === sz;
 
                   return (
-                  <button
-                    key={sz}
-                    onClick={() => !isDisabled && setSelectedSize(sz)}
-                    disabled={isDisabled}
-                    className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      selectedSize === sz
-                        ? 'bg-black text-white font-extrabold shadow-xs'
-                        : isDisabled
-                          ? 'bg-gray-100 text-gray-300 cursor-not-allowed line-through'
-                          : 'bg-[#F4F4F4] text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {sz}
-                  </button>
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => !isUnavailable && setSelectedSize(sz)}
+                      disabled={isUnavailable}
+                      aria-pressed={isSelected}
+                      aria-disabled={isUnavailable}
+                      title={isUnavailable ? `${sz} — out of stock` : `${sz} — select size`}
+                      className={`relative min-w-[2.75rem] overflow-hidden rounded-full px-4 py-2.5 text-xs font-bold transition-all sm:px-5 sm:py-2.5 ${
+                        isSelected && !isUnavailable
+                          ? 'bg-black text-white shadow-sm'
+                          : isUnavailable
+                            ? 'cursor-not-allowed border border-neutral-200 bg-neutral-50 text-neutral-400'
+                            : 'bg-[#F4F4F4] text-neutral-800 hover:bg-neutral-200'
+                      }`}
+                    >
+                      <span className={isUnavailable ? 'opacity-55' : undefined}>{sz}</span>
+                      {isUnavailable && (
+                        <span
+                          className="pointer-events-none absolute left-1/2 top-1/2 block h-px w-[130%] -translate-x-1/2 -translate-y-1/2 rotate-[-24deg] bg-neutral-400/90"
+                          aria-hidden
+                        />
+                      )}
+                    </button>
                   );
                 })}
               </div>
@@ -496,7 +512,7 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
               </span>
               <button
                 onClick={() => setQuantity(Math.min(stockAvailable, quantity + 1))}
-                disabled={quantity >= stockAvailable || isOutOfStock}
+                disabled={!stockKnown || quantity >= stockAvailable || isOutOfStock}
                 className="p-1 text-black hover:text-gray-600 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
                 <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

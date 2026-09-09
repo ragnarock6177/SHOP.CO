@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link.js";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { ShoppingBag, Eye } from "lucide-react";
 import { useOrders, OrderItem } from "../../../hooks/queries/useOrders";
@@ -13,6 +14,7 @@ import { PermissionGate } from "../../../components/rbac/PermissionGate";
 import { CustomSelect } from "@/components/ui/select";
 
 export default function OrdersPage() {
+  const router = useRouter();
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -126,6 +128,7 @@ export default function OrdersPage() {
           isLoading={isPending && !data}
           isFetching={isFetching}
           embedded
+          onRowClick={(row) => router.push(`/orders/${row.id}`)}
         />
 
         <div className="shrink-0">

@@ -1,5 +1,10 @@
 import prisma from "../lib/prisma.js";
 import { UnprocessableEntityError } from "../utils/errors.js";
+import {
+  buildVariantDisplayName,
+  getVariantAvailableStock,
+  resolveLineItemVariant,
+} from "../utils/variantResolver.js";
 
 export interface CheckoutItemInput {
   id?: string;
@@ -79,76 +84,57 @@ export class CheckoutService {
     let subtotal = 0;
 
     for (const item of input.items) {
-      const targetId = item.id || item.variantId || item.productId;
-      let resolvedVariant: any = null;
-      let resolvedProduct: any = null;
-
-      if (targetId) {
-        // 1. Try finding by variantId / targetId
-        resolvedVariant = await prisma.productVariant.findFirst({
-          where: { id: targetId, isActive: true, deletedAt: null },
-          include: {
-            product: {
-              include: {
-                images: { take: 1, orderBy: { sortOrder: "asc" } },
-              },
-            },
-            inventory: true,
-          },
-        });
-
-        // 2. Fallback: Try finding by productId
-        if (!resolvedVariant) {
-          resolvedProduct = await prisma.product.findFirst({
-            where: { id: targetId, status: "ACTIVE", deletedAt: null },
-            include: {
-              variants: {
-                where: { isActive: true, deletedAt: null },
-                include: { inventory: true },
-              },
-              images: { take: 1, orderBy: { sortOrder: "asc" } },
-            },
-          });
-
-          if (resolvedProduct && resolvedProduct.variants.length > 0) {
-            resolvedVariant =
-              resolvedProduct.variants.find(
-                (v: any) =>
-                  (!item.selectedColor || v.color === item.selectedColor) &&
-                  (!item.selectedSize || v.size === item.selectedSize)
-              ) || resolvedProduct.variants[0];
-            resolvedVariant.product = resolvedProduct;
-          }
-        }
-      }
+      const { variant: resolvedVariant, product: resolvedProduct } =
+        await resolveLineItemVariant(prisma, item);
 
       let unitPrice = item.unitPrice || 0;
       let title = item.title || "Selected Item";
-      let variantName = `${item.selectedColor || "Standard"} / ${item.selectedSize || "Default"}`;
+      let variantName = buildVariantDisplayName(
+        resolvedVariant,
+        item.selectedColor,
+        item.selectedSize
+      );
       let image = item.image || "/images/placeholder.jpg";
-      let availableStock = 99;
+      let availableStock = 0;
       let variantId = item.variantId || "";
       let productId = item.productId || "";
 
       if (resolvedVariant) {
-        unitPrice = resolvedVariant.price ? Number(resolvedVariant.price) : Number(resolvedVariant.product.basePrice);
+        unitPrice = resolvedVariant.price
+          ? Number(resolvedVariant.price)
+          : Number(resolvedVariant.product.basePrice);
         title = resolvedVariant.product.name;
-        variantName = resolvedVariant.variantName || `${item.selectedColor || "Standard"} / ${item.selectedSize || "M"}`;
-        image = resolvedVariant.product.images?.[0]?.imageUrl || item.image || "/images/placeholder.jpg";
-        availableStock = resolvedVariant.inventory
-          ? resolvedVariant.inventory.quantityOnHand - resolvedVariant.inventory.quantityReserved
-          : 50;
+        variantName = buildVariantDisplayName(
+          resolvedVariant,
+          item.selectedColor,
+          item.selectedSize
+        );
+        image =
+          resolvedVariant.product.images?.[0]?.imageUrl ||
+          item.image ||
+          "/images/placeholder.jpg";
+        availableStock = getVariantAvailableStock(resolvedVariant);
         variantId = resolvedVariant.id;
         productId = resolvedVariant.productId;
       } else if (resolvedProduct) {
+        if (resolvedProduct.variants?.length > 0) {
+          throw new UnprocessableEntityError(
+            `Please select a valid size/variant for ${resolvedProduct.name}.`
+          );
+        }
         unitPrice = Number(resolvedProduct.basePrice);
         title = resolvedProduct.name;
-        image = resolvedProduct.images?.[0]?.imageUrl || item.image || "/images/placeholder.jpg";
+        image =
+          resolvedProduct.images?.[0]?.imageUrl || item.image || "/images/placeholder.jpg";
         productId = resolvedProduct.id;
+        availableStock = 0;
+      } else {
+        throw new UnprocessableEntityError("One or more cart items could not be found.");
       }
 
       const qty = Math.max(1, item.quantity);
-      const itemTotal = unitPrice * qty;
+      const cappedQty = Math.min(qty, Math.max(availableStock, 0));
+      const itemTotal = unitPrice * cappedQty;
       subtotal += itemTotal;
 
       hydratedItems.push({
@@ -158,9 +144,9 @@ export class CheckoutService {
         variantName,
         image,
         unitPrice,
-        quantity: qty,
+        quantity: cappedQty,
         totalPrice: Math.round(itemTotal * 100) / 100,
-        inStock: availableStock >= qty,
+        inStock: availableStock > 0 && availableStock >= qty,
         availableStock,
       });
     }

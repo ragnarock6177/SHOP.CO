@@ -9,6 +9,7 @@ import {
   getAvailableSizes,
   getSizeStock,
   getVariantPrice,
+  LOW_STOCK_THRESHOLD,
   productRequiresSize,
   resolveProductColor,
   resolveVariant,
@@ -217,27 +218,45 @@ export function SizeSelectionModal({
                           setError("");
                         }}
                         className={cn(
-                          "min-w-[3.25rem] rounded-full border px-4 py-2.5 text-xs font-bold transition-all",
-                          isSelected
+                          "relative min-w-[3.25rem] overflow-hidden rounded-full border px-4 py-2.5 text-xs font-bold transition-all",
+                          isSelected && !isDisabled
                             ? "border-black bg-black text-white shadow-md"
                             : isDisabled
-                              ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-300 line-through"
+                              ? "cursor-not-allowed border-neutral-200 bg-neutral-50 text-neutral-400"
                               : "border-neutral-200 bg-white text-black hover:border-black",
                         )}
                       >
-                        {size}
+                        <span className={isDisabled ? "opacity-55" : undefined}>{size}</span>
+                        {isDisabled && (
+                          <span
+                            className="pointer-events-none absolute left-1/2 top-1/2 block h-px w-[130%] -translate-x-1/2 -translate-y-1/2 rotate-[-24deg] bg-neutral-400/90"
+                            aria-hidden
+                          />
+                        )}
                       </button>
                     );
                   })}
                 </div>
 
-                {selectedSize && (
-                  <p className="text-[11px] font-medium text-neutral-500">
-                    {getSizeStock(product, selectedSize, selectedColor || undefined) <= 5
-                      ? `Only ${getSizeStock(product, selectedSize, selectedColor || undefined)} left in ${selectedSize}`
-                      : `${selectedSize} is available`}
-                  </p>
-                )}
+                {selectedSize && (() => {
+                  const selectedStock = getSizeStock(
+                    product,
+                    selectedSize,
+                    selectedColor || undefined,
+                  );
+                  if (
+                    selectedStock <= 0 ||
+                    selectedStock > LOW_STOCK_THRESHOLD
+                  ) {
+                    return null;
+                  }
+                  return (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-800">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                      Only {selectedStock} left!
+                    </span>
+                  );
+                })()}
               </div>
 
               {error && (
