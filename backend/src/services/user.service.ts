@@ -1,6 +1,7 @@
 import prisma from "../lib/prisma.js";
-import { NotFoundError } from "../utils/errors.js";
+import { NotFoundError, UnauthorizedError, ValidationError } from "../utils/errors.js";
 import { AddressType } from "@prisma/client";
+import { comparePassword, hashPassword } from "../utils/password.util.js";
 
 type AddressInput = {
   type?: AddressType;
@@ -18,6 +19,55 @@ type AddressInput = {
   isDefault?: boolean;
 };
 
+type UpdateProfileInput = {
+  firstName?: string;
+  lastName?: string | null;
+  phone?: string | null;
+  profileImage?: string | null;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+  smsDeliveryUpdates?: boolean;
+  promotionalEmails?: boolean;
+  orderEmailUpdates?: boolean;
+};
+
+function formatUserProfile(user: {
+  id: string;
+  firebaseUid: string | null;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  profileImage: string | null;
+  gender: string | null;
+  dateOfBirth: Date | null;
+  smsDeliveryUpdates: boolean;
+  promotionalEmails: boolean;
+  orderEmailUpdates: boolean;
+  status: string;
+  emailVerifiedAt: Date | null;
+  phoneVerifiedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  passwordHash?: string | null;
+  userRoles?: {
+    role: { id: string; name: string; description: string | null };
+  }[];
+}) {
+  const { passwordHash, userRoles, dateOfBirth, ...rest } = user;
+
+  return {
+    ...rest,
+    dateOfBirth: dateOfBirth ? dateOfBirth.toISOString().slice(0, 10) : null,
+    emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
+    phoneVerifiedAt: user.phoneVerifiedAt?.toISOString() ?? null,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+    hasPassword: Boolean(passwordHash),
+    roles: userRoles?.map((entry) => entry.role.name) ?? [],
+  };
+}
+
 export class UserService {
   static async getUserById(userId: string) {
     const user = await prisma.user.findUnique({
@@ -30,11 +80,17 @@ export class UserService {
         lastName: true,
         phone: true,
         profileImage: true,
+        gender: true,
+        dateOfBirth: true,
+        smsDeliveryUpdates: true,
+        promotionalEmails: true,
+        orderEmailUpdates: true,
         status: true,
         emailVerifiedAt: true,
         phoneVerifiedAt: true,
         createdAt: true,
         updatedAt: true,
+        passwordHash: true,
         userRoles: {
           select: { role: { select: { id: true, name: true, description: true } } },
         },
@@ -45,31 +101,77 @@ export class UserService {
       throw new NotFoundError("User profile not found");
     }
 
-    return user;
+    return formatUserProfile(user);
   }
 
-  static async updateUserProfile(userId: string, data: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    profileImage?: string;
-  }) {
+  static async updateUserProfile(userId: string, data: UpdateProfileInput) {
+    const updateData: Record<string, unknown> = { ...data };
+
+    if (data.dateOfBirth !== undefined) {
+      updateData.dateOfBirth = data.dateOfBirth ? new Date(`${data.dateOfBirth}T00:00:00.000Z`) : null;
+    }
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data,
+      data: updateData,
       select: {
         id: true,
+        firebaseUid: true,
         email: true,
         firstName: true,
         lastName: true,
         phone: true,
         profileImage: true,
+        gender: true,
+        dateOfBirth: true,
+        smsDeliveryUpdates: true,
+        promotionalEmails: true,
+        orderEmailUpdates: true,
         status: true,
+        emailVerifiedAt: true,
+        phoneVerifiedAt: true,
+        createdAt: true,
         updatedAt: true,
+        passwordHash: true,
+        userRoles: {
+          select: { role: { select: { id: true, name: true, description: true } } },
+        },
       },
     });
 
-    return user;
+    return formatUserProfile(user);
+  }
+
+  static async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, passwordHash: true },
+    });
+
+    if (!user) {
+      throw new NotFoundError("User profile not found");
+    }
+
+    if (!user.passwordHash) {
+      throw new ValidationError("Password change is not available for social login accounts.");
+    }
+
+    const isValid = await comparePassword(currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedError("Current password is incorrect.");
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return { message: "Password updated successfully." };
   }
 
   static async getUserAddresses(userId: string) {

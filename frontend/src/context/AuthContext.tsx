@@ -1,8 +1,18 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { SanitizedUser, AuthResponseData, getMeApi, logoutApi } from "@/lib/authApi";
-import { syncAuthCookie } from "@/lib/authSession";
+import { SanitizedUser, AuthResponseData, logoutApi } from "@/lib/authApi";
+import { getUserProfileApi, mapProfileToAuthUser } from "@/lib/userApi";
+import {
+  clearAuthSession,
+  isAuthSessionExpired,
+  markAuthSessionIssuedNow,
+  persistAuthSession,
+  readAuthSessionIssuedAt,
+  readAuthTokenFromStorage,
+  syncAuthCookie,
+  AuthSessionError,
+} from "@/lib/authSession";
 
 interface AuthContextType {
   user: SanitizedUser | null;
@@ -17,30 +27,68 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function shouldForceLogout(error: unknown): boolean {
+  if (!(error instanceof AuthSessionError)) return false;
+  return error.status === 401 || error.status === 403;
+}
+
+function readStoredUser(): SanitizedUser | null {
+  const storedUser = localStorage.getItem("user");
+  if (!storedUser || storedUser === "undefined" || storedUser === "null") {
+    return null;
+  }
+
+  try {
+    return JSON.parse(storedUser) as SanitizedUser;
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<SanitizedUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
 
+  const forceLogout = async (storedToken?: string | null) => {
+    if (storedToken) {
+      try {
+        await logoutApi(storedToken);
+      } catch {
+        // Ignore network errors during forced logout cleanup.
+      }
+    }
+
+    clearAuthSession();
+    setToken(null);
+    setUser(null);
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       let storedToken: string | null = null;
 
       try {
-        storedToken = localStorage.getItem("accessToken");
-        const storedUser = localStorage.getItem("user");
+        storedToken = readAuthTokenFromStorage();
 
         if (storedToken) {
+          if (isAuthSessionExpired()) {
+            await forceLogout(storedToken);
+            return;
+          }
+
           syncAuthCookie(storedToken);
           setToken(storedToken);
-          if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
-            try {
-              setUser(JSON.parse(storedUser));
-            } catch (e) {
-              console.warn("Invalid stored user in localStorage, clearing:", e);
-              localStorage.removeItem("user");
-            }
+
+          const storedUser = readStoredUser();
+          if (storedUser) {
+            setUser(storedUser);
+          }
+
+          if (readAuthSessionIssuedAt() === null) {
+            markAuthSessionIssuedNow();
           }
         }
       } catch (err) {
@@ -50,20 +98,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsHydrated(true);
       }
 
-      if (!storedToken) return;
+      if (!storedToken || isAuthSessionExpired()) return;
 
       try {
-        const { user: freshUser } = await getMeApi(storedToken);
-        if (freshUser) {
-          setUser(freshUser);
-          localStorage.setItem("user", JSON.stringify(freshUser));
+        const profile = await getUserProfileApi(storedToken);
+        const freshUser = mapProfileToAuthUser(profile);
+        setUser(freshUser);
+        localStorage.setItem("user", JSON.stringify(freshUser));
+      } catch (error) {
+        if (shouldForceLogout(error)) {
+          await forceLogout(storedToken);
+          return;
         }
-      } catch {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-        syncAuthCookie(null);
-        setToken(null);
-        setUser(null);
+
+        console.warn("Failed to refresh profile during auth init:", error);
       }
     };
 
@@ -73,8 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const saveAuth = (authData: AuthResponseData) => {
     setToken(authData.accessToken);
     setUser(authData.user);
-    localStorage.setItem("accessToken", authData.accessToken);
-    syncAuthCookie(authData.accessToken);
+    persistAuthSession(authData.accessToken);
     if (authData.user) {
       localStorage.setItem("user", JSON.stringify(authData.user));
     } else {
@@ -82,39 +129,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setIsHydrated(true);
 
-    // Call /me API once to fetch fresh profile details
-    getMeApi(authData.accessToken)
-      .then(({ user: freshUser }) => {
-        if (freshUser) {
-          setUser(freshUser);
-          localStorage.setItem("user", JSON.stringify(freshUser));
-        }
+    getUserProfileApi(authData.accessToken)
+      .then((profile) => {
+        const freshUser = mapProfileToAuthUser(profile);
+        setUser(freshUser);
+        localStorage.setItem("user", JSON.stringify(freshUser));
       })
       .catch((err) => {
+        if (shouldForceLogout(err)) {
+          void forceLogout(authData.accessToken);
+          return;
+        }
         console.warn("Failed to fetch fresh user profile on login:", err);
       });
   };
 
   const logout = async () => {
-    if (token) {
-      await logoutApi(token);
-    }
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    syncAuthCookie(null);
+    const activeToken = token || readAuthTokenFromStorage();
+    await forceLogout(activeToken);
   };
 
   const refreshUser = async () => {
-    if (!token) return;
+    const activeToken = token || readAuthTokenFromStorage();
+    if (!activeToken) return;
+
+    if (isAuthSessionExpired()) {
+      await forceLogout(activeToken);
+      return;
+    }
+
     try {
-      const { user: freshUser } = await getMeApi(token);
-      if (freshUser) {
-        setUser(freshUser);
-        localStorage.setItem("user", JSON.stringify(freshUser));
-      }
+      const profile = await getUserProfileApi(activeToken);
+      const freshUser = mapProfileToAuthUser(profile);
+      setUser(freshUser);
+      localStorage.setItem("user", JSON.stringify(freshUser));
     } catch (err) {
+      if (shouldForceLogout(err)) {
+        await forceLogout(activeToken);
+        return;
+      }
       console.error("Failed to refresh user profile:", err);
     }
   };
@@ -124,7 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         token,
-        isAuthenticated: !!user && !!token,
+        isAuthenticated: !!user && !!token && !isAuthSessionExpired(),
         isLoading,
         isHydrated,
         saveAuth,

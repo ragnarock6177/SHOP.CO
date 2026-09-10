@@ -196,6 +196,11 @@ model User {
   lastName        String?    @map("last_name") @db.VarChar(100)
   phone           String?    @db.VarChar(30)
   profileImage    String?    @map("profile_image")
+  gender          String?    @db.VarChar(30)
+  dateOfBirth     DateTime?  @map("date_of_birth") @db.Date
+  smsDeliveryUpdates Boolean @default(true) @map("sms_delivery_updates")
+  promotionalEmails  Boolean @default(true) @map("promotional_emails")
+  orderEmailUpdates  Boolean @default(true) @map("order_email_updates")
   status          UserStatus @default(PENDING)
   emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz
   phoneVerifiedAt DateTime?  @map("phone_verified_at") @db.Timestamptz

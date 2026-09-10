@@ -10,7 +10,7 @@ import {
 } from "../utils/errors.js";
 import { AuthUser } from "../types/express.js";
 
-const JWT_SECRET = env.JWT_SECRET || "airave@123454321@airave";
+const JWT_SECRET = env.JWT_SECRET;
 
 // High-performance in-memory cache for authenticated staff & users (5 min primary TTL, 1 hr stale fallback)
 interface CachedAuthUser {

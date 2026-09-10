@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -21,12 +21,14 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ProfileAddressesPanel } from "@/components/address/ProfileAddressesPanel";
 import { ProfileOrdersPanel } from "@/components/orders/ProfileOrdersPanel";
+import { ProfileSettingsPanel } from "@/components/profile/ProfileSettingsPanel";
+import { getUserAddressesApi } from "@/lib/addressApi";
 import type { UserAddress } from "@/types/address";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { wishlistProducts, addToCart, toggleWishlist, wishlistCount } = useCart();
-  const { user: authUser, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
+  const { user: authUser, token, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
     "orders" | "addresses" | "payments" | "wishlist" | "settings"
@@ -41,7 +43,7 @@ export default function ProfilePage() {
     : "Guest User";
 
   const userEmail = authUser?.email || "No email connected";
-  const userPhone = authUser?.phoneNumber || "No mobile number connected";
+  const userPhone = authUser?.phone || authUser?.phoneNumber || "No mobile number connected";
   const userInitial = (
     authUser?.firstName?.[0] ||
     authUser?.email?.[0] ||
@@ -62,6 +64,31 @@ export default function ProfilePage() {
 
   const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    if (!token) {
+      setAddresses([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    getUserAddressesApi(token)
+      .then((data) => {
+        if (!cancelled) {
+          setAddresses(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAddresses([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   // Mock Payment Cards
   const [cards] = useState([
@@ -438,84 +465,7 @@ export default function ProfilePage() {
               <h2 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black uppercase text-black border-b border-gray-100 pb-3.5">
                 Account Settings & Security
               </h2>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  alert("Settings Saved!");
-                }}
-                className="space-y-3.5"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={displayName}
-                      className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={userPhone}
-                      className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    defaultValue={userEmail}
-                    className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div className="pt-3 border-t border-gray-100 space-y-2">
-                  <h3 className="font-bold text-xs text-black uppercase">
-                    Notification Preferences
-                  </h3>
-
-                  <label className="flex items-center gap-2.5 cursor-pointer text-xs text-gray-600 font-medium">
-                    <input
-                      type="checkbox"
-                      defaultChecked
-                      className="accent-black rounded"
-                    />
-                    <span>Receive SMS delivery status updates</span>
-                  </label>
-
-                  <label className="flex items-center gap-2.5 cursor-pointer text-xs text-gray-600 font-medium">
-                    <input
-                      type="checkbox"
-                      defaultChecked
-                      className="accent-black rounded"
-                    />
-                    <span>
-                      Receive promotional emails and special discount codes
-                    </span>
-                  </label>
-                </div>
-
-                <div className="pt-3">
-                  <button
-                    type="submit"
-                    className="px-7 py-3 bg-black hover:bg-neutral-800 text-white font-extrabold text-xs uppercase rounded-full transition-all shadow-md cursor-pointer"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
+              <ProfileSettingsPanel />
             </div>
           )}
         </main>

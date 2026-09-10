@@ -19,12 +19,41 @@ export const AddressFieldsSchema = z.object({
   isDefault: z.boolean().default(false),
 });
 
+const optionalPhoneSchema = z
+  .string()
+  .max(30)
+  .optional()
+  .transform((value) => {
+    if (value === undefined) return undefined;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  });
+
 export const UpdateProfileSchema = z.object({
   body: z.object({
-    firstName: z.string().max(100).optional(),
-    lastName: z.string().max(100).optional(),
-    phone: z.string().max(30).optional(),
-    profileImage: z.string().url().optional(),
+    firstName: z.string().min(1).max(100).optional(),
+    lastName: z.string().max(100).optional().nullable(),
+    phone: optionalPhoneSchema,
+    profileImage: z.string().url().optional().nullable(),
+    gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional().nullable(),
+    dateOfBirth: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Date of birth must be in YYYY-MM-DD format")
+      .optional()
+      .nullable(),
+    smsDeliveryUpdates: z.boolean().optional(),
+    promotionalEmails: z.boolean().optional(),
+    orderEmailUpdates: z.boolean().optional(),
+  }),
+});
+
+export const ChangePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters")
+      .max(128, "New password is too long"),
   }),
 });
 

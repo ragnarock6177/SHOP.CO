@@ -24,6 +24,20 @@ export class UserController {
     }
   }
 
+  static async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) throw new UnauthorizedError();
+      const result = await UserService.changePassword(
+        req.user.id,
+        req.body.currentPassword,
+        req.body.newPassword,
+      );
+      sendSuccess(res, result, result.message);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getAddresses(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) throw new UnauthorizedError();

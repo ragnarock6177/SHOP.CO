@@ -1,5 +1,17 @@
 export const AUTH_COOKIE_NAME = "airave_access_token";
-const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+export const AUTH_SESSION_ISSUED_AT_KEY = "accessTokenIssuedAt";
+export const AUTH_SESSION_MAX_AGE_MS = 8 * 24 * 60 * 60 * 1000; // 8 days
+export const AUTH_COOKIE_MAX_AGE_SECONDS = 8 * 24 * 60 * 60; // 8 days
+
+export class AuthSessionError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "AuthSessionError";
+    this.status = status;
+  }
+}
 
 export function syncAuthCookie(token: string | null): void {
   if (typeof document === "undefined") return;
@@ -15,4 +27,37 @@ export function syncAuthCookie(token: string | null): void {
 export function readAuthTokenFromStorage(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("accessToken");
+}
+
+export function readAuthSessionIssuedAt(): number | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(AUTH_SESSION_ISSUED_AT_KEY);
+  if (!raw) return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function isAuthSessionExpired(issuedAt = readAuthSessionIssuedAt()): boolean {
+  if (!issuedAt) return false;
+  return Date.now() - issuedAt >= AUTH_SESSION_MAX_AGE_MS;
+}
+
+export function persistAuthSession(token: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("accessToken", token);
+  localStorage.setItem(AUTH_SESSION_ISSUED_AT_KEY, String(Date.now()));
+  syncAuthCookie(token);
+}
+
+export function clearAuthSession(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+  localStorage.removeItem(AUTH_SESSION_ISSUED_AT_KEY);
+  syncAuthCookie(null);
+}
+
+export function markAuthSessionIssuedNow(): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(AUTH_SESSION_ISSUED_AT_KEY, String(Date.now()));
 }
