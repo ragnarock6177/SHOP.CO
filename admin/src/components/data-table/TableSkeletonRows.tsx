@@ -3,6 +3,21 @@
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 
+function getSkeletonCellClass<TData, TValue>(
+  col: ColumnDef<TData, TValue>,
+): string {
+  const hideClass =
+    col.meta?.hideBelow === "lg"
+      ? "hidden lg:table-cell"
+      : col.meta?.hideBelow === "md"
+        ? "hidden md:table-cell"
+        : col.meta?.hideBelow === "sm"
+          ? "hidden sm:table-cell"
+          : "";
+
+  return `px-3 py-3.5 sm:px-4 ${hideClass}`.trim();
+}
+
 export function TableSkeletonRows<TData, TValue = unknown>({
   columns,
   rowCount = 6,
@@ -16,10 +31,11 @@ export function TableSkeletonRows<TData, TValue = unknown>({
         <tr key={idx} className="transition-colors">
           {columns.map((col, colIdx) => {
             const metaSkeleton = col.meta?.skeleton;
+            const cellClass = getSkeletonCellClass(col);
 
             if (React.isValidElement(metaSkeleton)) {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   {metaSkeleton}
                 </td>
               );
@@ -27,7 +43,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (metaSkeleton === "image-text") {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-md animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
                     <div className="space-y-1.5 flex-1 min-w-0">
@@ -41,7 +57,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (metaSkeleton === "avatar") {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="flex items-center gap-2">
                     <div className="h-6 w-6 rounded-full animate-shimmer bg-slate-100 shrink-0" />
                     <div className="space-y-1.5">
@@ -55,7 +71,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (metaSkeleton === "badge") {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="h-5 w-20 rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
                 </td>
               );
@@ -63,7 +79,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (metaSkeleton === "actions-1") {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
                 </td>
               );
@@ -71,7 +87,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (metaSkeleton === "actions-2") {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="flex items-center space-x-2">
                     <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
                     <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
@@ -82,7 +98,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (metaSkeleton === "numeric") {
               return (
-                <td key={colIdx} className="px-3 py-3.5 text-right sm:px-4">
+                <td key={colIdx} className={`${cellClass} text-right`}>
                   <div className="h-3.5 rounded-md animate-shimmer bg-slate-100 w-12 ml-auto" />
                 </td>
               );
@@ -90,7 +106,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (metaSkeleton === "text") {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="h-3.5 rounded-md animate-shimmer bg-slate-100 w-24" />
                 </td>
               );
@@ -98,7 +114,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (metaSkeleton === "text-2lines") {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="space-y-1.5">
                     <div className="h-3.5 rounded-md animate-shimmer bg-slate-100 w-32" />
                     <div className="h-2.5 rounded-md animate-shimmer bg-slate-100 w-20" />
@@ -131,7 +147,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (isFirst) {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-md animate-shimmer bg-slate-100 shrink-0 border border-slate-200/60" />
                     <div className="space-y-1.5 flex-1 min-w-0">
@@ -151,7 +167,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (isBadge) {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="h-5 w-20 rounded-full animate-shimmer bg-slate-100 border border-slate-200/60" />
                 </td>
               );
@@ -159,7 +175,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (isAction) {
               return (
-                <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+                <td key={colIdx} className={cellClass}>
                   <div className="flex items-center space-x-2">
                     <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
                     <div className="h-7 w-7 rounded-md animate-shimmer bg-slate-100 border border-slate-200/60" />
@@ -170,7 +186,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
 
             if (isNumeric) {
               return (
-                <td key={colIdx} className="px-3 py-3.5 text-right sm:px-4">
+                <td key={colIdx} className={`${cellClass} text-right`}>
                   <div
                     className="h-3.5 rounded-md animate-shimmer bg-slate-100 ml-auto"
                     style={{ width: `${Math.min(75, 45 + ((idx * 11) % 30))}px` }}
@@ -180,7 +196,7 @@ export function TableSkeletonRows<TData, TValue = unknown>({
             }
 
             return (
-              <td key={colIdx} className="px-3 py-3.5 sm:px-4">
+              <td key={colIdx} className={cellClass}>
                 <div
                   className="h-3.5 rounded-md animate-shimmer bg-slate-100"
                   style={{ width: `${Math.min(130, 70 + (((idx + colIdx) * 17) % 55))}px` }}
