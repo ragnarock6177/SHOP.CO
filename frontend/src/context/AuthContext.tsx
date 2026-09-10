@@ -25,8 +25,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
+      let storedToken: string | null = null;
+
       try {
-        const storedToken = localStorage.getItem("accessToken");
+        storedToken = localStorage.getItem("accessToken");
         const storedUser = localStorage.getItem("user");
 
         if (storedToken) {
@@ -40,25 +42,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               localStorage.removeItem("user");
             }
           }
-          try {
-            const { user: freshUser } = await getMeApi(storedToken);
-            if (freshUser) {
-              setUser(freshUser);
-              localStorage.setItem("user", JSON.stringify(freshUser));
-            }
-          } catch {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("user");
-            syncAuthCookie(null);
-            setToken(null);
-            setUser(null);
-          }
         }
       } catch (err) {
         console.error("Failed to initialize auth state:", err);
       } finally {
         setIsLoading(false);
         setIsHydrated(true);
+      }
+
+      if (!storedToken) return;
+
+      try {
+        const { user: freshUser } = await getMeApi(storedToken);
+        if (freshUser) {
+          setUser(freshUser);
+          localStorage.setItem("user", JSON.stringify(freshUser));
+        }
+      } catch {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+        syncAuthCookie(null);
+        setToken(null);
+        setUser(null);
       }
     };
 

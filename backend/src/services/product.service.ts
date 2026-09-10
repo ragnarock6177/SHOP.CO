@@ -8,6 +8,7 @@ import {
   formatPublicImages,
   getVariantColorName,
 } from "../utils/productMedia.js";
+import { ReviewService } from "./review.service.js";
 
 export class ProductService {
   static async listProducts(query: {
@@ -281,6 +282,19 @@ export class ProductService {
       };
     });
 
+    const reviewStatsMap = await ReviewService.getReviewStatsMap(
+      formattedProducts.map((p) => p.id),
+    );
+
+    formattedProducts = formattedProducts.map((p) => {
+      const stats = reviewStatsMap.get(p.id) || { rating: 0, reviewsCount: 0 };
+      return {
+        ...p,
+        rating: stats.rating,
+        reviewsCount: stats.reviewsCount,
+      };
+    });
+
     // ── Relevance Scoring (Rerank when searching) ────────────────────────
     if (query.search && query.search.trim()) {
       const searchTerms = query.search.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -412,6 +426,8 @@ export class ProductService {
       (defaultColor && imagesByColor[defaultColor]) ||
       formattedImages.map((img) => img.imageUrl);
 
+    const reviewStats = await ReviewService.getReviewStats(product.id);
+
     return {
       id: product.id,
       name: product.name,
@@ -423,6 +439,8 @@ export class ProductService {
       compareAtPrice: product.compareAtPrice ? product.compareAtPrice.toNumber() : null,
       currency: product.currency,
       careInstructions: product.careInstructions,
+      rating: reviewStats.rating,
+      reviewsCount: reviewStats.reviewsCount,
       images: formattedImages,
       imagesByColor,
       defaultColor,

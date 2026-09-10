@@ -17,11 +17,13 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { useSizeSelection } from '@/context/SizeSelectionContext';
 import { ColorSwatch } from '@/components/product/ColorSwatch';
 import { ProductCard } from '@/components/product/ProductCard';
-import { WriteReviewModal } from '@/components/product/WriteReviewModal';
+import { ProductWriteReviewForm } from '@/components/product/ProductWriteReviewForm';
 import { Product, Review } from '@/types/ecommerce';
+import { getProductReviewsApi, mapReviewToUi } from '@/lib/reviewApi';
 import {
   getImagesForColor,
   getProductImageProps,
@@ -48,8 +50,29 @@ function getDefaultColor(product: Product): string {
   return resolveProductColor(product) || '';
 }
 
+const REVIEWS_BATCH_SIZE = 4;
+
+function ReviewCardSkeleton() {
+  return (
+    <div className="border border-gray-200/90 rounded-2xl p-4 sm:p-6 bg-white space-y-3 animate-pulse">
+      <div className="flex gap-1">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="h-4 w-4 rounded-sm bg-gray-100" />
+        ))}
+      </div>
+      <div className="h-4 w-32 rounded bg-gray-100" />
+      <div className="space-y-2">
+        <div className="h-3 w-full rounded bg-gray-100" />
+        <div className="h-3 w-5/6 rounded bg-gray-100" />
+      </div>
+      <div className="h-3 w-28 rounded bg-gray-100" />
+    </div>
+  );
+}
+
 export function ProductDetailClient({ product, relatedProducts }: ProductDetailClientProps) {
   const { toggleWishlist, isInWishlist } = useCart();
+  const { token } = useAuth();
   const { requestAddToCart } = useSizeSelection();
   const isWished = isInWishlist(product.id);
 
@@ -142,9 +165,16 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
   };
 
   const [reviewsList, setReviewsList] = useState<Review[]>([]);
-  const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
-  const [sortBy, setSortBy] = useState('latest');
-  const [visibleReviewsCount, setVisibleReviewsCount] = useState(6);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsLoadingMore, setReviewsLoadingMore] = useState(false);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [visibleReviewCount, setVisibleReviewCount] = useState(REVIEWS_BATCH_SIZE);
+  const [hasMoreReviews, setHasMoreReviews] = useState(false);
+  const [reviewSummary, setReviewSummary] = useState({
+    rating: product.rating,
+    reviewsCount: product.reviewsCount,
+  });
+  const [hasSubmittedReview, setHasSubmittedReview] = useState(false);
   const [liveProduct, setLiveProduct] = useState<Product | null>(null);
 
   const catalogProduct = liveProduct ?? product;
@@ -167,6 +197,78 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
       cancelled = true;
     };
   }, [productKey, selectedColor, selectedSize]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadReviews = async (page = 1, append = false) => {
+      setReviewsLoading(true);
+      try {
+        const data = await getProductReviewsApi(product.id, page, REVIEWS_BATCH_SIZE, token);
+        if (cancelled) return;
+
+        const mapped = data.items.map(mapReviewToUi);
+        setReviewsList((prev) => (append ? [...prev, ...mapped] : mapped));
+        setReviewSummary(data.summary);
+        setHasMoreReviews(data.meta.hasNextPage);
+        setReviewsPage(page);
+        if (!append) {
+          setVisibleReviewCount(REVIEWS_BATCH_SIZE);
+        }
+      } catch {
+        if (!cancelled && !append) {
+          setReviewsList([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setReviewsLoading(false);
+        }
+      }
+    };
+
+    loadReviews(1);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id, token]);
+
+  const handleReviewSubmitted = async (result: { message: string; review?: Review }) => {
+    setHasSubmittedReview(true);
+
+    if (result.review?.id) {
+      setReviewsList((prev) => {
+        if (prev.some((item) => item.id === result.review!.id)) {
+          return prev;
+        }
+        return [result.review!, ...prev];
+      });
+      setVisibleReviewCount((count) => count + 1);
+      setReviewSummary((prev) => {
+        const nextCount = prev.reviewsCount + 1;
+        const nextRating =
+          nextCount === 1
+            ? result.review!.rating
+            : Math.round(((prev.rating * prev.reviewsCount + result.review!.rating) / nextCount) * 10) / 10;
+        return {
+          reviewsCount: nextCount,
+          rating: nextRating,
+        };
+      });
+      return;
+    }
+
+    try {
+      const data = await getProductReviewsApi(product.id, 1, REVIEWS_BATCH_SIZE, token);
+      setReviewsList(data.items.map(mapReviewToUi));
+      setReviewSummary(data.summary);
+      setHasMoreReviews(data.meta.hasNextPage);
+      setReviewsPage(1);
+      setVisibleReviewCount(REVIEWS_BATCH_SIZE);
+    } catch {
+      // Keep current list if refresh fails
+    }
+  };
 
   useEffect(() => {
     setQuantity(1);
@@ -209,8 +311,34 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
     });
   };
 
-  const handleAddReview = (newReview: Review) => {
-    setReviewsList([newReview, ...reviewsList]);
+  const displayRating = reviewSummary.rating || catalogProduct.rating || 0;
+  const displayReviewsCount = reviewSummary.reviewsCount ?? catalogProduct.reviewsCount ?? 0;
+  const displayedReviews = reviewsList.slice(0, visibleReviewCount);
+  const canViewMoreReviews =
+    visibleReviewCount < reviewsList.length || hasMoreReviews;
+
+  const handleViewMoreReviews = async () => {
+    const nextVisibleCount = visibleReviewCount + REVIEWS_BATCH_SIZE;
+    setReviewsLoadingMore(true);
+
+    try {
+      if (nextVisibleCount > reviewsList.length && hasMoreReviews) {
+        const nextPage = reviewsPage + 1;
+        const data = await getProductReviewsApi(
+          product.id,
+          nextPage,
+          REVIEWS_BATCH_SIZE,
+          token,
+        );
+        setReviewsList((prev) => [...prev, ...data.items.map(mapReviewToUi)]);
+        setReviewSummary(data.summary);
+        setHasMoreReviews(data.meta.hasNextPage);
+        setReviewsPage(nextPage);
+      }
+      setVisibleReviewCount(nextVisibleCount);
+    } finally {
+      setReviewsLoadingMore(false);
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -218,9 +346,11 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
     const fullStars = Math.floor(rating);
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
-        stars.push(<Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-black text-black" />);
+        stars.push(
+          <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#FFC633] text-[#FFC633]" />,
+        );
       } else {
-        stars.push(<Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-black text-black opacity-30" />);
+        stars.push(<Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-300" />);
       }
     }
     return stars;
@@ -377,13 +507,18 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
             </h1>
 
             {/* Stars & Numerical Score */}
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2 pt-1 flex-wrap">
               <div className="flex items-center gap-0.5">
-                {renderStars(product.rating)}
+                {renderStars(displayRating)}
               </div>
               <span className="text-xs sm:text-sm font-extrabold text-black">
-                {product.rating}<span className="text-gray-400 font-normal">/5</span>
+                {displayRating}<span className="text-gray-400 font-normal">/5</span>
               </span>
+              {displayReviewsCount > 0 && (
+                <span className="text-xs text-gray-500 font-medium">
+                  ({displayReviewsCount} review{displayReviewsCount === 1 ? '' : 's'})
+                </span>
+              )}
             </div>
           </div>
 
@@ -583,39 +718,48 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           </button>
         </div>
 
-        {/* Tab Content: Rating & Reviews */}
-        {activeTab === 'reviews' && (
-          <div className="space-y-6 sm:space-y-8">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-baseline gap-2">
-                <h3 className="font-be-vietnam-pro-black text-lg sm:text-2xl font-black text-black uppercase">
-                  All Reviews
-                </h3>
-                <span className="text-xs sm:text-sm text-gray-400 font-medium">
-                  ({reviewsList.length})
-                </span>
-              </div>
+        {/* Tab Content: Rating & Reviews — keep mounted so form is instant on tab switch */}
+        <div className={activeTab === 'reviews' ? 'space-y-6 sm:space-y-8' : 'hidden'}>
+          <div className="flex items-baseline gap-2">
+            <h3 className="font-be-vietnam-pro-black text-lg sm:text-2xl font-black text-black uppercase">
+              All Reviews
+            </h3>
+            <span className="text-xs sm:text-sm text-gray-400 font-medium">
+              ({displayReviewsCount})
+            </span>
+          </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsWriteReviewOpen(true)}
-                  className="bg-black hover:bg-neutral-800 text-white font-extrabold text-xs px-4 py-2.5 sm:px-6 sm:py-3 rounded-full transition-all shadow-md cursor-pointer uppercase"
-                >
-                  Write Review
-                </button>
-              </div>
-            </div>
+          <ProductWriteReviewForm
+            productId={product.id}
+            hasExistingReview={hasSubmittedReview}
+            onSubmitted={handleReviewSubmitted}
+          />
 
+          {reviewsLoading && reviewsList.length === 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {reviewsList.slice(0, visibleReviewsCount).map((rev) => (
+              {Array.from({ length: REVIEWS_BATCH_SIZE }).map((_, index) => (
+                <ReviewCardSkeleton key={index} />
+              ))}
+            </div>
+          ) : reviewsList.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center space-y-3">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF8E7]">
+                <Star className="h-5 w-5 fill-[#FFC633] text-[#FFC633]" />
+              </div>
+              <p className="text-sm font-bold text-black">No reviews yet for this product</p>
+              <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+                Be the first to share your experience. Your review helps other shoppers choose with confidence.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {displayedReviews.map((rev) => (
                 <div
                   key={rev.id}
                   className="border border-gray-200/90 rounded-2xl p-4 sm:p-6 bg-white space-y-2.5 relative shadow-2xs hover:shadow-xs transition-shadow"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-0.5">
-                      {renderStars(rev.rating)}
-                    </div>
+                  <div className="flex items-center gap-0.5">
+                    {renderStars(rev.rating)}
                   </div>
 
                   <div className="flex items-center gap-1.5 pt-0.5">
@@ -623,14 +767,17 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
                       {rev.userName}
                     </h4>
                     {rev.verified && (
-                      <span className="w-4 h-4 rounded-full bg-black text-white flex items-center justify-center text-[9px]" title="Verified Buyer">
+                      <span
+                        className="w-4 h-4 rounded-full bg-black text-white flex items-center justify-center text-[9px]"
+                        title="Verified Buyer"
+                      >
                         <Check className="w-2.5 h-2.5 stroke-3" />
                       </span>
                     )}
                   </div>
 
                   <p className="text-gray-600 text-xs sm:text-sm leading-relaxed font-medium">
-                    "{rev.comment}"
+                    &ldquo;{rev.comment}&rdquo;
                   </p>
 
                   <div className="text-[11px] text-gray-400 pt-1 font-medium">
@@ -639,20 +786,22 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
                 </div>
               ))}
             </div>
+          )}
 
-            {visibleReviewsCount < reviewsList.length && (
-              <div className="text-center pt-2">
-                <button
-                  onClick={() => setVisibleReviewsCount((prev) => prev + 4)}
-                  className="px-8 py-3 border border-gray-200 rounded-full font-bold text-xs text-black hover:bg-black hover:text-white transition-all cursor-pointer uppercase"
-                >
-                  Load More Reviews
-                </button>
-              </div>
-            )}
-
-          </div>
-        )}
+          {canViewMoreReviews && reviewsList.length > 0 && (
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                disabled={reviewsLoadingMore}
+                onClick={handleViewMoreReviews}
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-gray-200 rounded-full font-bold text-xs text-black hover:bg-black hover:text-white transition-all cursor-pointer uppercase disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {reviewsLoadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
+                View More
+              </button>
+            </div>
+          )}
+        </div>
 
         {activeTab === 'desc' && (
           <div className="bg-[#F4F4F4] rounded-2xl p-5 sm:p-7 space-y-2.5 text-xs sm:text-sm text-gray-700 leading-relaxed font-medium">
@@ -690,13 +839,6 @@ export function ProductDetailClient({ product, relatedProducts }: ProductDetailC
           </div>
         </div>
       )}
-
-      {/* Write a Review Modal */}
-      <WriteReviewModal
-        isOpen={isWriteReviewOpen}
-        onClose={() => setIsWriteReviewOpen(false)}
-        onSubmitReview={handleAddReview}
-      />
 
     </div>
   );
