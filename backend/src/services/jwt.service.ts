@@ -14,12 +14,12 @@ export class JwtService {
       expiresIn: (env.JWT_EXPIRES_IN || "7d") as any,
     };
 
-    return jwt.sign(payload, env.JWT_SECRET || "airave-secret", options);
+    return jwt.sign(payload, env.JWT_SECRET, options);
   }
 
   public static verifyAccessToken(token: string): JwtPayload {
     try {
-      const decoded = jwt.verify(token, env.JWT_SECRET || "airave-secret") as JwtPayload;
+      const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
       return decoded;
     } catch (error: any) {
       if (error.name === "TokenExpiredError") {

@@ -37,6 +37,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ""
       case "IN_STOCK":
       case "PUBLISHED":
       case "COMPLETED":
+      case "CAPTURED":
+      case "PAID":
         return "border-emerald-200/80 bg-emerald-50 text-emerald-700 dot-emerald";
       case "PROCESSING":
       case "CONFIRMED":
@@ -69,6 +71,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ""
       case "IN_STOCK":
       case "PUBLISHED":
       case "COMPLETED":
+      case "CAPTURED":
+      case "PAID":
         return "bg-emerald-500";
       case "PROCESSING":
       case "CONFIRMED":

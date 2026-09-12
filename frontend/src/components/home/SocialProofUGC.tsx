@@ -5,8 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, X, Heart, Camera } from "lucide-react";
-import { PRODUCTS } from "@/data/mockData";
-import { useCart } from "@/context/CartContext";
+import { useSizeSelection } from "@/context/SizeSelectionContext";
+import { Product } from "@/types/ecommerce";
+import { getProductsApi } from "@/lib/productApi";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -51,10 +52,19 @@ const UGC_POSTS = [
 
 export const SocialProofUGC: React.FC = () => {
   const [selectedPost, setSelectedPost] = useState<(typeof UGC_POSTS)[0] | null>(null);
-  const { addToCart } = useCart();
+  const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
+  const { requestAddToCart } = useSizeSelection();
+
+  React.useEffect(() => {
+    getProductsApi({ limit: 12 })
+      .then(({ products }) => setCatalogProducts(products))
+      .catch(() => setCatalogProducts([]));
+  }, []);
 
   const activeProduct = selectedPost
-    ? PRODUCTS.find((p) => p.id === selectedPost.taggedProductId) || PRODUCTS[0]
+    ? catalogProducts.find((product) => product.id === selectedPost.taggedProductId) ||
+      catalogProducts[0] ||
+      null
     : null;
 
   return (
@@ -172,7 +182,7 @@ export const SocialProofUGC: React.FC = () => {
                 <div className="space-y-3 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => {
-                      addToCart(activeProduct);
+                      requestAddToCart(activeProduct);
                       setSelectedPost(null);
                     }}
                     className="w-full h-12 rounded-full bg-black text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-neutral-800 transition-colors shadow-md"

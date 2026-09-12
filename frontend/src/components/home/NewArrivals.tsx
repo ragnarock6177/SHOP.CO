@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getProductsApi } from "@/lib/productApi";
 import { ProductCard } from "@/components/product/ProductCard";
-import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
 
 import { StorefrontHomepageSection } from "@/types/settings";
@@ -31,7 +30,6 @@ export function NewArrivals({ section, initialProducts = [] }: NewArrivalsProps)
     initialProducts.slice(0, limit)
   );
   const [activeTab, setActiveTab] = useState<string>("all");
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   const displayTitle = section?.title || "NEW ARRIVALS";
   const displaySubtitle = section?.subtitle || "LATEST SEASONAL ARRIVALS";
@@ -113,17 +111,10 @@ export function NewArrivals({ section, initialProducts = [] }: NewArrivalsProps)
             <ProductCard
               key={product.id}
               product={product}
-              onQuickView={setQuickViewProduct}
             />
           ))}
         </div>
       </div>
-
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
     </section>
   );
 }

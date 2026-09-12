@@ -24,6 +24,20 @@ export class UserController {
     }
   }
 
+  static async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) throw new UnauthorizedError();
+      const result = await UserService.changePassword(
+        req.user.id,
+        req.body.currentPassword,
+        req.body.newPassword,
+      );
+      sendSuccess(res, result, result.message);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getAddresses(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) throw new UnauthorizedError();
@@ -39,6 +53,26 @@ export class UserController {
       if (!req.user) throw new UnauthorizedError();
       const address = await UserService.addUserAddress(req.user.id, req.body);
       sendSuccess(res, address, "Address added successfully", 201);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) throw new UnauthorizedError();
+      const address = await UserService.updateUserAddress(req.user.id, req.params.id, req.body);
+      sendSuccess(res, address, "Address updated successfully");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async setDefaultAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) throw new UnauthorizedError();
+      const address = await UserService.setDefaultAddress(req.user.id, req.params.id);
+      sendSuccess(res, address, "Default address updated successfully");
     } catch (error) {
       next(error);
     }

@@ -29,9 +29,9 @@ export interface AnimatedFooterProps {
 }
 
 const DEFAULT_ASCII_CHARS = "........:::=+xX#0369";
-const HIGHLIGHT_LIFETIME = 250;
-const CLUSTER_SIZE = 6;
-const PARALLAX_EASE = 0.08;
+const HIGHLIGHT_LIFETIME = 220;
+const CLUSTER_SIZE = 5;
+const PARALLAX_EASE = 0.06;
 
 interface Cell {
   col: number;
@@ -50,6 +50,29 @@ interface Hand {
   cellSize: number;
   baselineOffset: number;
   direction: 1 | -1;
+}
+
+function getResponsiveAsciiConfig(
+  viewportWidth: number,
+  columns: number,
+  cellSize: number,
+  fontSize: number,
+) {
+  if (viewportWidth < 640) {
+    return {
+      columns: Math.min(columns, 42),
+      cellSize: Math.max(cellSize - 2, 10),
+      fontSize: Math.max(fontSize - 1, 10),
+    };
+  }
+  if (viewportWidth < 1024) {
+    return {
+      columns: Math.min(columns, 58),
+      cellSize: Math.max(cellSize - 1, 11),
+      fontSize,
+    };
+  }
+  return { columns, cellSize, fontSize };
 }
 
 function buildHandCells(
@@ -126,6 +149,15 @@ function highlightCluster(cells: Map<string, Cell>, startCell: Cell) {
   }
 }
 
+function applyWrapperTransform(
+  wrapper: HTMLDivElement,
+  revealX: number,
+  x: number,
+  y: number,
+) {
+  wrapper.style.transform = `translate3d(calc(${revealX}% + ${x}px), ${y}px, 0)`;
+}
+
 export function AnimatedFooter({
   headingLines = ["AIRAVÉ"],
   leftImage = "/animated-footer/hand-left.jpg",
@@ -136,11 +168,11 @@ export function AnimatedFooter({
   hoverColor,
   hoverCharColor,
   asciiChars = DEFAULT_ASCII_CHARS,
-  columns = 75,
-  cellSize = 14,
-  fontSize = 12,
-  parallaxStrength = 12,
-  hoverRadius = 6,
+  columns = 88,
+  cellSize = 11,
+  fontSize = 11,
+  parallaxStrength = 5,
+  hoverRadius = 5,
   revealOnScroll = true,
   handWidthClass = "w-2/5 min-w-[200px]",
   handsAlignmentClass = "items-center",
@@ -181,6 +213,19 @@ export function AnimatedFooter({
     };
   }, [cc, hc, hcc, parallaxStrength, hoverRadius]);
 
+  useEffect(() => {
+    [leftImage, rightImage].forEach((src) => {
+      if (!src || typeof document === "undefined") return;
+      if (document.querySelector(`link[data-af-preload="${src}"]`)) return;
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = src;
+      link.setAttribute("data-af-preload", src);
+      document.head.appendChild(link);
+    });
+  }, [leftImage, rightImage]);
+
   const sig = useMemo(
     () =>
       JSON.stringify({
@@ -211,30 +256,46 @@ export function AnimatedFooter({
     const rightWrap = rightWrapRef.current;
     if (!root || !leftWrap || !rightWrap) return;
 
-    const isMobile =
+    const isTouchDevice =
       typeof window !== "undefined" &&
       (window.innerWidth < 768 || "ontouchstart" in window);
 
     const hands: Hand[] = [];
     const wrappers = [leftWrap, rightWrap];
+    let handsLoaded = 0;
+    let isRevealed = false;
+    let wantsReveal = false;
 
     const setupHand = (
       image: HTMLImageElement,
       canvas: HTMLCanvasElement,
       direction: 1 | -1,
     ) => {
-      const activeCols = isMobile ? Math.min(columns, 50) : columns;
-      const { rows, cells } = buildHandCells(image, activeCols, asciiChars);
-      if (cells.size === 0) return;
+      const responsive = getResponsiveAsciiConfig(
+        window.innerWidth,
+        columns,
+        cellSize,
+        fontSize,
+      );
+      const { rows, cells } = buildHandCells(
+        image,
+        responsive.columns,
+        asciiChars,
+      );
+      if (cells.size === 0) {
+        handsLoaded += 1;
+        onHandReady();
+        return;
+      }
 
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      canvas.width = activeCols * cellSize * dpr;
-      canvas.height = rows * cellSize * dpr;
+      canvas.width = responsive.columns * responsive.cellSize * dpr;
+      canvas.height = rows * responsive.cellSize * dpr;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.font = `${fontSize}px monospace`;
+      ctx.font = `${responsive.fontSize}px monospace`;
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
 
@@ -242,7 +303,9 @@ export function AnimatedFooter({
       const glyphHeight =
         metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
       const baselineOffset =
-        cellSize / 2 + glyphHeight / 2 - metrics.actualBoundingBoxDescent;
+        responsive.cellSize / 2 +
+        glyphHeight / 2 -
+        metrics.actualBoundingBoxDescent;
 
       const hand: Hand = {
         canvas,
@@ -250,39 +313,19 @@ export function AnimatedFooter({
         cells,
         cellList: [...cells.values()],
         rows,
-        columns: activeCols,
-        cellSize,
+        columns: responsive.columns,
+        cellSize: responsive.cellSize,
         baselineOffset,
         direction,
       };
 
       hands.push(hand);
-
-      // Render static frame once immediately on setup
       renderHand(hand, 0);
+      handsLoaded += 1;
+      onHandReady();
     };
 
-    const loadHand = (
-      src: string,
-      canvas: HTMLCanvasElement,
-      direction: 1 | -1,
-    ) => {
-      if (!src) return;
-      const image = new Image();
-      image.crossOrigin = "anonymous";
-      let initialized = false;
-      const init = () => {
-        if (initialized) return;
-        initialized = true;
-        setupHand(image, canvas, direction);
-      };
-      image.onload = init;
-      image.src = src;
-      if (image.complete && image.naturalWidth) init();
-    };
-
-    loadHand(leftImage, leftCanvasRef.current!, 1);
-    loadHand(rightImage, rightCanvasRef.current!, -1);
+    let onHandReady: () => void = () => {};
 
     const renderHand = (hand: Hand, now: number) => {
       const {
@@ -294,9 +337,9 @@ export function AnimatedFooter({
         rows,
       } = hand;
       const {
-        charColor: cc,
-        hoverColor: hc,
-        hoverCharColor: hcc,
+        charColor: activeCharColor,
+        hoverColor: activeHoverColor,
+        hoverCharColor: activeHoverCharColor,
       } = liveRef.current;
 
       ctx.clearRect(0, 0, cols * cs, rows * cs);
@@ -307,10 +350,10 @@ export function AnimatedFooter({
         const isHighlighted = cell.highlightEndTime > now;
 
         if (isHighlighted) {
-          ctx.fillStyle = hc;
+          ctx.fillStyle = activeHoverColor;
           ctx.fillRect(x, y, cs, cs);
         }
-        ctx.fillStyle = isHighlighted ? hcc : cc;
+        ctx.fillStyle = isHighlighted ? activeHoverCharColor : activeCharColor;
         ctx.fillText(cell.char, x + cs / 2, y + baselineOffset);
       }
     };
@@ -318,8 +361,9 @@ export function AnimatedFooter({
     const pointer = { x: 0, y: 0 };
     const drift = { x: 0, y: 0 };
     const curtain = { offset: revealOnScroll ? 125 : 0 };
-    let isMouseMoving = false;
-    let idleTimer: NodeJS.Timeout;
+    let isPointerInside = false;
+    let isFooterVisible = !revealOnScroll;
+    let rafId = 0;
 
     const hoverHand = (hand: Hand, clientX: number, clientY: number) => {
       const rect = hand.canvas.getBoundingClientRect();
@@ -343,76 +387,92 @@ export function AnimatedFooter({
       }
     };
 
-    const onMouseMove = (event: MouseEvent) => {
-      if (isMobile) return;
-      isMouseMoving = true;
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => {
-        isMouseMoving = false;
-      }, 1000);
+    const onPointerMove = (event: MouseEvent) => {
+      if (isTouchDevice || !isFooterVisible) return;
 
       const strength = liveRef.current.parallaxStrength;
       const rect = root.getBoundingClientRect();
       const w = rect.width || 1;
       const h = rect.height || 1;
-      pointer.x = ((event.clientX - rect.left) / w - 0.5) * strength * 2;
-      pointer.y = ((event.clientY - rect.top) / h - 0.5) * strength * 2;
+      pointer.x = ((event.clientX - rect.left) / w - 0.5) * strength;
+      pointer.y = ((event.clientY - rect.top) / h - 0.5) * strength * 0.35;
+
       for (const hand of hands) hoverHand(hand, event.clientX, event.clientY);
     };
 
-    if (!isMobile) {
-      window.addEventListener("mousemove", onMouseMove, { passive: true });
+    const onPointerEnter = () => {
+      isPointerInside = true;
+    };
+
+    const onPointerLeave = () => {
+      isPointerInside = false;
+      pointer.x = 0;
+      pointer.y = 0;
+    };
+
+    if (!isTouchDevice) {
+      root.addEventListener("mousemove", onPointerMove, { passive: true });
+      root.addEventListener("mouseenter", onPointerEnter, { passive: true });
+      root.addEventListener("mouseleave", onPointerLeave, { passive: true });
     }
 
-    let rafId = 0;
     const frame = () => {
       const now = Date.now();
+      const hasHighlights = hands.some((hand) =>
+        hand.cellList.some((cell) => cell.highlightEndTime > now),
+      );
+      const shouldAnimateParallax =
+        !isTouchDevice && isFooterVisible && (isPointerInside || hasHighlights);
 
-      // Only re-render canvas when active mouse movement or ongoing highlight exists
-      if (isMouseMoving || hands.some((h) => h.cellList.some((c) => c.highlightEndTime > now))) {
-        for (const hand of hands) renderHand(hand, now);
-
+      if (shouldAnimateParallax) {
         drift.x += (pointer.x - drift.x) * PARALLAX_EASE;
         drift.y += (pointer.y - drift.y) * PARALLAX_EASE;
-        const strength = liveRef.current.parallaxStrength;
-        const scale = 1 + (strength * 2) / 200;
-
-        wrappers.forEach((wrapper, i) => {
-          const dir = i === 0 ? 1 : -1;
-          const revealX = i === 0 ? -curtain.offset : curtain.offset;
-          const x = drift.x * dir || 0;
-          const y = -drift.y || 0;
-          wrapper.style.transform = `translateX(${revealX}%) translate(${x}px, ${y}px) scale(${scale})`;
-        });
+      } else {
+        drift.x += (0 - drift.x) * PARALLAX_EASE;
+        drift.y += (0 - drift.y) * PARALLAX_EASE;
       }
+
+      if (hasHighlights) {
+        for (const hand of hands) renderHand(hand, now);
+      }
+
+      wrappers.forEach((wrapper, index) => {
+        const revealX = index === 0 ? -curtain.offset : curtain.offset;
+        const direction = index === 0 ? 1 : -1;
+        applyWrapperTransform(
+          wrapper,
+          revealX,
+          drift.x * direction,
+          -drift.y,
+        );
+      });
 
       rafId = requestAnimationFrame(frame);
     };
 
-    if (!isMobile) {
-      rafId = requestAnimationFrame(frame);
-    }
+    rafId = requestAnimationFrame(frame);
 
     const chars = gsap.utils.toArray<HTMLElement>(
       root.querySelectorAll("[data-af-char]"),
     );
 
+    const syncRevealTransforms = () => {
+      wrappers.forEach((wrapper, index) => {
+        const revealX = index === 0 ? -curtain.offset : curtain.offset;
+        applyWrapperTransform(wrapper, revealX, 0, 0);
+      });
+    };
+
     const animateIn = () => {
       gsap.to(curtain, {
         offset: 0,
-        duration: 0.8,
+        duration: 0.85,
         ease: "power3.out",
         overwrite: true,
-        onUpdate: () => {
-          wrappers.forEach((wrapper, i) => {
-            const revealX = i === 0 ? -curtain.offset : curtain.offset;
-            wrapper.style.transform = `translateX(${revealX}%)`;
-          });
-        },
       });
       gsap.to(chars, {
         yPercent: 0,
-        duration: 0.8,
+        duration: 0.85,
         ease: "power3.out",
         stagger: { each: 0.03, from: "center" },
         overwrite: true,
@@ -422,19 +482,13 @@ export function AnimatedFooter({
     const animateOut = () => {
       gsap.to(curtain, {
         offset: 125,
-        duration: 0.4,
+        duration: 0.45,
         ease: "power2.in",
         overwrite: true,
-        onUpdate: () => {
-          wrappers.forEach((wrapper, i) => {
-            const revealX = i === 0 ? -curtain.offset : curtain.offset;
-            wrapper.style.transform = `translateX(${revealX}%)`;
-          });
-        },
       });
       gsap.to(chars, {
         yPercent: 125,
-        duration: 0.4,
+        duration: 0.45,
         ease: "power2.in",
         stagger: { each: 0.01, from: "center" },
         overwrite: true,
@@ -443,6 +497,65 @@ export function AnimatedFooter({
 
     animateInRef.current = animateIn;
     animateOutRef.current = animateOut;
+
+    const tryReveal = () => {
+      if (!wantsReveal || isRevealed) return;
+      if (handsLoaded < 2) return;
+      isRevealed = true;
+      animateIn();
+    };
+
+    onHandReady = tryReveal;
+
+    const loadHand = (
+      src: string,
+      canvas: HTMLCanvasElement,
+      direction: 1 | -1,
+    ): Promise<void> => {
+      if (!src) {
+        handsLoaded += 1;
+        onHandReady();
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve) => {
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+        let initialized = false;
+        const init = () => {
+          if (initialized) return;
+          initialized = true;
+          setupHand(image, canvas, direction);
+          resolve();
+        };
+        const fail = () => {
+          handsLoaded += 1;
+          onHandReady();
+          resolve();
+        };
+        image.onload = init;
+        image.onerror = fail;
+        image.src = src;
+        if (image.complete && image.naturalWidth) init();
+      });
+    };
+
+    const requestReveal = () => {
+      wantsReveal = true;
+      tryReveal();
+    };
+
+    const requestHide = () => {
+      wantsReveal = false;
+      if (!isRevealed) return;
+      isRevealed = false;
+      animateOut();
+    };
+
+    void Promise.all([
+      loadHand(leftImage, leftCanvasRef.current!, 1),
+      loadHand(rightImage, rightCanvasRef.current!, -1),
+    ]);
 
     const maskAll = () => {
       gsap.set(chars, { yPercent: 125 });
@@ -454,48 +567,75 @@ export function AnimatedFooter({
     let observer: IntersectionObserver | null = null;
 
     if (revealed !== undefined) {
-      curtain.offset = revealed ? 0 : 125;
-      if (revealed) showAll();
-      else maskAll();
+      if (revealed) {
+        wantsReveal = true;
+        isRevealed = false;
+        curtain.offset = 125;
+        if (handsLoaded >= 2) {
+          curtain.offset = 0;
+          isRevealed = true;
+          showAll();
+        } else {
+          maskAll();
+        }
+      } else {
+        curtain.offset = 125;
+        maskAll();
+        wantsReveal = false;
+        isRevealed = false;
+      }
+      syncRevealTransforms();
     } else if (revealOnScroll) {
       maskAll();
-      let isRevealed = false;
+      syncRevealTransforms();
+
       observer = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
-            if (entry.isIntersecting && !isRevealed) {
-              isRevealed = true;
-              animateIn();
-            } else if (!entry.isIntersecting && isRevealed) {
-              isRevealed = false;
-              animateOut();
+            isFooterVisible = entry.isIntersecting;
+            if (entry.isIntersecting) {
+              requestReveal();
+            } else {
+              isPointerInside = false;
+              pointer.x = 0;
+              pointer.y = 0;
+              requestHide();
             }
           }
         },
-        { root: null, threshold: 0.05 },
+        { root: null, threshold: 0.08, rootMargin: "0px 0px -5% 0px" },
       );
       observer.observe(root);
+
+      const rect = root.getBoundingClientRect();
+      const alreadyVisible =
+        rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
+      if (alreadyVisible) {
+        isFooterVisible = true;
+        requestReveal();
+      }
     } else {
       showAll();
+      curtain.offset = 0;
+      isRevealed = true;
+      syncRevealTransforms();
     }
 
     return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      clearTimeout(idleTimer);
-      window.removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(rafId);
+      root.removeEventListener("mousemove", onPointerMove);
+      root.removeEventListener("mouseenter", onPointerEnter);
+      root.removeEventListener("mouseleave", onPointerLeave);
       observer?.disconnect();
       gsap.killTweensOf([curtain, ...chars]);
     };
-  }, [sig]);
+  }, [sig, revealOnScroll, revealed]);
 
   useEffect(() => {
     if (revealed === undefined) return;
     if (revealed) animateInRef.current();
     else animateOutRef.current();
   }, [revealed]);
-
-  const startsHidden = revealed !== undefined ? !revealed : revealOnScroll;
-  const offEdge = startsHidden ? 125 : 0;
 
   return (
     <footer
@@ -511,7 +651,6 @@ export function AnimatedFooter({
         color: textColor,
       }}
     >
-      {/* ASCII hands */}
       <div
         className={cn(
           "pointer-events-none absolute inset-0 flex justify-between",
@@ -520,38 +659,35 @@ export function AnimatedFooter({
       >
         <div
           ref={leftWrapRef}
-          className={cn("relative gpu-layer", handWidthClass)}
-          style={{ transform: `translateX(-${offEdge}%)` }}
+          className={cn("relative gpu-layer will-change-transform", handWidthClass)}
         >
-          <canvas ref={leftCanvasRef} className="block h-auto w-full" />
+          <canvas ref={leftCanvasRef} className="block h-auto w-full opacity-90" />
         </div>
         <div
           ref={rightWrapRef}
-          className={cn("relative gpu-layer", handWidthClass)}
-          style={{ transform: `translateX(${offEdge}%)` }}
+          className={cn("relative gpu-layer will-change-transform", handWidthClass)}
         >
-          <canvas ref={rightCanvasRef} className="block h-auto w-full" />
+          <canvas ref={rightCanvasRef} className="block h-auto w-full opacity-90" />
         </div>
       </div>
 
-      {/* Display headings */}
       {headingLines && headingLines.length > 0 && (
-        <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-8 pt-8 sm:pt-14 pointer-events-none z-10">
-          {headingLines.map((word, wi) => (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4 pb-2 pt-6 sm:px-8 sm:pb-4 sm:pt-10">
+          {headingLines.map((word, wordIndex) => (
             <h2
-              key={`${word}-${wi}`}
+              key={`${word}-${wordIndex}`}
               aria-label={word}
-              className="overflow-hidden font-be-vietnam-pro-black px-12 font-black leading-none tracking-widest text-black text-center translate-y-3 sm:translate-y-5 pt-[0.3em] mt-[-0.3em] pb-[0.1em]"
-              style={{ fontSize: "clamp(2.5rem, 12.5vw, 11rem)" }}
+              className="overflow-hidden px-4 text-center font-be-vietnam-pro-black font-black leading-none tracking-[0.08em] text-black sm:px-10 sm:tracking-widest"
+              style={{ fontSize: "clamp(2rem, 11vw, 9.5rem)" }}
             >
-              {Array.from(word).map((ch, ci) => (
+              {Array.from(word).map((character, charIndex) => (
                 <span
-                  key={ci}
+                  key={charIndex}
                   data-af-char
                   aria-hidden="true"
                   className="inline-block gpu-layer"
                 >
-                  {ch === " " ? " " : ch}
+                  {character === " " ? "\u00a0" : character}
                 </span>
               ))}
             </h2>

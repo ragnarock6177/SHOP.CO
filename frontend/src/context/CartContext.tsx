@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef } from 'react';
 import { Product, CartItem } from '../types/ecommerce';
+import { resolveProductColor, getCartItemMaxQuantity } from '@/lib/productVariants';
 import { useAuth } from './AuthContext';
 import {
   getWishlistApi,
@@ -24,38 +25,28 @@ export interface WishlistItem {
   addedAt: string;
 }
 
-export interface OrderRecord {
-  id: string;
-  date: string;
-  status: string;
-  statusColor: string;
-  total: number;
-  trackingNum: string;
-  items: {
-    title: string;
-    price: number;
-    color: string;
-    size: string;
-    quantity: number;
-    image: string;
-  }[];
-  shippingAddress?: string;
-  paymentMethod?: string;
-}
-
 interface CartContextType {
   cart: CartItem[];
   wishlistItems: WishlistItem[];
   wishlistProducts: Product[];
-  orders: OrderRecord[];
   isCartOpen: boolean;
   isStorageReady: boolean;
   setIsCartOpen: (open: boolean) => void;
-  addToCart: (product: Product, quantity?: number, color?: string, size?: string, variantId?: string) => void;
+  addToCart: (
+    product: Product,
+    quantity?: number,
+    color?: string,
+    size?: string,
+    variantId?: string,
+    options?: { openDrawer?: boolean },
+  ) => void;
+  updateCartItemVariant: (
+    itemIndex: number,
+    selection: { color?: string; size?: string; variantId?: string },
+  ) => void;
   removeFromCart: (productId: string, color?: string, size?: string) => void;
   updateQuantity: (productId: string, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
-  addOrder: (order: OrderRecord) => void;
   toggleWishlist: (product: Product) => void;
   removeFromWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
@@ -66,13 +57,10 @@ interface CartContextType {
 }
 
 const STORAGE_KEYS = {
-  cart: 'ecommerce_cart',
+  cart: 'ecommerce_cart_v2',
   wishlistItems: 'ecommerce_wishlist_items',
-  orders: 'ecommerce_orders',
   guestToken: 'ecommerce_guest_token',
 } as const;
-
-const DEFAULT_ORDERS: OrderRecord[] = [];
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -145,7 +133,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { isAuthenticated, token, isHydrated } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isStorageReady, setIsStorageReady] = useState(false);
   const hasSyncedAuthRef = useRef(false);
@@ -154,18 +141,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem(STORAGE_KEYS.cart);
-      const savedOrders = localStorage.getItem(STORAGE_KEYS.orders);
 
       if (savedCart) setCart(JSON.parse(savedCart));
       setWishlistItems(loadWishlistItems());
-      if (savedOrders) {
-        setOrders(JSON.parse(savedOrders));
-      } else {
-        setOrders(DEFAULT_ORDERS);
-      }
+      localStorage.removeItem('ecommerce_orders');
     } catch (e) {
       console.error('Failed to load cart state', e);
-      setOrders(DEFAULT_ORDERS);
     } finally {
       setIsStorageReady(true);
     }
@@ -177,11 +158,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart));
       localStorage.setItem(STORAGE_KEYS.wishlistItems, JSON.stringify(wishlistItems));
-      localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(orders));
     } catch (e) {
       console.error('Failed to persist cart state', e);
     }
-  }, [cart, wishlistItems, orders, isStorageReady]);
+  }, [cart, wishlistItems, isStorageReady]);
 
   // 3. Real-Time DB Sync on User Login
   useEffect(() => {
@@ -244,10 +224,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [isAuthenticated]);
 
-  // Real-Time Add to Cart (Optimistic + DB Sync)
-  const addToCart = (product: Product, quantity = 1, color?: string, size?: string, variantId?: string) => {
-    const selectedColor = color || (product.colors && product.colors.length > 0 ? product.colors[0].name : undefined);
-    const selectedSize = size || (product.sizes && product.sizes.length > 0 ? product.sizes[0] : undefined);
+  const addToCart = (
+    product: Product,
+    quantity = 1,
+    color?: string,
+    size?: string,
+    variantId?: string,
+    options?: { openDrawer?: boolean },
+  ) => {
+    const selectedColor = resolveProductColor(product, color);
+    const selectedSize = size;
 
     let resolvedVariantId = variantId;
     if (!resolvedVariantId && product.variants && product.variants.length > 0) {
@@ -264,46 +250,86 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         (item) =>
           item.product.id === product.id &&
           item.selectedColor === selectedColor &&
-          item.selectedSize === selectedSize
+          item.selectedSize === selectedSize,
       );
 
       if (existingIndex > -1) {
         const updated = [...prevCart];
-        updated[existingIndex].quantity += quantity;
-        if (resolvedVariantId && !updated[existingIndex].variantId) {
-          updated[existingIndex].variantId = resolvedVariantId;
+        const nextItem = { ...updated[existingIndex] };
+        const maxQty = getCartItemMaxQuantity(nextItem);
+        nextItem.quantity = Math.min(nextItem.quantity + quantity, Math.max(maxQty, 1));
+        if (resolvedVariantId && !nextItem.variantId) {
+          nextItem.variantId = resolvedVariantId;
         }
+        updated[existingIndex] = nextItem;
         return updated;
       }
 
-      return [
-        ...prevCart,
-        {
+      const newItem: CartItem = {
+        product,
+        quantity: Math.min(quantity, Math.max(getCartItemMaxQuantity({
           product,
           quantity,
           selectedColor,
           selectedSize,
           variantId: resolvedVariantId,
-        },
-      ];
+        }), 1)),
+        selectedColor,
+        selectedSize,
+        variantId: resolvedVariantId,
+      };
+
+      return [...prevCart, newItem];
     });
 
-    setIsCartOpen(true);
-
-    // Sync with DB in real-time if variantId is available
     if (resolvedVariantId) {
       const guestToken = getOrCreateGuestToken();
-      addCartItemApi({ variantId: resolvedVariantId, quantity }, token, guestToken)
-        .then((updatedCart) => {
-          if (updatedCart && updatedCart.items) {
-            const serverItems = updatedCart.items.map(mapBackendCartItemToCartItem);
-            setCart(serverItems);
-          }
-        })
-        .catch((err) => {
-          console.warn('Real-time add to cart DB sync failed:', err);
-        });
+      addCartItemApi({ variantId: resolvedVariantId, quantity }, token, guestToken).catch((err) => {
+        console.warn('Real-time add to cart DB sync failed:', err);
+      });
     }
+
+    if (options?.openDrawer === true) {
+      setIsCartOpen(true);
+    }
+  };
+
+  const updateCartItemVariant = (
+    itemIndex: number,
+    selection: { color?: string; size?: string; variantId?: string },
+  ) => {
+    setCart((prevCart) => {
+      const current = prevCart[itemIndex];
+      if (!current) return prevCart;
+
+      const updatedItem: CartItem = {
+        ...current,
+        selectedColor: selection.color ?? current.selectedColor,
+        selectedSize: selection.size ?? current.selectedSize,
+        variantId: selection.variantId || current.variantId,
+      };
+
+      const duplicateIndex = prevCart.findIndex(
+        (item, index) =>
+          index !== itemIndex &&
+          item.product.id === updatedItem.product.id &&
+          item.selectedColor === updatedItem.selectedColor &&
+          item.selectedSize === updatedItem.selectedSize,
+      );
+
+      if (duplicateIndex > -1) {
+        const merged = [...prevCart];
+        merged[duplicateIndex] = {
+          ...merged[duplicateIndex],
+          quantity: merged[duplicateIndex].quantity + updatedItem.quantity,
+          variantId: selection.variantId || merged[duplicateIndex].variantId,
+        };
+        merged.splice(itemIndex, 1);
+        return merged;
+      }
+
+      return prevCart.map((item, index) => (index === itemIndex ? updatedItem : item));
+    });
   };
 
   // Real-Time Remove from Cart (Optimistic + DB Sync)
@@ -355,7 +381,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           (color === undefined || item.selectedColor === color) &&
           (size === undefined || item.selectedSize === size)
         ) {
-          return { ...item, quantity };
+          const maxQty = getCartItemMaxQuantity(item);
+          const capped = maxQty > 0 ? Math.min(quantity, maxQty) : quantity;
+          return { ...item, quantity: capped };
         }
         return item;
       })
@@ -373,11 +401,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCart([]);
   };
 
-  const addOrder = (newOrder: OrderRecord) => {
-    setOrders((prev) => [newOrder, ...prev]);
-  };
-
-  // Real-Time Toggle Wishlist (Optimistic + DB Sync)
   const toggleWishlist = (product: Product) => {
     const exists = wishlistItems.some((item) => item.product.id === product.id);
 
@@ -434,15 +457,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cart,
         wishlistItems,
         wishlistProducts,
-        orders,
         isCartOpen,
         isStorageReady,
         setIsCartOpen,
         addToCart,
+        updateCartItemVariant,
         removeFromCart,
         updateQuantity,
         clearCart,
-        addOrder,
         toggleWishlist,
         removeFromWishlist,
         isInWishlist,

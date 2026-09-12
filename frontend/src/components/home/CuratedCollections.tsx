@@ -1,43 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
-import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
-import { PRODUCTS } from "@/data/mockData";
+import { getProductsApi } from "@/lib/productApi";
 
 const COLLECTIONS = [
   {
-    id: "essential-tees",
-    title: "HEAVYWEIGHT TEES",
-    subtitle: "240 GSM Luxury Cotton Fits",
-    itemCount: "42 Garments",
+    id: "shirts",
+    title: "PREMIUM SHIRTS",
+    subtitle: "Oxford, linen & tailored fits",
+    itemCount: "Shop Shirts",
+    image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80",
+    link: "/product?category=shirts",
+  },
+  {
+    id: "t-shirts",
+    title: "ESSENTIAL TEES",
+    subtitle: "Heavyweight everyday cotton",
+    itemCount: "Shop Tees",
     image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&q=80",
     link: "/product?category=t-shirts",
   },
   {
-    id: "oversized-hoodies",
-    title: "OVERSIZED HOODIES",
-    subtitle: "French Terry Fleece Tailoring",
-    itemCount: "38 Garments",
-    image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&q=80",
-    link: "/product?category=hoodies",
-  },
-  {
-    id: "tailored-trousers",
-    title: "MINIMALIST BOTTOMS",
-    subtitle: "Relaxed Fit Cargo & Trousers",
-    itemCount: "29 Garments",
+    id: "pants",
+    title: "TAILORED BOTTOMS",
+    subtitle: "Structured trousers & relaxed fits",
+    itemCount: "Shop Pants",
     image: "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=800&q=80",
     link: "/product?category=pants",
   },
 ];
 
-export const CuratedCollections: React.FC = () => {
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+interface CuratedCollectionsProps {
+  initialProducts?: Product[];
+}
+
+export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({
+  initialProducts = [],
+}) => {
+  const [products, setProducts] = React.useState<Product[]>(initialProducts);
+
+  React.useEffect(() => {
+    if (initialProducts.length > 0) {
+      setProducts(initialProducts);
+      return;
+    }
+
+    getProductsApi({ limit: 6, selectionMode: "FEATURED" })
+      .then(({ products: fetched }) => setProducts(fetched))
+      .catch(() => setProducts([]));
+  }, [initialProducts]);
 
   return (
     <section className="w-full bg-[#FBFBFB] py-12 sm:py-16 px-3 sm:px-8 lg:px-12 my-6 border-y border-gray-200/80">
@@ -106,21 +122,15 @@ export const CuratedCollections: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-            {PRODUCTS.slice(0, 6).map((product) => (
+            {products.slice(0, 6).map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
-                onQuickView={setQuickViewProduct}
               />
             ))}
           </div>
         </div>
       </div>
-
-      <QuickViewModal
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
     </section>
   );
 };

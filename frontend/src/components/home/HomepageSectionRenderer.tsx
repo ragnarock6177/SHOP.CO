@@ -52,13 +52,13 @@ export function HomepageSectionRenderer({
       return <NewArrivals section={section} initialProducts={initialProducts} />;
 
     case "CURATED_COLLECTIONS":
-      return <CuratedCollections />;
+      return <CuratedCollections initialProducts={initialProducts} />;
 
     case "CATEGORY_GRID":
       return <CategoryGrid />;
 
     case "EDITORIAL_SHOWCASE":
-      return <EditorialShowcase />;
+      return <EditorialShowcase featuredProducts={initialProducts} />;
 
     case "TOP_SELLING":
     case "BEST_SELLERS":

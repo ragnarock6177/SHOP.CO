@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -13,16 +13,22 @@ import {
   Plus,
   Trash2,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { ProfileAddressesPanel } from "@/components/address/ProfileAddressesPanel";
+import { ProfileOrdersPanel } from "@/components/orders/ProfileOrdersPanel";
+import { ProfileSettingsPanel } from "@/components/profile/ProfileSettingsPanel";
+import { getUserAddressesApi } from "@/lib/addressApi";
+import type { UserAddress } from "@/types/address";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { wishlistProducts, orders, addToCart, toggleWishlist, wishlistCount } = useCart();
-  const { user: authUser, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
+  const { wishlistProducts, addToCart, toggleWishlist, wishlistCount } = useCart();
+  const { user: authUser, token, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
     "orders" | "addresses" | "payments" | "wishlist" | "settings"
@@ -37,7 +43,7 @@ export default function ProfilePage() {
     : "Guest User";
 
   const userEmail = authUser?.email || "No email connected";
-  const userPhone = authUser?.phoneNumber || "No mobile number connected";
+  const userPhone = authUser?.phone || authUser?.phoneNumber || "No mobile number connected";
   const userInitial = (
     authUser?.firstName?.[0] ||
     authUser?.email?.[0] ||
@@ -56,19 +62,33 @@ export default function ProfilePage() {
     ? `${authUser.authProvider} ACCOUNT`
     : "VERIFIED ACCOUNT";
 
-  // Mock Addresses
-  const [addresses, setAddresses] = useState([
-    {
-      id: "addr-1",
-      type: "Home (Default)",
-      name: displayName,
-      street: "742 Evergreen Terrace",
-      city: "Springfield",
-      state: "IL",
-      zip: "62704",
-      isDefault: true,
-    },
-  ]);
+  const [addresses, setAddresses] = useState<UserAddress[]>([]);
+  const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    if (!token) {
+      setAddresses([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    getUserAddressesApi(token)
+      .then((data) => {
+        if (!cancelled) {
+          setAddresses(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAddresses([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   // Mock Payment Cards
   const [cards] = useState([
@@ -82,7 +102,6 @@ export default function ProfilePage() {
     },
   ]);
 
-  // Wishlist products
   const wishedProducts = wishlistProducts;
 
   const handleLogout = async () => {
@@ -183,7 +202,7 @@ export default function ProfilePage() {
         <div className="md:col-span-4 grid grid-cols-3 gap-2 border-t md:border-t-0 md:border-l border-gray-300/70 pt-3.5 md:pt-0 md:pl-6 text-center">
           <div>
             <span className="font-be-vietnam-pro-black text-lg sm:text-2xl font-black text-black block">
-              {orders.length}
+              {orderCount}
             </span>
             <span className="text-[10px] sm:text-[11px] text-gray-500 font-bold uppercase">
               Orders
@@ -225,7 +244,7 @@ export default function ProfilePage() {
             >
               <div className="flex items-center gap-2">
                 <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>Orders ({orders.length})</span>
+                <span>Orders ({orderCount})</span>
               </div>
             </button>
 
@@ -239,7 +258,7 @@ export default function ProfilePage() {
             >
               <div className="flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>Addresses</span>
+                <span>Addresses ({addresses.length})</span>
               </div>
             </button>
 
@@ -305,176 +324,13 @@ export default function ProfilePage() {
               <h2 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black uppercase text-black">
                 Order History
               </h2>
-
-              {orders.length === 0 ? (
-                <div className="bg-[#F4F4F4] rounded-3xl p-8 sm:p-12 text-center space-y-3">
-                  <Package className="w-9 h-9 text-gray-400 mx-auto" />
-                  <p className="text-gray-600 text-xs sm:text-sm font-medium">
-                    You haven't placed any orders yet.
-                  </p>
-                  <Link
-                    href="/product"
-                    className="inline-block px-6 py-2.5 bg-black text-white font-extrabold text-xs uppercase rounded-full"
-                  >
-                    Start Shopping
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-3.5">
-                  {orders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-6 space-y-3.5 shadow-2xs"
-                    >
-                      {/* Order Top Bar */}
-                      <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-3 text-xs">
-                        <div>
-                          <span className="font-black text-black text-xs sm:text-sm block">
-                            {order.id}
-                          </span>
-                          <span className="text-gray-400 text-[11px] font-medium">
-                            Placed on {order.date}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full font-extrabold text-[10px] uppercase border border-black/10 bg-black/5 text-black`}
-                          >
-                            {order.status}
-                          </span>
-                          <span className="font-black text-black text-xs sm:text-sm">
-                            ${order.total.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Order Items */}
-                      <div className="space-y-2.5">
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="flex gap-3 items-center">
-                            <div className="w-12 h-16 aspect-3/4 bg-[#F0EEED] rounded-lg overflow-hidden relative shrink-0 border border-gray-100">
-                              <Image
-                                src={item.image}
-                                alt={item.title}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-xs text-black truncate">
-                                {item.title}
-                              </h4>
-                              <p className="text-[11px] text-gray-400 font-medium">
-                                Size: {item.size} &bull; Color: {item.color}{" "}
-                                &bull; Qty: {item.quantity}
-                              </p>
-                              <span className="font-black text-xs text-black">
-                                ${item.price}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Actions Bar */}
-                      <div className="pt-2.5 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <span className="text-gray-500 font-medium text-[11px]">
-                          Tracking:{" "}
-                          <strong className="text-black font-mono font-bold">
-                            {order.trackingNum}
-                          </strong>
-                        </span>
-
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={`/orders/${encodeURIComponent(order.id)}`}
-                            className="px-3.5 py-1.5 bg-black text-white rounded-full font-bold hover:bg-neutral-800 transition-colors text-[11px] uppercase cursor-pointer"
-                          >
-                            View Details
-                          </Link>
-                          <button
-                            onClick={() =>
-                              alert(
-                                `Tracking info for ${order.trackingNum}`,
-                              )
-                            }
-                            className="px-3.5 py-1.5 bg-[#F4F4F4] rounded-full font-bold text-black hover:bg-gray-200 transition-colors text-[11px] cursor-pointer"
-                          >
-                            Track Package
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <ProfileOrdersPanel onOrdersLoaded={setOrderCount} />
             </div>
           )}
 
           {/* TAB 2: SAVED ADDRESSES */}
           {activeTab === "addresses" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black uppercase text-black">
-                  Saved Addresses
-                </h2>
-                <button
-                  onClick={() => alert("Add New Address Modal")}
-                  className="inline-flex items-center gap-1 px-3.5 py-2 bg-black text-white text-xs font-bold rounded-full hover:bg-neutral-800 transition-colors uppercase cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Address</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {addresses.map((addr) => (
-                  <div
-                    key={addr.id}
-                    className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-5 space-y-2.5 shadow-2xs"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs sm:text-sm text-black">
-                        {addr.type}
-                      </span>
-                      {addr.isDefault && (
-                        <span className="bg-black text-white font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase">
-                          Default
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                      <strong className="text-black block font-bold">{addr.name}</strong>
-                      {addr.street}
-                      <br />
-                      {addr.city}, {addr.state} {addr.zip}
-                    </p>
-
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
-                      <button
-                        onClick={() => alert(`Edit address ${addr.id}`)}
-                        className="font-bold text-black hover:underline cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() =>
-                          setAddresses(
-                            addresses.filter((a) => a.id !== addr.id),
-                          )
-                        }
-                        className="text-red-500 hover:text-red-700 font-semibold cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ProfileAddressesPanel onAddressesChange={setAddresses} />
           )}
 
           {/* TAB 3: PAYMENT METHODS */}
@@ -609,84 +465,7 @@ export default function ProfilePage() {
               <h2 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black uppercase text-black border-b border-gray-100 pb-3.5">
                 Account Settings & Security
               </h2>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  alert("Settings Saved!");
-                }}
-                className="space-y-3.5"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={displayName}
-                      className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={userPhone}
-                      className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    defaultValue={userEmail}
-                    className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs font-semibold text-black focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div className="pt-3 border-t border-gray-100 space-y-2">
-                  <h3 className="font-bold text-xs text-black uppercase">
-                    Notification Preferences
-                  </h3>
-
-                  <label className="flex items-center gap-2.5 cursor-pointer text-xs text-gray-600 font-medium">
-                    <input
-                      type="checkbox"
-                      defaultChecked
-                      className="accent-black rounded"
-                    />
-                    <span>Receive SMS delivery status updates</span>
-                  </label>
-
-                  <label className="flex items-center gap-2.5 cursor-pointer text-xs text-gray-600 font-medium">
-                    <input
-                      type="checkbox"
-                      defaultChecked
-                      className="accent-black rounded"
-                    />
-                    <span>
-                      Receive promotional emails and special discount codes
-                    </span>
-                  </label>
-                </div>
-
-                <div className="pt-3">
-                  <button
-                    type="submit"
-                    className="px-7 py-3 bg-black hover:bg-neutral-800 text-white font-extrabold text-xs uppercase rounded-full transition-all shadow-md cursor-pointer"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
+              <ProfileSettingsPanel />
             </div>
           )}
         </main>

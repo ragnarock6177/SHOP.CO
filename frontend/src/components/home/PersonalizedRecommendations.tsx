@@ -4,9 +4,7 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
-import { QuickViewModal } from "@/components/product/QuickViewModal";
 import { Product } from "@/types/ecommerce";
-import { PRODUCTS } from "@/data/mockData";
 
 import { getProductsApi } from "@/lib/productApi";
 import { StorefrontHomepageSection } from "@/types/settings";
@@ -20,10 +18,7 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
   section,
   initialProducts = [],
 }) => {
-  const [products, setProducts] = useState<Product[]>(
-    initialProducts.length > 0 ? initialProducts : PRODUCTS
-  );
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const displayTitle = section?.title || "RECOMMENDED FOR YOU";
@@ -31,18 +26,16 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
   const limit = section?.config?.limit || 8;
 
   React.useEffect(() => {
+    if (initialProducts.length > 0) return;
+
     getProductsApi({ limit, sortBy: "rating" })
       .then(({ products: fetched }) => {
-        if (fetched.length > 0) {
-          setProducts(fetched);
-        } else {
-          setProducts(PRODUCTS);
-        }
+        setProducts(fetched);
       })
       .catch(() => {
-        setProducts(PRODUCTS);
+        setProducts([]);
       });
-  }, [limit]);
+  }, [limit, initialProducts.length]);
 
   const scroll = (direction: "left" | "right") => {
     if (sliderRef.current) {
@@ -105,18 +98,11 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
             <div key={product.id} className="w-32 sm:w-44 lg:w-48 shrink-0">
               <ProductCard
                 product={product}
-                onQuickView={setQuickViewProduct}
               />
             </div>
           ))}
         </div>
       </div>
-
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
     </section>
   );
 };

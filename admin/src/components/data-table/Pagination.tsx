@@ -71,9 +71,10 @@ export const Pagination: React.FC<PaginationProps> = ({
     );
   }
 
-  if (totalPages <= 1) return null;
+  if (total === 0 && !isLoading) return null;
 
   const visiblePages = getVisiblePages(currentPage, totalPages);
+  const singlePage = totalPages <= 1;
 
   return (
     <div
@@ -91,7 +92,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           type="button"
           aria-label="Previous page"
-          disabled={currentPage <= 1}
+          disabled={currentPage <= 1 || singlePage}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -138,7 +139,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           type="button"
           aria-label="Next page"
-          disabled={currentPage >= totalPages}
+          disabled={currentPage >= totalPages || singlePage}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();

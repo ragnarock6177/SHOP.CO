@@ -1,8 +1,18 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
-import { SanitizedUser, AuthResponseData, getMeApi, logoutApi, ApiHttpError } from "@/lib/authApi";
-import { syncAuthCookie } from "@/lib/authSession";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
+import { SanitizedUser, AuthResponseData, logoutApi } from "@/lib/authApi";
+import { getUserProfileApi, mapProfileToAuthUser } from "@/lib/userApi";
+import {
+  clearAuthSession,
+  isAuthSessionExpired,
+  markAuthSessionIssuedNow,
+  persistAuthSession,
+  readAuthSessionIssuedAt,
+  readAuthTokenFromStorage,
+  syncAuthCookie,
+  AuthSessionError,
+} from "@/lib/authSession";
 
 interface AuthContextType {
   user: SanitizedUser | null;
@@ -17,6 +27,25 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function shouldForceLogout(error: unknown): boolean {
+  if (!(error instanceof AuthSessionError)) return false;
+  return error.status === 401 || error.status === 403;
+}
+
+function readStoredUser(): SanitizedUser | null {
+  const storedUser = localStorage.getItem("user");
+  if (!storedUser || storedUser === "undefined" || storedUser === "null") {
+    return null;
+  }
+
+  try {
+    return JSON.parse(storedUser) as SanitizedUser;
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<SanitizedUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -24,47 +53,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isHydrated, setIsHydrated] = useState(false);
   const isInitializedRef = useRef(false);
 
+  const forceLogout = async (storedToken?: string | null) => {
+    if (storedToken) {
+      try {
+        await logoutApi(storedToken);
+      } catch {
+        // Ignore network errors during forced logout cleanup.
+      }
+    }
+
+    clearAuthSession();
+    setToken(null);
+    setUser(null);
+  };
+
   useEffect(() => {
     if (isInitializedRef.current) return;
     isInitializedRef.current = true;
 
     const initializeAuth = async () => {
+      let storedToken: string | null = null;
+
       try {
-        const storedToken = localStorage.getItem("accessToken");
-        const storedUser = localStorage.getItem("user");
+        storedToken = readAuthTokenFromStorage();
 
         if (storedToken) {
+          if (isAuthSessionExpired()) {
+            await forceLogout(storedToken);
+            return;
+          }
+
           syncAuthCookie(storedToken);
           setToken(storedToken);
 
-          if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
-            try {
-              setUser(JSON.parse(storedUser));
-            } catch (e) {
-              console.warn("Invalid stored user in localStorage, clearing:", e);
-              localStorage.removeItem("user");
-            }
+          const storedUser = readStoredUser();
+          if (storedUser) {
+            setUser(storedUser);
           }
 
-          try {
-            const { user: freshUser } = await getMeApi(storedToken);
-            if (freshUser) {
-              setUser(freshUser);
-              localStorage.setItem("user", JSON.stringify(freshUser));
-            }
-          } catch (apiErr: unknown) {
-            // ONLY log out if the backend explicitly returns a 401 Unauthorized / Token Expired error!
-            if (apiErr instanceof ApiHttpError && apiErr.status === 401) {
-              console.warn("Session expired on server (401), clearing auth state");
-              localStorage.removeItem("accessToken");
-              localStorage.removeItem("user");
-              syncAuthCookie(null);
-              setToken(null);
-              setUser(null);
-            } else {
-              const errMsg = apiErr instanceof Error ? apiErr.message : "Unknown error";
-              console.warn("Could not refresh user profile on reload, keeping stored session:", errMsg);
-            }
+          if (readAuthSessionIssuedAt() === null) {
+            markAuthSessionIssuedNow();
           }
         }
       } catch (err: unknown) {
@@ -72,6 +100,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } finally {
         setIsLoading(false);
         setIsHydrated(true);
+      }
+
+      if (!storedToken || isAuthSessionExpired()) return;
+
+      try {
+        const profile = await getUserProfileApi(storedToken);
+        const freshUser = mapProfileToAuthUser(profile);
+        setUser(freshUser);
+        localStorage.setItem("user", JSON.stringify(freshUser));
+      } catch (error) {
+        if (shouldForceLogout(error)) {
+          await forceLogout(storedToken);
+          return;
+        }
+
+        console.warn("Failed to refresh profile during auth init:", error);
       }
     };
 
@@ -81,38 +125,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const saveAuth = (authData: AuthResponseData) => {
     setToken(authData.accessToken);
     setUser(authData.user);
-    localStorage.setItem("accessToken", authData.accessToken);
-    syncAuthCookie(authData.accessToken);
+    persistAuthSession(authData.accessToken);
     if (authData.user) {
       localStorage.setItem("user", JSON.stringify(authData.user));
     } else {
       localStorage.removeItem("user");
     }
     setIsHydrated(true);
+
+    getUserProfileApi(authData.accessToken)
+      .then((profile) => {
+        const freshUser = mapProfileToAuthUser(profile);
+        setUser(freshUser);
+        localStorage.setItem("user", JSON.stringify(freshUser));
+      })
+      .catch((err) => {
+        if (shouldForceLogout(err)) {
+          void forceLogout(authData.accessToken);
+          return;
+        }
+        console.warn("Failed to fetch fresh user profile on login:", err);
+      });
   };
 
   const logout = async () => {
-    if (token) {
-      await logoutApi(token);
-    }
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    syncAuthCookie(null);
+    const activeToken = token || readAuthTokenFromStorage();
+    await forceLogout(activeToken);
   };
 
   const refreshUser = async () => {
-    if (!token) return;
+    const activeToken = token || readAuthTokenFromStorage();
+    if (!activeToken) return;
+
+    if (isAuthSessionExpired()) {
+      await forceLogout(activeToken);
+      return;
+    }
+
     try {
-      const { user: freshUser } = await getMeApi(token);
-      if (freshUser) {
-        setUser(freshUser);
-        localStorage.setItem("user", JSON.stringify(freshUser));
+      const profile = await getUserProfileApi(activeToken);
+      const freshUser = mapProfileToAuthUser(profile);
+      setUser(freshUser);
+      localStorage.setItem("user", JSON.stringify(freshUser));
+    } catch (err) {
+      if (shouldForceLogout(err)) {
+        await forceLogout(activeToken);
+        return;
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      console.error("Failed to refresh user profile:", msg);
     }
   };
 
@@ -121,7 +180,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         token,
-        isAuthenticated: !!user && !!token,
+        isAuthenticated: !!user && !!token && !isAuthSessionExpired(),
         isLoading,
         isHydrated,
         saveAuth,

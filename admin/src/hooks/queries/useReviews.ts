@@ -7,6 +7,8 @@ export interface ReviewItem {
   id: string;
   productId: string;
   productName?: string;
+  productSlug?: string | null;
+  customerId?: string;
   customerName: string;
   customerEmail: string;
   rating: number;
@@ -14,6 +16,8 @@ export interface ReviewItem {
   comment: string;
   isPublished: boolean;
   isVerifiedPurchase: boolean;
+  variantSku?: string | null;
+  variantName?: string | null;
   createdAt: string;
 }
 

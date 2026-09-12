@@ -196,6 +196,11 @@ model User {
   lastName        String?    @map("last_name") @db.VarChar(100)
   phone           String?    @db.VarChar(30)
   profileImage    String?    @map("profile_image")
+  gender          String?    @db.VarChar(30)
+  dateOfBirth     DateTime?  @map("date_of_birth") @db.Date
+  smsDeliveryUpdates Boolean @default(true) @map("sms_delivery_updates")
+  promotionalEmails  Boolean @default(true) @map("promotional_emails")
+  orderEmailUpdates  Boolean @default(true) @map("order_email_updates")
   status          UserStatus @default(PENDING)
   emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz
   phoneVerifiedAt DateTime?  @map("phone_verified_at") @db.Timestamptz
@@ -276,6 +281,7 @@ model UserAddress {
   id           String      @id @default(uuid()) @db.Uuid
   userId       String      @map("user_id") @db.Uuid
   type         AddressType @default(SHIPPING)
+  label        String      @default("Home") @db.VarChar(50)
   firstName    String      @map("first_name") @db.VarChar(100)
   lastName     String?     @map("last_name") @db.VarChar(100)
   addressLine1 String      @map("address_line_1") @db.VarChar(255)

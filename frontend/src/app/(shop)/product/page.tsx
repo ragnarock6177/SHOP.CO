@@ -1,17 +1,38 @@
 import React from "react";
-import { getProductsApi, getDynamicFiltersApi } from "@/lib/productApi";
+import {
+  getProductsApi,
+  getDynamicFiltersApi,
+  buildCatalogQueryFromParams,
+  serializeCatalogQuery,
+} from "@/lib/productApi";
 import { ShopCatalogClient } from "@/components/shop/ShopCatalogClient";
 
-// Incremental Static Regeneration (ISR) - revalidate every 30 seconds
-export const revalidate = 30;
+export const revalidate = 15;
 
-/**
- * Server Component: Prefetches default product catalog (page 1, limit 12, default filters)
- * and 100% dynamic catalog filters directly from database.
- */
-export default async function ShopPage() {
+type ShopSearchParams = {
+  category?: string;
+  filter?: string;
+  search?: string;
+  maxPrice?: string;
+  color?: string;
+  size?: string;
+  collection?: string;
+  style?: string;
+  sort?: string;
+  page?: string;
+  onSale?: string;
+};
+
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<ShopSearchParams>;
+}) {
+  const params = await searchParams;
+  const catalogQuery = buildCatalogQueryFromParams(params as Record<string, string | undefined>);
+
   const [productsData, dynamicFilters] = await Promise.all([
-    getProductsApi({ limit: 12, page: 1, sortBy: "popular" }),
+    getProductsApi(catalogQuery),
     getDynamicFiltersApi(),
   ]);
 
@@ -21,6 +42,7 @@ export default async function ShopPage() {
       initialCategories={dynamicFilters.categories as any}
       initialFilterSettings={dynamicFilters}
       initialMeta={productsData.meta}
+      initialQueryKey={serializeCatalogQuery(catalogQuery)}
     />
   );
 }

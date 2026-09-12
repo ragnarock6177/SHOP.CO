@@ -1,17 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Star, Heart, Eye, ShoppingBag, Check, Zap } from "lucide-react";
+import { Star, Heart, ShoppingBag, Check, Zap } from "lucide-react";
 import { Product } from "@/types/ecommerce";
 import { useCart } from "@/context/CartContext";
+import { useSizeSelection } from "@/context/SizeSelectionContext";
+import { ColorSwatchStack } from "@/components/product/ColorSwatchStack";
+import {
+  getProductImageProps,
+  PLACEHOLDER_IMAGE,
+  PRODUCT_CARD_IMAGE_SIZES,
+} from "@/lib/productMedia";
+import { resolveProductColor } from "@/lib/productVariants";
 
 interface ProductCardProps {
   product: Product;
-  onQuickView?: (product: Product) => void;
 }
+
+export { PRODUCT_CARD_IMAGE_SIZES, PRODUCT_IMAGE_QUALITY } from "@/lib/productMedia";
 
 export function formatShortSize(size: string): string {
   const s = size.toLowerCase().trim();
@@ -24,31 +32,52 @@ export function formatShortSize(size: string): string {
   return size;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
-  const router = useRouter();
-  const { addToCart, toggleWishlist, isInWishlist } = useCart();
+export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { toggleWishlist, isInWishlist } = useCart();
+  const { requestBuyNow, requestAddToCart } = useSizeSelection();
   const isWished = isInWishlist(product.id);
   const [added, setAdded] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>(
-    product.colors && product.colors.length > 0 ? product.colors[0].name : ""
+    () => resolveProductColor(product) || "",
   );
 
-  // Secondary image for hover effect
-  const secondaryImage = product.images && product.images.length > 1 ? product.images[1] : null;
+  const displayImage = useMemo(() => {
+    if (selectedColor && product.imagesByColor?.[selectedColor]?.[0]) {
+      return product.imagesByColor[selectedColor][0];
+    }
+    return product.image;
+  }, [product.image, product.imagesByColor, selectedColor]);
+
+  const [imageSrc, setImageSrc] = useState(displayImage);
+
+  useEffect(() => {
+    setImageSrc(displayImage);
+  }, [displayImage]);
+
+  const secondaryImage = useMemo(() => {
+    if (selectedColor && product.imagesByColor?.[selectedColor]?.[1]) {
+      return product.imagesByColor[selectedColor][1];
+    }
+    return product.images && product.images.length > 1 ? product.images[1] : null;
+  }, [product.images, product.imagesByColor, selectedColor]);
+
+  const productHref = `/product/${product.slug || product.id}`;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1, selectedColor || undefined);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
+    requestAddToCart(product, selectedColor || undefined, 1, {
+      onSuccess: () => {
+        setAdded(true);
+        setTimeout(() => setAdded(false), 1200);
+      },
+    });
   };
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1, selectedColor || undefined);
-    router.push("/checkout");
+    requestBuyNow(product, selectedColor || undefined, 1);
   };
 
   const renderStars = (rating: number) => {
@@ -59,159 +88,152 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
       <div className="flex items-center gap-0.5">
         {[...Array(5)].map((_, i) => {
           if (i < fullStars) {
-            return <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-black text-black" />;
-          } else if (i === fullStars && hasHalfStar) {
-            return <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-black text-black opacity-60" />;
+            return <Star key={i} className="h-3 w-3 fill-black text-black" />;
           }
-          return <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-200 fill-gray-200" />;
+          if (i === fullStars && hasHalfStar) {
+            return <Star key={i} className="h-3 w-3 fill-black text-black opacity-60" />;
+          }
+          return <Star key={i} className="h-3 w-3 fill-neutral-200 text-neutral-200" />;
         })}
       </div>
     );
   };
 
+  const primaryImage = imageSrc || PLACEHOLDER_IMAGE;
+  const primaryImageProps = getProductImageProps(primaryImage, PRODUCT_CARD_IMAGE_SIZES);
+  const secondaryImageProps = secondaryImage
+    ? getProductImageProps(secondaryImage, PRODUCT_CARD_IMAGE_SIZES)
+    : null;
+
   return (
-    <div className="group flex flex-col justify-between space-y-1.5 relative select-none w-full">
-      {/* Compact 3:4 Aspect Ratio Image Container */}
-      <div className="relative w-full aspect-3/4 bg-[#F0EEED] rounded-xl overflow-hidden cursor-pointer border border-gray-100 shrink-0">
-        {/* Primary Image */}
+    <article className="group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-[0_1px_0_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+      <Link
+        href={productHref}
+        className="absolute inset-0 z-[1]"
+        aria-label={`View ${product.title}`}
+      />
+
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#F3F2F0]">
         <Image
-          src={product.image}
+          src={primaryImage}
           alt={product.title}
           fill
-          sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 180px"
-          className={`object-cover object-center w-full h-full transition-all duration-500 ${
-            secondaryImage ? "group-hover:opacity-0 group-hover:scale-103" : "group-hover:scale-103"
+          priority={false}
+          unoptimized={primaryImageProps.unoptimized}
+          quality={primaryImageProps.quality}
+          sizes={primaryImageProps.sizes}
+          onError={() => setImageSrc(PLACEHOLDER_IMAGE)}
+          className={`object-cover object-center transition-opacity duration-500 ${
+            secondaryImage ? "group-hover:opacity-0" : "group-hover:opacity-95"
           }`}
         />
 
-        {/* Secondary Image on Hover */}
-        {secondaryImage && (
+        {secondaryImage && secondaryImageProps && (
           <Image
             src={secondaryImage}
-            alt={`${product.title} hover angle`}
+            alt={`${product.title} alternate view`}
             fill
-            sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 180px"
-            className="object-cover object-center absolute inset-0 opacity-0 group-hover:opacity-100 group-hover:scale-103 transition-all duration-500 w-full h-full"
+            unoptimized={secondaryImageProps.unoptimized}
+            quality={secondaryImageProps.quality}
+            sizes={secondaryImageProps.sizes}
+            className="absolute inset-0 object-cover object-center opacity-0 transition-opacity duration-500 group-hover:opacity-100"
           />
         )}
 
-        {/* Minimalist Black Discount Badge */}
-        {product.discount && (
-          <div className="absolute top-1.5 left-1.5 bg-black text-white font-be-vietnam-pro font-black text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-full z-10 uppercase tracking-wider">
+        {product.discount ? (
+          <div className="absolute left-3 top-3 z-10 rounded-full bg-black px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white">
             -{product.discount}%
           </div>
-        )}
+        ) : product.isNew ? (
+          <div className="absolute left-3 top-3 z-10 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-black shadow-sm">
+            New
+          </div>
+        ) : null}
 
-        {/* Top-Right Wishlist & Quick View */}
-        <div className="absolute top-1.5 right-1.5 flex flex-col gap-1 z-10">
+        <div className="absolute right-3 top-3 z-[2]">
           <button
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               toggleWishlist(product);
             }}
-            className={`p-1 sm:p-1.5 rounded-full backdrop-blur-md transition-all shadow-xs ${
+            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 shadow-sm ${
               isWished
-                ? "bg-black text-white scale-105"
-                : "bg-white/90 text-black hover:bg-black hover:text-white"
+                ? "border-red-600 bg-red-600 text-white scale-105"
+                : "border-white/80 bg-white/95 text-neutral-700 hover:border-red-200 hover:text-red-600"
             }`}
             title={isWished ? "Remove from wishlist" : "Add to wishlist"}
+            aria-pressed={isWished}
           >
-            <Heart className={`w-3 h-3 ${isWished ? "fill-current" : ""}`} />
+            <Heart className={`h-4 w-4 ${isWished ? "fill-white text-white" : ""}`} />
           </button>
-
-          {onQuickView && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onQuickView(product);
-              }}
-              className="p-1 sm:p-1.5 rounded-full bg-white/90 text-black hover:bg-black hover:text-white backdrop-blur-md transition-all shadow-xs opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 duration-200"
-              title="Quick View"
-            >
-              <Eye className="w-3 h-3" />
-            </button>
-          )}
         </div>
 
-        {/* Ultra-Compact On Hover Action Buttons: Add to Cart & Buy Now */}
-        <div className="absolute bottom-1 left-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transform translate-y-1.5 group-hover:translate-y-0 transition-all duration-300 z-10">
+        <div className="absolute inset-x-3 bottom-3 z-[2] flex translate-y-2 gap-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
           <button
+            type="button"
             onClick={handleAddToCart}
-            className="flex-1 py-1 px-1 rounded-md bg-black text-white font-be-vietnam-pro font-bold text-[8px] sm:text-[10px] flex items-center justify-center gap-0.5 shadow-md hover:bg-neutral-800 active:scale-95 transition-all truncate"
-            title="Add to Cart"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-black py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white shadow-lg transition-colors hover:bg-neutral-800"
           >
             {added ? (
               <>
-                <Check className="w-2.5 h-2.5 shrink-0" /> <span className="truncate">Added</span>
+                <Check className="h-3.5 w-3.5" /> Added
               </>
             ) : (
               <>
-                <ShoppingBag className="w-2.5 h-2.5 shrink-0" /> <span className="truncate">Add</span>
+                <ShoppingBag className="h-3.5 w-3.5" /> Add
               </>
             )}
           </button>
 
           <button
+            type="button"
             onClick={handleBuyNow}
-            className="flex-1 py-1 px-1 rounded-md bg-white text-black font-be-vietnam-pro font-bold text-[8px] sm:text-[10px] flex items-center justify-center gap-0.5 shadow-md hover:bg-gray-100 active:scale-95 transition-all border border-black/10 truncate"
-            title="Buy Now"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-black/10 bg-white py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black shadow-lg transition-colors hover:bg-neutral-50"
           >
-            <Zap className="w-2.5 h-2.5 fill-black shrink-0" /> <span className="truncate">Buy Now</span>
+            <Zap className="h-3.5 w-3.5 fill-black" /> Buy
           </button>
         </div>
       </div>
 
-      {/* Product Details Info */}
-      <div className="space-y-0.5 pt-0.5">
-        {/* Color Swatches (Only if multiple colors exist) */}
-        {product.colors && product.colors.length > 1 && (
-          <div className="flex items-center gap-1 pb-0.5">
-            {product.colors.map((col) => (
-              <button
-                key={col.name}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setSelectedColor(col.name);
-                }}
-                style={{ backgroundColor: col.hex }}
-                className={`w-2 h-2 rounded-full border transition-all ${
-                  selectedColor === col.name ? "border-black ring-1 ring-black" : "border-gray-300"
-                }`}
-                title={col.name}
-              />
-            ))}
+      <div className="relative z-0 flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
+        {product.colors && product.colors.length > 0 && (
+          <div className="relative z-[2]">
+            <ColorSwatchStack
+              colors={product.colors}
+              selected={selectedColor}
+              onSelect={(name, event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setSelectedColor(name);
+              }}
+            />
           </div>
         )}
 
-        {/* Product Title */}
-        <Link href={`/product/${product.slug || product.id}`}>
-          <h3 className="font-be-vietnam-pro font-semibold text-[11px] sm:text-xs text-black group-hover:text-neutral-600 transition-colors line-clamp-1 leading-snug">
-            {product.title}
-          </h3>
-        </Link>
+        <h3 className="font-be-vietnam-pro line-clamp-2 text-sm font-semibold leading-snug text-black transition-colors group-hover:text-neutral-600 sm:text-[15px]">
+          {product.title}
+        </h3>
 
-        {/* Rating Score */}
-        <div className="flex items-center gap-1 font-be-vietnam-pro text-[10px]">
+        <div className="flex items-center gap-1.5">
           {renderStars(product.rating)}
-          <span className="font-bold text-black text-[9px] ml-0.5">
-            {product.rating}<span className="text-gray-400 font-normal text-[8px]">/5</span>
-          </span>
+          {product.reviewsCount > 0 && (
+            <span className="text-[11px] text-neutral-400">({product.reviewsCount})</span>
+          )}
         </div>
 
-        {/* Pricing Row */}
-        <div className="flex items-center gap-1 pt-0.5 font-be-vietnam-pro">
-          <span className="font-black text-xs sm:text-sm text-black">
-            ${product.price}
+        <div className="mt-auto flex items-end gap-2 pt-1">
+          <span className="font-be-vietnam-pro-black text-base font-black text-black sm:text-lg">
+            ₹{product.price.toLocaleString("en-IN")}
           </span>
           {product.originalPrice && (
-            <span className="font-semibold text-[10px] text-gray-400 line-through">
-              ${product.originalPrice}
+            <span className="pb-0.5 text-xs font-semibold text-neutral-400 line-through">
+              ₹{product.originalPrice.toLocaleString("en-IN")}
             </span>
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 };

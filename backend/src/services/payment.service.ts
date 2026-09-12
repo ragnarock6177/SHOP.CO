@@ -95,6 +95,17 @@ export class PaymentService {
       // 3. Deduct Inventory Stock (Move fromOnHand & Reserved to Sold)
       for (const item of order.items) {
         if (item.variantId) {
+          const existingSale = await tx.inventoryMovement.findFirst({
+            where: {
+              variantId: item.variantId,
+              referenceType: "ORDER",
+              referenceId: order.id,
+              movementType: InventoryMovementType.SALE,
+            },
+          });
+
+          if (existingSale) continue;
+
           const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
           if (inventory) {
             await tx.inventory.update({

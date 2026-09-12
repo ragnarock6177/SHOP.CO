@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { Star, Trash2 } from "lucide-react";
 import { useReviews, useToggleReviewPublish, useDeleteReview, ReviewItem } from "../../../hooks/queries/useReviews";
@@ -44,14 +45,45 @@ export default function ReviewsPage() {
       ),
     },
     {
+      accessorKey: "productName",
+      header: "Product",
+      meta: { skeleton: "text" },
+      cell: ({ row }) => (
+        <div className="min-w-0">
+          <Link
+            href={`/products/${row.original.productId}`}
+            className="block truncate font-semibold text-slate-800 hover:text-slate-950 hover:underline"
+            title={row.original.productName}
+          >
+            {row.original.productName || "Unknown product"}
+          </Link>
+          {row.original.productSlug && (
+            <span className="text-[10px] text-slate-500">/{row.original.productSlug}</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "customerName",
+      header: "Reviewer",
+      meta: { skeleton: "text" },
+      cell: ({ row }) => (
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-slate-800">
+            {row.original.customerName || "Unknown customer"}
+          </p>
+          <p className="truncate text-[10px] text-slate-500">{row.original.customerEmail}</p>
+        </div>
+      ),
+    },
+    {
       accessorKey: "comment",
-      header: "Review Details",
+      header: "Review",
       meta: { skeleton: "text-2lines" },
       cell: ({ row }) => (
-        <div>
+        <div className="min-w-0">
           <span className="font-semibold text-slate-800">{row.original.title || "Review"}</span>
           <p className="text-[11px] text-slate-500 line-clamp-2">{row.original.comment}</p>
-          <span className="text-[10px] text-slate-500">By {row.original.customerName} ({row.original.customerEmail})</span>
         </div>
       ),
     },

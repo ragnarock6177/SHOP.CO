@@ -2,6 +2,12 @@ import prisma from "../lib/prisma.js";
 import { NotFoundError, UnprocessableEntityError, ForbiddenError } from "../utils/errors.js";
 import { parsePaginationParams, buildPaginationMeta } from "../utils/pagination.js";
 import { AddressType, OrderStatus, PaymentStatus, InventoryMovementType } from "@prisma/client";
+import { restoreInventoryForOrder } from "../utils/inventory.utils.js";
+import {
+  buildVariantDisplayName,
+  getVariantAvailableStock,
+  resolveLineItemVariant,
+} from "../utils/variantResolver.js";
 
 export class OrderService {
   static async createOrder(
@@ -19,8 +25,11 @@ export class OrderService {
         title?: string;
         image?: string;
       }[];
-      shippingAddress: any;
+      shippingAddress?: any;
+      shippingAddressId?: string;
       billingAddress?: any;
+      billingAddressId?: string;
+      saveShippingAddress?: boolean;
       couponId?: string;
       couponCode?: string;
       shippingSpeed?: "STANDARD" | "EXPRESS";
@@ -41,65 +50,103 @@ export class OrderService {
         }
       }
 
+      let resolvedShipping: any = payload.shippingAddress;
+
+      if (payload.shippingAddressId) {
+        if (!validUserId) {
+          throw new ForbiddenError("You must be logged in to use a saved address");
+        }
+
+        const savedAddress = await tx.userAddress.findFirst({
+          where: {
+            id: payload.shippingAddressId,
+            userId: validUserId,
+            deletedAt: null,
+            type: AddressType.SHIPPING,
+          },
+        });
+
+        if (!savedAddress) {
+          throw new NotFoundError("Saved shipping address not found");
+        }
+
+        resolvedShipping = {
+          firstName: savedAddress.firstName,
+          lastName: savedAddress.lastName || "",
+          addressLine1: savedAddress.addressLine1,
+          addressLine2: savedAddress.addressLine2 || "",
+          landmark: savedAddress.landmark || "",
+          city: savedAddress.city,
+          state: savedAddress.state,
+          postalCode: savedAddress.postalCode,
+          countryCode: savedAddress.countryCode,
+          phone: savedAddress.phone || "",
+          email: customerEmail,
+        };
+      }
+
+      if (!resolvedShipping) {
+        throw new UnprocessableEntityError("Shipping address is required");
+      }
+
+      let resolvedBilling: any = payload.billingAddress;
+
+      if (payload.billingAddressId) {
+        if (!validUserId) {
+          throw new ForbiddenError("You must be logged in to use a saved billing address");
+        }
+
+        const savedBilling = await tx.userAddress.findFirst({
+          where: {
+            id: payload.billingAddressId,
+            userId: validUserId,
+            deletedAt: null,
+          },
+        });
+
+        if (!savedBilling) {
+          throw new NotFoundError("Saved billing address not found");
+        }
+
+        resolvedBilling = {
+          firstName: savedBilling.firstName,
+          lastName: savedBilling.lastName || "",
+          addressLine1: savedBilling.addressLine1,
+          addressLine2: savedBilling.addressLine2 || "",
+          landmark: savedBilling.landmark || "",
+          city: savedBilling.city,
+          state: savedBilling.state,
+          postalCode: savedBilling.postalCode,
+          countryCode: savedBilling.countryCode,
+          phone: savedBilling.phone || "",
+        };
+      }
+
       // 1. Resolve item details & validate stock directly from DB as single source of truth
       const pendingReservations: { variantId: string; inventoryId: string; quantity: number }[] = [];
       for (const item of payload.items) {
-        const targetId = item.id || item.variantId || item.productId;
-        let variant: any = null;
-        let product: any = null;
-
-        if (targetId) {
-          // 1a. Attempt lookup by ProductVariant ID
-          variant = await tx.productVariant.findFirst({
-            where: { id: targetId, isActive: true, deletedAt: null },
-            include: {
-              product: { include: { images: { take: 1, orderBy: { sortOrder: "asc" } } } },
-              inventory: true,
-            },
-          });
-
-          // 1b. If not a variant ID, attempt lookup by Product ID
-          if (!variant) {
-            product = await tx.product.findFirst({
-              where: { id: targetId, status: "ACTIVE", deletedAt: null },
-              include: {
-                variants: {
-                  where: { isActive: true, deletedAt: null },
-                  include: { inventory: true },
-                },
-                images: { take: 1, orderBy: { sortOrder: "asc" } },
-              },
-            });
-
-            if (product && product.variants.length > 0) {
-              variant =
-                product.variants.find(
-                  (v: any) =>
-                    (!item.selectedColor || v.color === item.selectedColor) &&
-                    (!item.selectedSize || v.size === item.selectedSize)
-                ) || product.variants[0];
-              variant.product = product;
-            }
-          }
-        }
+        const { variant, product } = await resolveLineItemVariant(tx, item);
 
         let unitPrice = item.unitPrice || 0;
         let sku = `SKU-${Date.now().toString().slice(-6)}`;
         let productName = item.title || "Selected Garment";
-        let variantName = `${item.selectedColor || "Standard"} / ${item.selectedSize || "Default"}`;
+        let variantName = buildVariantDisplayName(variant, item.selectedColor, item.selectedSize);
         let variantId: string | null = null;
 
         if (variant) {
-          // Authoritative DB pricing, name, and stock
           unitPrice = variant.price ? Number(variant.price) : Number(variant.product.basePrice);
           sku = variant.sku;
           productName = variant.product.name;
-          variantName = variant.variantName || `${item.selectedColor || "Standard"} / ${item.selectedSize || "M"}`;
+          variantName = buildVariantDisplayName(variant, item.selectedColor, item.selectedSize);
           variantId = variant.id;
 
-          const available = variant.inventory
-            ? variant.inventory.quantityOnHand - variant.inventory.quantityReserved
-            : 50;
+          const available = getVariantAvailableStock(variant);
+
+          if (!variant.inventory) {
+            throw new UnprocessableEntityError(
+              `Inventory not configured for ${productName} (${variantName}).`
+            );
+          }
 
           if (available < item.quantity) {
             throw new UnprocessableEntityError(
@@ -107,16 +154,21 @@ export class OrderService {
             );
           }
 
-          if (variant.inventory) {
-            pendingReservations.push({
-              variantId: variant.id,
-              inventoryId: variant.inventory.id,
-              quantity: item.quantity,
-            });
-          }
+          pendingReservations.push({
+            variantId: variant.id,
+            inventoryId: variant.inventory.id,
+            quantity: item.quantity,
+          });
         } else if (product) {
+          if (product.variants?.length > 0) {
+            throw new UnprocessableEntityError(
+              `Please select a valid variant for ${product.name}.`
+            );
+          }
           unitPrice = Number(product.basePrice);
           productName = product.name;
+        } else {
+          throw new UnprocessableEntityError("One or more items in your cart could not be found.");
         }
 
         const qty = Math.max(1, item.quantity);
@@ -196,7 +248,7 @@ export class OrderService {
         data: {
           orderNumber,
           userId: validUserId,
-          customerEmail: customerEmail || payload.shippingAddress.email || "guest@airave.com",
+          customerEmail: customerEmail || resolvedShipping.email || "guest@airave.com",
           status: OrderStatus.CONFIRMED,
           subtotal,
           discountAmount,
@@ -209,40 +261,43 @@ export class OrderService {
             create: [
               {
                 type: AddressType.SHIPPING,
-                firstName: payload.shippingAddress.firstName,
-                lastName: payload.shippingAddress.lastName || "",
-                addressLine1: payload.shippingAddress.addressLine1 || payload.shippingAddress.address || "Street Address",
-                addressLine2: payload.shippingAddress.addressLine2 || "",
-                city: payload.shippingAddress.city,
-                state: payload.shippingAddress.state,
-                postalCode: payload.shippingAddress.postalCode || payload.shippingAddress.zip || "400001",
-                countryCode: payload.shippingAddress.countryCode || "IN",
-                phone: payload.shippingAddress.phone || "",
+                firstName: resolvedShipping.firstName,
+                lastName: resolvedShipping.lastName || "",
+                addressLine1: resolvedShipping.addressLine1 || resolvedShipping.address || "Street Address",
+                addressLine2: resolvedShipping.addressLine2 || "",
+                landmark: resolvedShipping.landmark || "",
+                city: resolvedShipping.city,
+                state: resolvedShipping.state,
+                postalCode: resolvedShipping.postalCode || resolvedShipping.zip || "400001",
+                countryCode: resolvedShipping.countryCode || "IN",
+                phone: resolvedShipping.phone || "",
               },
               {
                 type: AddressType.BILLING,
-                ...(payload.billingAddress
+                ...(resolvedBilling
                   ? {
-                      firstName: payload.billingAddress.firstName,
-                      lastName: payload.billingAddress.lastName || "",
-                      addressLine1: payload.billingAddress.addressLine1 || payload.billingAddress.address || "Street Address",
-                      addressLine2: payload.billingAddress.addressLine2 || "",
-                      city: payload.billingAddress.city,
-                      state: payload.billingAddress.state,
-                      postalCode: payload.billingAddress.postalCode || payload.billingAddress.zip || "400001",
-                      countryCode: payload.billingAddress.countryCode || "IN",
-                      phone: payload.billingAddress.phone || "",
+                      firstName: resolvedBilling.firstName,
+                      lastName: resolvedBilling.lastName || "",
+                      addressLine1: resolvedBilling.addressLine1 || resolvedBilling.address || "Street Address",
+                      addressLine2: resolvedBilling.addressLine2 || "",
+                      landmark: resolvedBilling.landmark || "",
+                      city: resolvedBilling.city,
+                      state: resolvedBilling.state,
+                      postalCode: resolvedBilling.postalCode || resolvedBilling.zip || "400001",
+                      countryCode: resolvedBilling.countryCode || "IN",
+                      phone: resolvedBilling.phone || "",
                     }
                   : {
-                      firstName: payload.shippingAddress.firstName,
-                      lastName: payload.shippingAddress.lastName || "",
-                      addressLine1: payload.shippingAddress.addressLine1 || payload.shippingAddress.address || "Street Address",
-                      addressLine2: payload.shippingAddress.addressLine2 || "",
-                      city: payload.shippingAddress.city,
-                      state: payload.shippingAddress.state,
-                      postalCode: payload.shippingAddress.postalCode || payload.shippingAddress.zip || "400001",
-                      countryCode: payload.shippingAddress.countryCode || "IN",
-                      phone: payload.shippingAddress.phone || "",
+                      firstName: resolvedShipping.firstName,
+                      lastName: resolvedShipping.lastName || "",
+                      addressLine1: resolvedShipping.addressLine1 || resolvedShipping.address || "Street Address",
+                      addressLine2: resolvedShipping.addressLine2 || "",
+                      landmark: resolvedShipping.landmark || "",
+                      city: resolvedShipping.city,
+                      state: resolvedShipping.state,
+                      postalCode: resolvedShipping.postalCode || resolvedShipping.zip || "400001",
+                      countryCode: resolvedShipping.countryCode || "IN",
+                      phone: resolvedShipping.phone || "",
                     }),
               },
             ],
@@ -290,39 +345,37 @@ export class OrderService {
         });
       }
 
-      // 4c. If COD payment, immediately deduct physical stock and mark reservation fulfilled
-      if (payload.paymentMethod === "COD") {
-        for (const item of order.items) {
-          if (item.variantId) {
-            const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
-            if (inventory) {
-              await tx.inventory.update({
-                where: { id: inventory.id },
-                data: {
-                  quantityOnHand: Math.max(0, inventory.quantityOnHand - item.quantity),
-                  quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
-                },
-              });
+      // 4c. Deduct physical stock immediately (storefront checkout is synchronous)
+      for (const item of order.items) {
+        if (item.variantId) {
+          const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
+          if (inventory) {
+            await tx.inventory.update({
+              where: { id: inventory.id },
+              data: {
+                quantityOnHand: Math.max(0, inventory.quantityOnHand - item.quantity),
+                quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
+              },
+            });
 
-              await tx.inventoryMovement.create({
-                data: {
-                  variantId: item.variantId,
-                  movementType: InventoryMovementType.SALE,
-                  quantity: -item.quantity,
-                  referenceType: "ORDER",
-                  referenceId: order.id,
-                  notes: `Deducted for COD Order ${order.orderNumber}`,
-                },
-              });
-            }
+            await tx.inventoryMovement.create({
+              data: {
+                variantId: item.variantId,
+                movementType: InventoryMovementType.SALE,
+                quantity: -item.quantity,
+                referenceType: "ORDER",
+                referenceId: order.id,
+                notes: `Deducted for Order ${order.orderNumber}`,
+              },
+            });
           }
         }
-
-        await tx.inventoryReservation.updateMany({
-          where: { orderId: order.id, releasedAt: null },
-          data: { releasedAt: new Date() },
-        });
       }
+
+      await tx.inventoryReservation.updateMany({
+        where: { orderId: order.id, releasedAt: null },
+        data: { releasedAt: new Date() },
+      });
 
       // 5. Record Coupon Usage if DB Coupon found
       if (couponRecord) {
@@ -347,6 +400,46 @@ export class OrderService {
         if (userCart) {
           await tx.cartItem.deleteMany({ where: { cartId: userCart.id } });
         }
+      }
+
+      // 7. Persist new shipping address for future orders when requested
+      if (
+        validUserId &&
+        payload.saveShippingAddress &&
+        payload.shippingAddress &&
+        !payload.shippingAddressId
+      ) {
+        const addr = payload.shippingAddress;
+        const existingCount = await tx.userAddress.count({
+          where: { userId: validUserId, deletedAt: null, type: AddressType.SHIPPING },
+        });
+        const shouldBeDefault = addr.isDefault ?? existingCount === 0;
+
+        if (shouldBeDefault) {
+          await tx.userAddress.updateMany({
+            where: { userId: validUserId, type: AddressType.SHIPPING, deletedAt: null },
+            data: { isDefault: false },
+          });
+        }
+
+        await tx.userAddress.create({
+          data: {
+            userId: validUserId,
+            type: AddressType.SHIPPING,
+            label: addr.label || "Home",
+            firstName: addr.firstName,
+            lastName: addr.lastName || "",
+            addressLine1: addr.addressLine1 || addr.address,
+            addressLine2: addr.addressLine2 || "",
+            landmark: addr.landmark || "",
+            city: addr.city,
+            state: addr.state,
+            postalCode: addr.postalCode || addr.zip,
+            countryCode: addr.countryCode || "IN",
+            phone: addr.phone || "",
+            isDefault: shouldBeDefault,
+          },
+        });
       }
 
       return order;
@@ -385,8 +478,25 @@ export class OrderService {
       prisma.order.count({ where: { userId, deletedAt: null } }),
     ]);
 
+    const hydratedOrders = orders.map((order) => ({
+      ...order,
+      subtotal: order.subtotal.toNumber(),
+      discountAmount: order.discountAmount.toNumber(),
+      shippingAmount: order.shippingAmount.toNumber(),
+      taxAmount: order.taxAmount.toNumber(),
+      totalAmount: order.totalAmount.toNumber(),
+      items: order.items.map((item) => ({
+        ...item,
+        unitPrice: item.unitPrice.toNumber(),
+        totalAmount: item.totalAmount.toNumber(),
+        image:
+          item.variant?.product?.images?.[0]?.imageUrl ||
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&q=80",
+      })),
+    }));
+
     const meta = buildPaginationMeta(page, limit, total);
-    return { data: orders, meta };
+    return { data: hydratedOrders, meta };
   }
 
   static async getOrderByNumber(orderNumber: string, userId?: string) {
@@ -451,19 +561,14 @@ export class OrderService {
         throw new UnprocessableEntityError(`Cannot cancel order in ${order.status} state.`);
       }
 
-      for (const item of order.items) {
-        if (item.variantId) {
-          const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
-          if (inventory) {
-            await tx.inventory.update({
-              where: { id: inventory.id },
-              data: {
-                quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
-              },
-            });
-          }
-        }
-      }
+      await restoreInventoryForOrder(
+        tx,
+        order.id,
+        order.orderNumber,
+        order.items,
+        "Cancelled by user",
+        userId
+      );
 
       const updated = await tx.order.update({
         where: { id: order.id },

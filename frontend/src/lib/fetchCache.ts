@@ -29,7 +29,20 @@ export async function dedupedFetch<T>(
   // 3. Execute request and store pending Promise
   const requestPromise = fetcher()
     .then((data) => {
-      responseCache.set(key, { data, timestamp: Date.now() });
+      const shouldCache =
+        typeof window === "undefined" &&
+        (!key.startsWith("products_") ||
+          !(
+            data &&
+            typeof data === "object" &&
+            "products" in data &&
+            Array.isArray((data as { products?: unknown[] }).products) &&
+            (data as { products: unknown[] }).products.length === 0
+          ));
+
+      if (shouldCache) {
+        responseCache.set(key, { data, timestamp: Date.now() });
+      }
       pendingRequests.delete(key);
       return data;
     })

@@ -11,7 +11,7 @@ import { ProductSkeleton } from "@/components/common/ProductSkeleton";
 import { Pagination } from "@/components/common/Pagination";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { Product, Category } from "@/types/ecommerce";
-import { getProductsApi } from "@/lib/productApi";
+import { getProductsApi, serializeCatalogQuery } from "@/lib/productApi";
 
 const SORT_OPTIONS = [
   { label: "Most Popular", value: "popular" },
@@ -25,6 +25,7 @@ interface ShopCatalogClientProps {
   initialCategories?: Category[];
   initialFilterSettings?: any;
   initialMeta?: any;
+  initialQueryKey?: string;
 }
 
 function ProductGridList({ products }: { products: Product[] }) {
@@ -40,7 +41,7 @@ function ProductGridList({ products }: { products: Product[] }) {
   }
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 gpu-layer">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6 gpu-layer">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
@@ -139,13 +140,14 @@ function ShopCatalogContent({
   initialCategories = [],
   initialFilterSettings,
   initialMeta,
+  initialQueryKey,
 }: ShopCatalogClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Extract filter parameters from URL query string
   const searchQuery = searchParams.get("search") || "";
   const activeCategory = searchParams.get("category") || searchParams.get("filter") || "";
+  const isOnSale = activeCategory === "on-sale" || searchParams.get("onSale") === "true";
   const maxPriceParam = searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")!) : undefined;
   const colorParam = searchParams.get("color") || "";
   const sizeParam = searchParams.get("size") || "";
@@ -163,23 +165,25 @@ function ShopCatalogContent({
       size: sizeParam,
       collection: collectionParam,
     }),
-    [activeCategory, maxPriceParam, colorParam, sizeParam, collectionParam]
+    [activeCategory, maxPriceParam, colorParam, sizeParam, collectionParam],
   );
 
   const [fetchedProducts, setFetchedProducts] = useState<Product[] | null>(null);
   const [paginationMeta, setPaginationMeta] = useState<any>(initialMeta || null);
   const [loading, setLoading] = useState(false);
 
-  // Check if current URL parameters represent default initial state
-  const isDefaultState =
-    !activeCategory &&
-    !searchQuery &&
-    maxPriceParam === undefined &&
-    !colorParam &&
-    !sizeParam &&
-    !collectionParam &&
-    sortBy === "popular" &&
-    currentPage === 1;
+  const currentQueryKey = serializeCatalogQuery({
+    limit: 12,
+    page: currentPage,
+    sortBy,
+    category: activeCategory && !isOnSale ? activeCategory : undefined,
+    onSale: isOnSale ? true : undefined,
+    search: searchQuery || undefined,
+    maxPrice: maxPriceParam,
+    colors: colorParam ? [colorParam] : undefined,
+    sizes: sizeParam ? [sizeParam] : undefined,
+    collection: collectionParam || undefined,
+  });
 
   // Function to push clean URL search parameters
   const updateUrlParams = (newParams: Record<string, string | number | undefined | null>) => {
@@ -194,16 +198,21 @@ function ShopCatalogContent({
     router.push(`/product?${params.toString()}`, { scroll: false });
   };
 
-  // Trigger live backend API query whenever URL search params change (skipping default SSG initial state)
   useEffect(() => {
-    if (isDefaultState && initialProducts && initialProducts.length > 0) {
-      setFetchedProducts(null); // Retain server pre-fetched initialProducts for instant 0ms load
+    if (initialQueryKey && initialQueryKey === currentQueryKey) {
+      setFetchedProducts(null);
+      setLoading(false);
+      if (initialMeta) setPaginationMeta(initialMeta);
       return;
     }
 
+    let isActive = true;
     setLoading(true);
+    setFetchedProducts(null);
+
     getProductsApi({
-      category: activeCategory || undefined,
+      category: activeCategory && !isOnSale ? activeCategory : undefined,
+      onSale: isOnSale ? true : undefined,
       collection: collectionParam || undefined,
       search: searchQuery || undefined,
       maxPrice: maxPriceParam || undefined,
@@ -214,15 +223,21 @@ function ShopCatalogContent({
       limit: 12,
     })
       .then(({ products, meta }) => {
+        if (!isActive) return;
         setFetchedProducts(products);
         if (meta) setPaginationMeta(meta);
       })
       .catch(() => {
+        if (!isActive) return;
         setFetchedProducts(null);
       })
       .finally(() => {
-        setLoading(false);
+        if (isActive) setLoading(false);
       });
+
+    return () => {
+      isActive = false;
+    };
   }, [
     activeCategory,
     collectionParam,
@@ -232,8 +247,10 @@ function ShopCatalogContent({
     sizeParam,
     sortBy,
     currentPage,
-    isDefaultState,
-    initialProducts,
+    isOnSale,
+    initialQueryKey,
+    currentQueryKey,
+    initialMeta,
   ]);
 
   const handleApplyFilter = (filters: any) => {
