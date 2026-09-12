@@ -6,7 +6,6 @@ import Link from "next/link";
 import {
   Package,
   MapPin,
-  CreditCard,
   Heart,
   Settings,
   LogOut,
@@ -31,7 +30,7 @@ export default function ProfilePage() {
   const { user: authUser, token, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
-    "orders" | "addresses" | "payments" | "wishlist" | "settings"
+    "orders" | "addresses" | "wishlist" | "settings"
   >("orders");
 
   // User Profile Display Calculations
@@ -89,18 +88,6 @@ export default function ProfilePage() {
       cancelled = true;
     };
   }, [token]);
-
-  // Mock Payment Cards
-  const [cards] = useState([
-    {
-      id: "card-1",
-      brand: "Visa",
-      last4: "4242",
-      expiry: "08/28",
-      holder: displayName.toUpperCase(),
-      isDefault: true,
-    },
-  ]);
 
   const wishedProducts = wishlistProducts;
 
@@ -263,20 +250,6 @@ export default function ProfilePage() {
             </button>
 
             <button
-              onClick={() => setActiveTab("payments")}
-              className={`flex-1 lg:w-full flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "payments"
-                  ? "bg-black text-white shadow-2xs"
-                  : "text-gray-600 bg-[#F4F4F4] lg:bg-transparent hover:bg-gray-200"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>Payments</span>
-              </div>
-            </button>
-
-            <button
               onClick={() => setActiveTab("wishlist")}
               className={`flex-1 lg:w-full flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === "wishlist"
@@ -333,68 +306,7 @@ export default function ProfilePage() {
             <ProfileAddressesPanel onAddressesChange={setAddresses} />
           )}
 
-          {/* TAB 3: PAYMENT METHODS */}
-          {activeTab === "payments" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black uppercase text-black">
-                  Payment Methods
-                </h2>
-                <button
-                  onClick={() => alert("Add Payment Card Modal")}
-                  className="inline-flex items-center gap-1 px-3.5 py-2 bg-black text-white text-xs font-bold rounded-full hover:bg-neutral-800 transition-colors uppercase cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Card</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {cards.map((card) => (
-                  <div
-                    key={card.id}
-                    className="bg-black text-white rounded-3xl p-5 space-y-4 shadow-md"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-be-vietnam-pro-black text-base font-black tracking-widest uppercase">
-                        {card.brand}
-                      </span>
-                      {card.isDefault && (
-                        <span className="bg-white/20 text-white font-bold text-[9px] px-2 py-0.5 rounded-full uppercase">
-                          Primary
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="font-mono text-base tracking-widest pt-1">
-                      •••• •••• •••• {card.last4}
-                    </p>
-
-                    <div className="flex justify-between items-end text-xs text-gray-300 font-medium">
-                      <div>
-                        <span className="block text-[9px] text-gray-400 uppercase font-bold">
-                          Cardholder
-                        </span>
-                        <span className="font-bold text-white">
-                          {card.holder}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="block text-[9px] text-gray-400 uppercase font-bold">
-                          Expires
-                        </span>
-                        <span className="font-bold text-white">
-                          {card.expiry}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: WISHLIST */}
+          {/* TAB 3: WISHLIST */}
           {activeTab === "wishlist" && (
             <div className="space-y-4">
               <h2 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black uppercase text-black">
