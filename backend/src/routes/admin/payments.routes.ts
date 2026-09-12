@@ -10,5 +10,6 @@ router.use(requireAdminAuth);
 router.get("/", requirePermission("payments:read"), AdminPaymentsController.getPayments);
 router.get("/invoices", requirePermission("payments:read"), AdminPaymentsController.getInvoices);
 router.get("/:id", requirePermission("payments:read"), AdminPaymentsController.getPaymentDetails);
+router.post("/:id/refund", requirePermission("payments:write"), AdminPaymentsController.refundPayment);
 
 export default router;

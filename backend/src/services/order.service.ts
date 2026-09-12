@@ -8,6 +8,8 @@ import {
   getVariantAvailableStock,
   resolveLineItemVariant,
 } from "../utils/variantResolver.js";
+import { PaymentService } from "./payment.service.js";
+
 
 export class OrderService {
   static async createOrder(
@@ -37,7 +39,7 @@ export class OrderService {
       notes?: string;
     }
   ) {
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       let subtotal = 0;
       const orderItemsData: any[] = [];
 
@@ -241,6 +243,10 @@ export class OrderService {
       const taxAmount = Math.round(taxableAmount * 0.18 * 100) / 100;
       const totalAmount = Math.round((subtotal - discountAmount + shippingAmount + taxAmount) * 100) / 100;
 
+      const isOnlinePayment = payload.paymentMethod === "RAZORPAY";
+      const orderStatus = isOnlinePayment ? OrderStatus.PENDING : OrderStatus.CONFIRMED;
+      const paymentProvider = isOnlinePayment ? "RAZORPAY" : (payload.paymentMethod || "COD");
+
       const orderNumber = `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
       // 4. Create Order Header & Addresses
@@ -249,7 +255,7 @@ export class OrderService {
           orderNumber,
           userId: validUserId,
           customerEmail: customerEmail || resolvedShipping.email || "guest@airave.com",
-          status: OrderStatus.CONFIRMED,
+          status: orderStatus,
           subtotal,
           discountAmount,
           shippingAmount,
@@ -307,16 +313,18 @@ export class OrderService {
           },
           payments: {
             create: {
-              provider: payload.paymentMethod || "COD",
-              status: payload.paymentMethod === "COD" ? PaymentStatus.PENDING : PaymentStatus.CAPTURED,
+              provider: paymentProvider,
+              status: PaymentStatus.PENDING,
               amount: totalAmount,
               currency: "INR",
             },
           },
           statusHistory: {
             create: {
-              newStatus: OrderStatus.CONFIRMED,
-              reason: "Order successfully placed by customer",
+              newStatus: orderStatus,
+              reason: isOnlinePayment
+                ? "Order created, awaiting Razorpay payment"
+                : "Order successfully placed by customer",
             },
           },
         },
@@ -327,7 +335,7 @@ export class OrderService {
         },
       });
 
-      // 4b. Create Inventory Reservations linked directly to this order
+      // 4b. Create Inventory Reservations linked directly to this order (15-min TTL)
       for (const resItem of pendingReservations) {
         await tx.inventory.update({
           where: { id: resItem.inventoryId },
@@ -345,37 +353,47 @@ export class OrderService {
         });
       }
 
-      // 4c. Deduct physical stock immediately (storefront checkout is synchronous)
-      for (const item of order.items) {
-        if (item.variantId) {
-          const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
-          if (inventory) {
-            await tx.inventory.update({
-              where: { id: inventory.id },
-              data: {
-                quantityOnHand: Math.max(0, inventory.quantityOnHand - item.quantity),
-                quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
-              },
-            });
+      // 4c. For COD/Offline: Deduct physical stock immediately and release reservation
+      if (!isOnlinePayment) {
+        for (const item of order.items) {
+          if (item.variantId) {
+            const inventory = await tx.inventory.findFirst({ where: { variantId: item.variantId } });
+            if (inventory) {
+              await tx.inventory.update({
+                where: { id: inventory.id },
+                data: {
+                  quantityOnHand: Math.max(0, inventory.quantityOnHand - item.quantity),
+                  quantityReserved: Math.max(0, inventory.quantityReserved - item.quantity),
+                },
+              });
 
-            await tx.inventoryMovement.create({
-              data: {
-                variantId: item.variantId,
-                movementType: InventoryMovementType.SALE,
-                quantity: -item.quantity,
-                referenceType: "ORDER",
-                referenceId: order.id,
-                notes: `Deducted for Order ${order.orderNumber}`,
-              },
-            });
+              await tx.inventoryMovement.create({
+                data: {
+                  variantId: item.variantId,
+                  movementType: InventoryMovementType.SALE,
+                  quantity: -item.quantity,
+                  referenceType: "ORDER",
+                  referenceId: order.id,
+                  notes: `Deducted for Order ${order.orderNumber}`,
+                },
+              });
+            }
+          }
+        }
+
+        await tx.inventoryReservation.updateMany({
+          where: { orderId: order.id, releasedAt: null },
+          data: { releasedAt: new Date() },
+        });
+
+        // Clear user cart if validUserId authenticated
+        if (validUserId) {
+          const userCart = await tx.cart.findFirst({ where: { userId: validUserId, status: "ACTIVE" } });
+          if (userCart) {
+            await tx.cartItem.deleteMany({ where: { cartId: userCart.id } });
           }
         }
       }
-
-      await tx.inventoryReservation.updateMany({
-        where: { orderId: order.id, releasedAt: null },
-        data: { releasedAt: new Date() },
-      });
 
       // 5. Record Coupon Usage if DB Coupon found
       if (couponRecord) {
@@ -394,15 +412,7 @@ export class OrderService {
         });
       }
 
-      // 6. Clear user cart if validUserId authenticated
-      if (validUserId) {
-        const userCart = await tx.cart.findFirst({ where: { userId: validUserId, status: "ACTIVE" } });
-        if (userCart) {
-          await tx.cartItem.deleteMany({ where: { cartId: userCart.id } });
-        }
-      }
-
-      // 7. Persist new shipping address for future orders when requested
+      // 6. Persist new shipping address for future orders when requested
       if (
         validUserId &&
         payload.saveShippingAddress &&
@@ -442,12 +452,33 @@ export class OrderService {
         });
       }
 
-      return order;
+      return { order, totalAmount, isOnlinePayment, resolvedShipping, customerEmail };
     }, {
       maxWait: 10000,
       timeout: 30000,
     });
+
+    // 7. If Online Payment (RAZORPAY), create Gateway Order outside DB transaction
+    if (result.isOnlinePayment) {
+      const rzpData = await PaymentService.createRazorpayOrder({
+        orderId: result.order.id,
+        orderNumber: result.order.orderNumber,
+        amount: result.totalAmount,
+        currency: "INR",
+        customerName: `${result.resolvedShipping.firstName} ${result.resolvedShipping.lastName || ""}`.trim(),
+        customerEmail: result.customerEmail || result.resolvedShipping.email,
+        customerPhone: result.resolvedShipping.phone,
+      });
+
+      return {
+        ...result.order,
+        razorpay: rzpData.razorpay,
+      };
+    }
+
+    return result.order;
   }
+
 
   static async getUserOrders(userId: string, queryPage?: string, queryLimit?: string) {
     const { page, limit, skip } = parsePaginationParams(queryPage, queryLimit);

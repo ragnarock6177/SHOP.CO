@@ -2,8 +2,13 @@ import prisma from "../../lib/prisma.js";
 import { parseAdminQueryParams } from "../../utils/adminQueryParams.js";
 import { PaymentStatus } from "@prisma/client";
 import { NotFoundError } from "../../utils/errors.js";
+import { PaymentService } from "../payment.service.js";
 
 export class AdminPaymentsService {
+  static async refundPayment(id: string, amount?: number, reason?: string, adminUserId?: string) {
+    return PaymentService.refundPayment(id, amount, reason, adminUserId);
+  }
+
   static async getPayments(query: Record<string, any>) {
     const { page, limit, sortBy, sortOrder, search, skip } = parseAdminQueryParams(
       query,

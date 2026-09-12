@@ -32,29 +32,22 @@ import {
   CheckoutSummaryData,
   CreateOrderPayload,
 } from "@/lib/orderApi";
+import { verifyPaymentApi } from "@/lib/paymentApi";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
   const { user, token } = useAuth();
 
-  const [paymentMethod, setPaymentMethod] = useState<
-    "card" | "paypal" | "applepay" | "cod"
-  >("card");
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
   const [shippingSpeed, setShippingSpeed] = useState<"STANDARD" | "EXPRESS">(
     "STANDARD"
   );
 
+
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState("");
-
-  // Payment form state
-  const [formData, setFormData] = useState({
-    cardNumber: "4242 8819 9021 4242",
-    expDate: "08/28",
-    cvv: "921",
-  });
 
   const [addressState, setAddressState] = useState<CheckoutAddressState>({
     mode: "saved",
@@ -148,6 +141,20 @@ export default function CheckoutPage() {
     setAppliedPromo(promoCode.trim());
   };
 
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (typeof window !== "undefined" && (window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0 || submitting) return;
@@ -192,6 +199,15 @@ export default function CheckoutPage() {
     setSubmitError(null);
 
     try {
+      if (paymentMethod === "razorpay") {
+        const loaded = await loadRazorpayScript();
+        if (!loaded) {
+          toast.error("Unable to load Razorpay payment gateway. Please check your connection.");
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const itemsPayload = cart.map((i) => ({
         id: i.product.id,
         quantity: i.quantity,
@@ -209,14 +225,71 @@ export default function CheckoutPage() {
 
       const createdOrder = await placeOrderApi(orderPayload, token || undefined);
 
-      // Clear local cart and redirect to live Order Details page
-      clearCart();
-      router.push(`/orders/${encodeURIComponent(createdOrder.orderNumber)}`);
+      if (paymentMethod === "razorpay" && createdOrder.razorpay) {
+        const options = {
+          key: createdOrder.razorpay.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
+          amount: createdOrder.razorpay.amount,
+          currency: createdOrder.razorpay.currency || "INR",
+          name: createdOrder.razorpay.name || "AIRAVÉ",
+          description: createdOrder.razorpay.description || `Order #${createdOrder.orderNumber}`,
+          order_id: createdOrder.razorpay.orderId,
+          prefill: createdOrder.razorpay.prefill || {},
+          theme: { color: "#000000" },
+          handler: async function (response: any) {
+            try {
+              setSubmitting(true);
+              await verifyPaymentApi(
+                {
+                  orderNumber: createdOrder.orderNumber,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                },
+                token || undefined
+              );
+
+              clearCart();
+              toast.success("Payment verified! Your order is confirmed.");
+              router.push(`/orders/${encodeURIComponent(createdOrder.orderNumber)}`);
+            } catch (err: any) {
+              toast.error(err.message || "Payment verification failed.");
+              setSubmitError(
+                err.message ||
+                  "Verification failed. If your amount was debited, your order will confirm automatically shortly."
+              );
+            } finally {
+              setSubmitting(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              setSubmitting(false);
+              toast.error("Payment window closed. You can retry payment anytime.");
+            },
+          },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on("payment.failed", function (response: any) {
+          toast.error(response?.error?.description || "Payment failed at gateway.");
+          setSubmitError(
+            response?.error?.description || "Payment failed. Please try again or use another payment method."
+          );
+          setSubmitting(false);
+        });
+        rzp.open();
+      } else {
+        // COD / Offline flow
+        clearCart();
+        toast.success("Order placed successfully!");
+        router.push(`/orders/${encodeURIComponent(createdOrder.orderNumber)}`);
+      }
     } catch (err: any) {
       setSubmitError(err.message || "Could not place order. Please try again.");
       setSubmitting(false);
     }
   };
+
 
   const subtotal = summary?.subtotal ?? cart.reduce((tot, i) => tot + i.product.price * i.quantity, 0);
   const discountAmount = summary?.coupon?.applied ? summary.coupon.discountAmount : 0;
@@ -338,117 +411,65 @@ export default function CheckoutPage() {
 
             {/* Step 3: Payment Method */}
             <div className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-7 space-y-4 shadow-2xs">
-              <h3 className="font-be-vietnam-pro-black text-base sm:text-lg font-black text-black uppercase border-b border-gray-100 pb-3">
-                3. Payment Method
-              </h3>
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h3 className="font-be-vietnam-pro-black text-base sm:text-lg font-black text-black uppercase">
+                  3. Payment Method
+                </h3>
+                <span className="text-[11px] font-bold text-gray-500 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-black" />
+                  256-Bit Encrypted
+                </span>
+              </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod("card")}
-                  className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-                    paymentMethod === "card"
+                  onClick={() => setPaymentMethod("razorpay")}
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    paymentMethod === "razorpay"
                       ? "border-black bg-black text-white"
                       : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
                   }`}
                 >
-                  <CreditCard className="w-4 h-4 mx-auto mb-1" />
-                  <span className="text-xs font-bold block">Credit Card</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("paypal")}
-                  className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-                    paymentMethod === "paypal"
-                      ? "border-black bg-black text-white"
-                      : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
-                  }`}
-                >
-                  <span className="font-black text-xs block">PayPal</span>
-                  <span className="text-[10px] opacity-80 block">Express</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("applepay")}
-                  className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-                    paymentMethod === "applepay"
-                      ? "border-black bg-black text-white"
-                      : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
-                  }`}
-                >
-                  <span className="font-black text-xs block"> Pay</span>
-                  <span className="text-[10px] opacity-80 block">1-Tap</span>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-bold text-xs block">Razorpay Secure</span>
+                      <CreditCard className="w-4 h-4 shrink-0" />
+                    </div>
+                    <span className="text-[11px] opacity-80 block font-medium">
+                      UPI, Cards, NetBanking, EMI, Wallets
+                    </span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-90 mt-2 block">
+                    Instant Gateway Verification
+                  </span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("cod")}
-                  className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                     paymentMethod === "cod"
                       ? "border-black bg-black text-white"
                       : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
                   }`}
                 >
-                  <Truck className="w-4 h-4 mx-auto mb-1" />
-                  <span className="text-xs font-bold block">
-                    Pay on Delivery
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-bold text-xs block">Pay on Delivery (COD)</span>
+                      <Truck className="w-4 h-4 shrink-0" />
+                    </div>
+                    <span className="text-[11px] opacity-80 block font-medium">
+                      Pay cash/UPI when package arrives
+                    </span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-90 mt-2 block">
+                    Available for all pin codes
                   </span>
                 </button>
               </div>
-
-              {paymentMethod === "card" && (
-                <div className="space-y-3 pt-2">
-                  <div>
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.cardNumber}
-                      onChange={(e) =>
-                        setFormData({ ...formData, cardNumber: e.target.value })
-                      }
-                      required
-                      className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs text-black font-mono focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <div>
-                      <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                        Expiry Date
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.expDate}
-                        onChange={(e) =>
-                          setFormData({ ...formData, expDate: e.target.value })
-                        }
-                        required
-                        className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs text-black font-mono focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
-                        CVV / CVC
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.cvv}
-                        onChange={(e) =>
-                          setFormData({ ...formData, cvv: e.target.value })
-                        }
-                        required
-                        className="w-full bg-[#F4F4F4] rounded-full px-4 py-2.5 text-xs text-black font-mono focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
+
           </div>
 
           {/* Right Columns: Order Review & Submission */}

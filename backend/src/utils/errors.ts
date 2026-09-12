@@ -25,6 +25,12 @@ export class ValidationError extends ApiError {
   }
 }
 
+export class BadRequestError extends ApiError {
+  constructor(message = "Bad request", details?: any) {
+    super(400, "BAD_REQUEST", message, details);
+  }
+}
+
 export class UnauthorizedError extends ApiError {
   constructor(message = "Authentication required. Please provide a valid Bearer token.") {
     super(401, "UNAUTHORIZED", message);

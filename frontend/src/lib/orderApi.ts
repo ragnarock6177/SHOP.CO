@@ -137,7 +137,21 @@ export interface OrderDetailData {
   payments?: any[];
   statusHistory?: any[];
   shipments?: any[];
+  razorpay?: {
+    keyId: string;
+    orderId: string;
+    amount: number;
+    currency: string;
+    name: string;
+    description?: string;
+    prefill?: {
+      name?: string;
+      email?: string;
+      contact?: string;
+    };
+  };
 }
+
 
 export async function getCheckoutSummaryApi(
   payload: CheckoutSummaryPayload

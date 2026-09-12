@@ -29,4 +29,15 @@ export class AdminPaymentsController {
       next(error);
     }
   }
+
+  static async refundPayment(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { amount, reason } = req.body;
+      const refund = await AdminPaymentsService.refundPayment(id, amount, reason, (req as any).adminUser?.id);
+      sendAdminSuccess(res, refund, "Payment refund initiated successfully.");
+    } catch (error) {
+      next(error);
+    }
+  }
 }
