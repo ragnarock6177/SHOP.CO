@@ -107,17 +107,17 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     priceRange < maxPriceBound;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-3xl p-5 sm:p-6 space-y-6 text-black shadow-xs font-be-vietnam-pro">
+    <div className="bg-white border border-neutral-200/90 rounded-2xl p-5 space-y-5 text-black shadow-xs font-be-vietnam-pro">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-        <h3 className="font-be-vietnam-pro-black text-xl font-bold text-black flex items-center gap-2">
+      <div className="flex items-center justify-between border-b border-neutral-100 pb-3.5">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-black flex items-center gap-2">
           <span>Filters</span>
         </h3>
         <div className="flex items-center gap-2">
           {isFilterActive && (
             <button
               onClick={handleReset}
-              className="text-xs font-bold text-gray-500 hover:text-black underline cursor-pointer"
+              className="text-[11px] font-semibold text-neutral-500 hover:text-black uppercase tracking-wider underline cursor-pointer"
             >
               Reset All
             </button>
@@ -125,19 +125,19 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
           {onCloseMobile ? (
             <button
               onClick={onCloseMobile}
-              className="p-1 text-gray-400 hover:text-black transition-colors"
+              className="p-1 text-neutral-400 hover:text-black transition-colors"
               aria-label="Close filters"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           ) : (
-            <SlidersHorizontal className="w-5 h-5 text-gray-400" />
+            <SlidersHorizontal className="w-4 h-4 text-neutral-400" />
           )}
         </div>
       </div>
 
       {/* Category List */}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {categoryItems.map((cat: any) => {
           const catName = typeof cat === "string" ? cat : cat.name;
           const catSlug = typeof cat === "string" ? cat.toLowerCase().replace(/\s+/g, "-") : cat.slug;
@@ -149,13 +149,13 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             <button
               key={catSlug || catName}
               onClick={() => setSelectedCategory(isSelected ? "" : catSlug || catName)}
-              className={`w-full flex items-center justify-between text-sm text-left transition-colors cursor-pointer ${
-                isSelected ? "font-bold text-black" : "text-gray-500 hover:text-black"
+              className={`w-full flex items-center justify-between text-xs text-left transition-colors cursor-pointer py-0.5 ${
+                isSelected ? "font-bold text-black" : "text-neutral-500 hover:text-black font-medium"
               }`}
             >
               <span>{catName}</span>
               <ChevronRight
-                className={`w-4 h-4 text-gray-400 transition-transform ${
+                className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${
                   isSelected ? "rotate-90 text-black" : ""
                 }`}
               />
@@ -164,20 +164,20 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         })}
       </div>
 
-      <hr className="border-gray-200" />
+      <hr className="border-neutral-100" />
 
       {/* Price Slider */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <button
           onClick={() => setIsPriceOpen(!isPriceOpen)}
-          className="w-full flex items-center justify-between font-bold text-lg text-black cursor-pointer"
+          className="w-full flex items-center justify-between font-bold text-xs uppercase tracking-wider text-neutral-900 cursor-pointer"
         >
           <span>Price</span>
-          <ChevronUp className={`w-5 h-5 transition-transform ${isPriceOpen ? "" : "rotate-180"}`} />
+          <ChevronUp className={`w-4 h-4 transition-transform text-neutral-500 ${isPriceOpen ? "" : "rotate-180"}`} />
         </button>
 
         {isPriceOpen && (
-          <div className="space-y-3">
+          <div className="space-y-2.5 pt-1">
             <input
               type="range"
               min={minPriceBound}
@@ -185,9 +185,9 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
               step="50"
               value={priceRange}
               onChange={(e) => setPriceRange(Number(e.target.value))}
-              className="w-full accent-black bg-gray-200 h-2 rounded-lg cursor-pointer"
+              className="w-full accent-black bg-neutral-200 h-1.5 rounded-lg cursor-pointer"
             />
-            <div className="flex justify-between text-xs font-extrabold text-black">
+            <div className="flex justify-between text-[11px] font-bold text-neutral-900">
               <span>₹{minPriceBound}</span>
               <span>₹{priceRange.toLocaleString("en-IN")}</span>
             </div>
@@ -195,21 +195,21 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         )}
       </div>
 
-      {colorsList.length > 0 && <hr className="border-gray-200" />}
+      {colorsList.length > 0 && <hr className="border-neutral-100" />}
 
       {/* Colors Grid */}
       {colorsList.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <button
             onClick={() => setIsColorsOpen(!isColorsOpen)}
-            className="w-full flex items-center justify-between font-bold text-lg text-black cursor-pointer"
+            className="w-full flex items-center justify-between font-bold text-xs uppercase tracking-wider text-neutral-900 cursor-pointer"
           >
             <span>Colors</span>
-            <ChevronUp className={`w-5 h-5 transition-transform ${isColorsOpen ? "" : "rotate-180"}`} />
+            <ChevronUp className={`w-4 h-4 transition-transform text-neutral-500 ${isColorsOpen ? "" : "rotate-180"}`} />
           </button>
 
           {isColorsOpen && (
-            <div className="grid grid-cols-5 gap-3 pt-1">
+            <div className="grid grid-cols-5 gap-2.5 pt-1">
               {colorsList.map((c: any) => {
                 const hex = typeof c === "string" ? "#000" : c.hex;
                 const name = typeof c === "string" ? c : c.name;
@@ -220,7 +220,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                   <button
                     key={name}
                     onClick={() => setSelectedColor(isSelected ? "" : name)}
-                    className={`w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center transition-all cursor-pointer ${
+                    className={`w-7 h-7 rounded-full border border-neutral-200 flex items-center justify-center transition-all cursor-pointer ${
                       isSelected ? "ring-2 ring-black ring-offset-2 scale-105" : "hover:scale-105"
                     }`}
                     style={{ backgroundColor: hex }}
@@ -228,7 +228,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                   >
                     {isSelected && (
                       <Check
-                        className={`w-4 h-4 ${
+                        className={`w-3.5 h-3.5 ${
                           hex === "#FFFFFF" || hex === "#F5DD06" || hex === "#F5F5F0"
                             ? "text-black"
                             : "text-white"
@@ -243,31 +243,31 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </div>
       )}
 
-      {sizesList.length > 0 && <hr className="border-gray-200" />}
+      {sizesList.length > 0 && <hr className="border-neutral-100" />}
 
       {/* Size Pills Grid */}
       {sizesList.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <button
             onClick={() => setIsSizesOpen(!isSizesOpen)}
-            className="w-full flex items-center justify-between font-bold text-lg text-black cursor-pointer"
+            className="w-full flex items-center justify-between font-bold text-xs uppercase tracking-wider text-neutral-900 cursor-pointer"
           >
             <span>Size</span>
-            <ChevronUp className={`w-5 h-5 transition-transform ${isSizesOpen ? "" : "rotate-180"}`} />
+            <ChevronUp className={`w-4 h-4 transition-transform text-neutral-500 ${isSizesOpen ? "" : "rotate-180"}`} />
           </button>
 
           {isSizesOpen && (
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {sizesList.map((sz: string) => {
                 const isSelected = selectedSize.toLowerCase() === sz.toLowerCase();
                 return (
                   <button
                     key={sz}
                     onClick={() => setSelectedSize(isSelected ? "" : sz)}
-                    className={`px-4 py-2 rounded-full text-xs transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
                       isSelected
                         ? "bg-black text-white font-bold"
-                        : "bg-[#F0F0F0] text-gray-700 hover:bg-gray-200"
+                        : "bg-[#F0F0F0] text-neutral-700 hover:bg-neutral-200 font-medium"
                     }`}
                   >
                     {sz}
@@ -279,21 +279,21 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </div>
       )}
 
-      {collectionsList.length > 0 && <hr className="border-gray-200" />}
+      {collectionsList.length > 0 && <hr className="border-neutral-100" />}
 
       {/* Collections List */}
       {collectionsList.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <button
             onClick={() => setIsStyleOpen(!isStyleOpen)}
-            className="w-full flex items-center justify-between font-bold text-lg text-black cursor-pointer"
+            className="w-full flex items-center justify-between font-bold text-xs uppercase tracking-wider text-neutral-900 cursor-pointer"
           >
             <span>Collections</span>
-            <ChevronUp className={`w-5 h-5 transition-transform ${isStyleOpen ? "" : "rotate-180"}`} />
+            <ChevronUp className={`w-4 h-4 transition-transform text-neutral-500 ${isStyleOpen ? "" : "rotate-180"}`} />
           </button>
 
           {isStyleOpen && (
-            <div className="space-y-3 pt-1">
+            <div className="space-y-2.5 pt-1">
               {collectionsList.map((col: any) => {
                 const name = typeof col === "string" ? col : col.name;
                 const slug = typeof col === "string" ? col.toLowerCase().replace(/\s+/g, "-") : col.slug;
@@ -304,13 +304,13 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                   <button
                     key={slug || name}
                     onClick={() => setSelectedCollection(isSelected ? "" : slug || name)}
-                    className={`w-full flex items-center justify-between text-sm text-left transition-colors cursor-pointer ${
-                      isSelected ? "font-bold text-black" : "text-gray-500 hover:text-black"
+                    className={`w-full flex items-center justify-between text-xs text-left transition-colors cursor-pointer py-0.5 ${
+                      isSelected ? "font-bold text-black" : "text-neutral-500 hover:text-black font-medium"
                     }`}
                   >
                     <span>{name}</span>
                     <ChevronRight
-                      className={`w-4 h-4 text-gray-400 transition-transform ${
+                      className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${
                         isSelected ? "rotate-90 text-black" : ""
                       }`}
                     />
@@ -326,7 +326,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       <div className="pt-2">
         <button
           onClick={handleApply}
-          className="w-full bg-black hover:bg-gray-800 text-white font-bold text-sm py-4 rounded-full transition-all shadow-md active:scale-95 cursor-pointer"
+          className="w-full bg-black hover:bg-neutral-800 text-white font-bold text-xs uppercase tracking-wider py-3 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
         >
           Apply Filter
         </button>

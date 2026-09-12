@@ -17,6 +17,8 @@ import { resolveProductColor } from "@/lib/productVariants";
 
 interface ProductCardProps {
   product: Product;
+  aspectRatio?: "portrait" | "square" | "compact";
+  className?: string;
 }
 
 export { PRODUCT_CARD_IMAGE_SIZES, PRODUCT_IMAGE_QUALITY } from "@/lib/productMedia";
@@ -32,7 +34,11 @@ export function formatShortSize(size: string): string {
   return size;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  aspectRatio = "square",
+  className = "",
+}) => {
   const { toggleWishlist, isInWishlist } = useCart();
   const { requestBuyNow, requestAddToCart } = useSizeSelection();
   const isWished = isInWishlist(product.id);
@@ -88,12 +94,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="flex items-center gap-0.5">
         {[...Array(5)].map((_, i) => {
           if (i < fullStars) {
-            return <Star key={i} className="h-3 w-3 fill-black text-black" />;
+            return <Star key={i} className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-black text-black" />;
           }
           if (i === fullStars && hasHalfStar) {
-            return <Star key={i} className="h-3 w-3 fill-black text-black opacity-60" />;
+            return <Star key={i} className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-black text-black opacity-60" />;
           }
-          return <Star key={i} className="h-3 w-3 fill-neutral-200 text-neutral-200" />;
+          return <Star key={i} className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-neutral-200 text-neutral-200" />;
         })}
       </div>
     );
@@ -105,15 +111,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     ? getProductImageProps(secondaryImage, PRODUCT_CARD_IMAGE_SIZES)
     : null;
 
+  const aspectClass =
+    aspectRatio === "portrait"
+      ? "aspect-[3/4]"
+      : aspectRatio === "compact"
+      ? "aspect-[4/3]"
+      : "aspect-square";
+
   return (
-    <article className="group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-[0_1px_0_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+    <article
+      className={`group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md font-be-vietnam-pro ${className}`}
+    >
       <Link
         href={productHref}
         className="absolute inset-0 z-[1]"
         aria-label={`View ${product.title}`}
       />
 
-      <div className="relative aspect-[3/4] overflow-hidden bg-[#F3F2F0]">
+      <div className={`relative ${aspectClass} w-full overflow-hidden bg-[#F3F2F0]`}>
         <Image
           src={primaryImage}
           alt={product.title}
@@ -141,16 +156,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         )}
 
         {product.discount ? (
-          <div className="absolute left-3 top-3 z-10 rounded-full bg-black px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white">
+          <div className="absolute left-2 top-2 z-10 rounded bg-black px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-white">
             -{product.discount}%
           </div>
         ) : product.isNew ? (
-          <div className="absolute left-3 top-3 z-10 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-black shadow-sm">
+          <div className="absolute left-2 top-2 z-10 rounded bg-white/95 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-black shadow-xs">
             New
           </div>
         ) : null}
 
-        <div className="absolute right-3 top-3 z-[2]">
+        <div className="absolute right-2 top-2 z-[2]">
           <button
             type="button"
             onClick={(e) => {
@@ -158,7 +173,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               e.stopPropagation();
               toggleWishlist(product);
             }}
-            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 shadow-sm ${
+            className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full border transition-all duration-200 shadow-xs ${
               isWished
                 ? "border-red-600 bg-red-600 text-white scale-105"
                 : "border-white/80 bg-white/95 text-neutral-700 hover:border-red-200 hover:text-red-600"
@@ -166,23 +181,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             title={isWished ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={isWished}
           >
-            <Heart className={`h-4 w-4 ${isWished ? "fill-white text-white" : ""}`} />
+            <Heart className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${isWished ? "fill-white text-white" : ""}`} />
           </button>
         </div>
 
-        <div className="absolute inset-x-3 bottom-3 z-[2] flex translate-y-2 gap-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+        <div className="absolute inset-x-2 bottom-2 z-[2] flex translate-y-2 gap-1 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
           <button
             type="button"
             onClick={handleAddToCart}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-black py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white shadow-lg transition-colors hover:bg-neutral-800"
+            className="flex flex-1 items-center justify-center gap-1 rounded-md bg-black py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-neutral-800"
           >
             {added ? (
               <>
-                <Check className="h-3.5 w-3.5" /> Added
+                <Check className="h-3 w-3" /> Added
               </>
             ) : (
               <>
-                <ShoppingBag className="h-3.5 w-3.5" /> Add
+                <ShoppingBag className="h-3 w-3" /> Add
               </>
             )}
           </button>
@@ -190,14 +205,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <button
             type="button"
             onClick={handleBuyNow}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-black/10 bg-white py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-black shadow-lg transition-colors hover:bg-neutral-50"
+            className="flex flex-1 items-center justify-center gap-1 rounded-md border border-black/10 bg-white py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-black shadow-sm transition-colors hover:bg-neutral-50"
           >
-            <Zap className="h-3.5 w-3.5 fill-black" /> Buy
+            <Zap className="h-3 w-3 fill-black" /> Buy
           </button>
         </div>
       </div>
 
-      <div className="relative z-0 flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
+      <div className="relative z-0 flex flex-1 flex-col gap-1 p-2.5 sm:p-3 pt-2">
         {product.colors && product.colors.length > 0 && (
           <div className="relative z-[2]">
             <ColorSwatchStack
@@ -212,23 +227,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         )}
 
-        <h3 className="font-be-vietnam-pro line-clamp-2 text-sm font-semibold leading-snug text-black transition-colors group-hover:text-neutral-600 sm:text-[15px]">
+        <h3 className="line-clamp-1 sm:line-clamp-2 text-xs sm:text-[13px] font-semibold leading-snug text-neutral-900 transition-colors group-hover:text-black">
           {product.title}
         </h3>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {renderStars(product.rating)}
           {product.reviewsCount > 0 && (
-            <span className="text-[11px] text-neutral-400">({product.reviewsCount})</span>
+            <span className="text-[10px] text-neutral-400">({product.reviewsCount})</span>
           )}
         </div>
 
-        <div className="mt-auto flex items-end gap-2 pt-1">
-          <span className="font-be-vietnam-pro-black text-base font-black text-black sm:text-lg">
+        <div className="mt-auto flex items-baseline gap-1.5 pt-0.5">
+          <span className="text-xs sm:text-sm font-bold text-black">
             ₹{product.price.toLocaleString("en-IN")}
           </span>
           {product.originalPrice && (
-            <span className="pb-0.5 text-xs font-semibold text-neutral-400 line-through">
+            <span className="text-[10px] font-normal text-neutral-400 line-through">
               ₹{product.originalPrice.toLocaleString("en-IN")}
             </span>
           )}
