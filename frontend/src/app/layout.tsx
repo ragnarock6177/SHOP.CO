@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/context/AuthContext";
+import { RouteScrollToTop } from "@/components/common/RouteScrollToTop";
 
 const beVietnamPro = Be_Vietnam_Pro({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -97,6 +98,7 @@ export default function RootLayout({
       <body
         className={`${beVietnamPro.className} font-be-vietnam-pro bg-white text-black min-h-dvh flex flex-col antialiased selection:bg-black selection:text-white`}
       >
+        <RouteScrollToTop />
         <Toaster position="top-right" richColors />
         <AuthProvider>{children}</AuthProvider>
       </body>

@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "./Navbar";
 import { StorefrontHeaderAnnouncementBar } from "@/types/settings";
 import { DEFAULT_STOREFRONT_SETTINGS } from "@/lib/settingsApi";
@@ -32,15 +31,20 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
   const [announcementLink, setAnnouncementLink] = useState(defaultLink);
   const wasAuthenticatedRef = React.useRef(isAuthenticated);
 
-  // Defer auth-based visibility until after hydration so SSR and client match.
-  const shouldShowAnnouncement = useMemo(() => {
-    if (!isHydrated) return false;
-    if (!announcementEnabled || sessionDismissed) return false;
-    if (isAuthenticated) return false;
-    return true;
-  }, [isHydrated, announcementEnabled, sessionDismissed, isAuthenticated]);
+  // Controlled directly by Admin Panel Settings (announcementBar.enabled)
+  const shouldShowAnnouncement = announcementEnabled && !sessionDismissed;
+
+  const ctaLabel = useMemo(() => {
+    if (!announcementLink) return null;
+    if (announcementLink.includes("signup") || announcementLink.includes("register")) {
+      return isAuthenticated ? "Shop Now" : "Sign Up Now";
+    }
+    return "Shop Now";
+  }, [announcementLink, isAuthenticated]);
 
   React.useEffect(() => {
+    if (initialAnnouncement) return; // Already provided from server
+
     import("@/lib/settingsApi").then(({ getStorefrontSettingsApi }) => {
       getStorefrontSettingsApi().then((settings) => {
         if (settings?.header?.announcementBar) {
@@ -51,49 +55,35 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
         }
       });
     });
-  }, []);
-
-  React.useEffect(() => {
-    if (wasAuthenticatedRef.current && !isAuthenticated) {
-      setSessionDismissed(false);
-    }
-    wasAuthenticatedRef.current = isAuthenticated;
-  }, [isAuthenticated]);
+  }, [initialAnnouncement]);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100 font-be-vietnam-pro">
-      <AnimatePresence initial={false}>
-        {shouldShowAnnouncement && (
-          <motion.div
-            initial={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden bg-black text-white w-full px-3 sm:px-8 lg:px-12"
-          >
-            <div className="max-w-7xl mx-auto py-2 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-9 sm:min-h-10">
-              <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap">
-                <span className="opacity-90">{announcementText}</span>
-                {announcementLink && (
-                  <Link
-                    href={announcementLink}
-                    className="font-extrabold underline hover:text-gray-300 transition-colors whitespace-nowrap ml-1"
-                  >
-                    Sign Up Now
-                  </Link>
-                )}
-              </div>
-
-              <button
-                onClick={() => setSessionDismissed(true)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
-                aria-label="Close Announcement"
-              >
-                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
+      {shouldShowAnnouncement && (
+        <div className="bg-black text-white w-full px-3 sm:px-8 lg:px-12 transition-all duration-300">
+          <div className="max-w-7xl mx-auto py-2 text-center text-[10px] sm:text-xs font-medium relative flex items-center justify-center min-h-9 sm:min-h-10">
+            <div className="flex items-center justify-center gap-1 leading-tight flex-wrap sm:flex-nowrap">
+              <span className="opacity-90">{announcementText}</span>
+              {announcementLink && ctaLabel && (
+                <Link
+                  href={announcementLink}
+                  className="font-extrabold underline hover:text-gray-300 transition-colors whitespace-nowrap ml-1"
+                >
+                  {ctaLabel}
+                </Link>
+              )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <button
+              onClick={() => setSessionDismissed(true)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 cursor-pointer"
+              aria-label="Close Announcement"
+            >
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <Navbar />
     </header>

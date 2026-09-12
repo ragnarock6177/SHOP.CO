@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { SanitizedUser, AuthResponseData, getMeApi, logoutApi } from "@/lib/authApi";
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
+import { SanitizedUser, AuthResponseData, getMeApi, logoutApi, ApiHttpError } from "@/lib/authApi";
 import { syncAuthCookie } from "@/lib/authSession";
 
 interface AuthContextType {
@@ -22,8 +22,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+
     const initializeAuth = async () => {
       try {
         const storedToken = localStorage.getItem("accessToken");
@@ -32,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (storedToken) {
           syncAuthCookie(storedToken);
           setToken(storedToken);
+
           if (storedUser && storedUser !== "undefined" && storedUser !== "null") {
             try {
               setUser(JSON.parse(storedUser));
@@ -40,21 +45,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               localStorage.removeItem("user");
             }
           }
+
           try {
             const { user: freshUser } = await getMeApi(storedToken);
             if (freshUser) {
               setUser(freshUser);
               localStorage.setItem("user", JSON.stringify(freshUser));
             }
-          } catch {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("user");
-            syncAuthCookie(null);
-            setToken(null);
-            setUser(null);
+          } catch (apiErr: unknown) {
+            // ONLY log out if the backend explicitly returns a 401 Unauthorized / Token Expired error!
+            if (apiErr instanceof ApiHttpError && apiErr.status === 401) {
+              console.warn("Session expired on server (401), clearing auth state");
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("user");
+              syncAuthCookie(null);
+              setToken(null);
+              setUser(null);
+            } else {
+              const errMsg = apiErr instanceof Error ? apiErr.message : "Unknown error";
+              console.warn("Could not refresh user profile on reload, keeping stored session:", errMsg);
+            }
           }
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Failed to initialize auth state:", err);
       } finally {
         setIsLoading(false);
@@ -76,18 +89,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem("user");
     }
     setIsHydrated(true);
-
-    // Call /me API once to fetch fresh profile details
-    getMeApi(authData.accessToken)
-      .then(({ user: freshUser }) => {
-        if (freshUser) {
-          setUser(freshUser);
-          localStorage.setItem("user", JSON.stringify(freshUser));
-        }
-      })
-      .catch((err) => {
-        console.warn("Failed to fetch fresh user profile on login:", err);
-      });
   };
 
   const logout = async () => {
@@ -109,8 +110,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(freshUser);
         localStorage.setItem("user", JSON.stringify(freshUser));
       }
-    } catch (err) {
-      console.error("Failed to refresh user profile:", err);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      console.error("Failed to refresh user profile:", msg);
     }
   };
 

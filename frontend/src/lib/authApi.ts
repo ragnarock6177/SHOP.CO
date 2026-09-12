@@ -25,6 +25,8 @@ export interface SanitizedUser {
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
   roles: string[];
+  permissions?: string[];
+  isSuperAdmin?: boolean;
   role?: string;
   status: string;
   lastLoginAt: string | null;
@@ -37,22 +39,39 @@ export interface AuthResponseData {
   accessToken: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
   error?: string;
 }
 
+export interface ApiErrorData {
+  message?: string;
+  error?: string;
+}
+
+export class ApiHttpError extends Error {
+  status?: number;
+  isNetworkError?: boolean;
+
+  constructor(message: string, status?: number, isNetworkError?: boolean) {
+    super(message);
+    this.name = "ApiHttpError";
+    this.status = status;
+    this.isNetworkError = isNetworkError;
+  }
+}
+
 /**
  * Sanitizes and converts backend/network error responses into clean, production-grade, human-friendly messages.
  */
-function parseErrorMessage(data: any, fallbackMessage: string): string {
+function parseErrorMessage(data: ApiErrorData | null | undefined, fallbackMessage: string): string {
   const rawMsg = data?.message || data?.error;
   if (!rawMsg || typeof rawMsg !== "string") return fallbackMessage;
 
   // Clean up technical validation prefixes
-  let cleanMsg = rawMsg
+  const cleanMsg = rawMsg
     .replace(/^Validation failed:\s*/i, "")
     .replace(/^(body|query|params)\./i, "")
     .replace(/^(identifier|email|password|phoneNumber|phone|firebaseToken):\s*/i, "");
@@ -93,16 +112,25 @@ export async function checkUserApi(payload: CheckUserPayload): Promise<CheckUser
       body: JSON.stringify(requestBody),
     });
 
-    const data: ApiResponse<CheckUserResponse> = await response.json();
+    const data: ApiResponse<CheckUserResponse> = await response.json().catch(() => ({
+      success: false,
+      message: "Invalid response from server",
+    }));
 
     if (!response.ok || !data.success) {
-      throw new Error(parseErrorMessage(data, "Could not check account status. Please try again."));
+      throw new ApiHttpError(
+        parseErrorMessage(data, "Could not check account status. Please try again."),
+        response.status,
+      );
     }
 
     return data.data || { isRegistered: false };
-  } catch (err: any) {
-    if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
-      throw new Error("Unable to connect to server. Please check your internet connection.");
+  } catch (err: unknown) {
+    if (err instanceof ApiHttpError) {
+      throw err;
+    }
+    if (err instanceof Error && (err.message.includes("Failed to fetch") || err.name === "TypeError")) {
+      throw new ApiHttpError("Unable to connect to server. Please check your internet connection.", undefined, true);
     }
     throw err;
   }
@@ -116,16 +144,25 @@ export async function loginApi(email: string, password: string): Promise<AuthRes
       body: JSON.stringify({ type: "email", email, password }),
     });
 
-    const data: ApiResponse<AuthResponseData> = await response.json();
+    const data: ApiResponse<AuthResponseData> = await response.json().catch(() => ({
+      success: false,
+      message: "Invalid response from server",
+    }));
 
     if (!response.ok || !data.success) {
-      throw new Error(parseErrorMessage(data, "Invalid credentials. Please check your email and password."));
+      throw new ApiHttpError(
+        parseErrorMessage(data, "Invalid credentials. Please check your email and password."),
+        response.status,
+      );
     }
 
     return data.data!;
-  } catch (err: any) {
-    if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
-      throw new Error("Unable to connect to server. Please try again later.");
+  } catch (err: unknown) {
+    if (err instanceof ApiHttpError) {
+      throw err;
+    }
+    if (err instanceof Error && (err.message.includes("Failed to fetch") || err.name === "TypeError")) {
+      throw new ApiHttpError("Unable to connect to server. Please try again later.", undefined, true);
     }
     throw err;
   }
@@ -157,16 +194,25 @@ export async function registerEmailApi(input: {
       body: JSON.stringify(payload),
     });
 
-    const data: ApiResponse<AuthResponseData> = await response.json();
+    const data: ApiResponse<AuthResponseData> = await response.json().catch(() => ({
+      success: false,
+      message: "Invalid response from server",
+    }));
 
     if (!response.ok || !data.success) {
-      throw new Error(parseErrorMessage(data, "Failed to create account. Please try again."));
+      throw new ApiHttpError(
+        parseErrorMessage(data, "Failed to create account. Please try again."),
+        response.status,
+      );
     }
 
     return data.data!;
-  } catch (err: any) {
-    if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
-      throw new Error("Unable to connect to server. Please try again later.");
+  } catch (err: unknown) {
+    if (err instanceof ApiHttpError) {
+      throw err;
+    }
+    if (err instanceof Error && (err.message.includes("Failed to fetch") || err.name === "TypeError")) {
+      throw new ApiHttpError("Unable to connect to server. Please try again later.", undefined, true);
     }
     throw err;
   }
@@ -183,34 +229,80 @@ export async function registerFirebaseApi(
       body: JSON.stringify({ type, firebaseToken }),
     });
 
-    const data: ApiResponse<AuthResponseData> = await response.json();
+    const data: ApiResponse<AuthResponseData> = await response.json().catch(() => ({
+      success: false,
+      message: "Invalid response from server",
+    }));
 
     if (!response.ok || !data.success) {
-      throw new Error(parseErrorMessage(data, `Failed to authenticate with ${type}.`));
+      throw new ApiHttpError(
+        parseErrorMessage(data, `Failed to authenticate with ${type}.`),
+        response.status,
+      );
     }
 
     return data.data!;
-  } catch (err: any) {
-    if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
-      throw new Error("Unable to connect to server. Please try again later.");
+  } catch (err: unknown) {
+    if (err instanceof ApiHttpError) {
+      throw err;
+    }
+    if (err instanceof Error && (err.message.includes("Failed to fetch") || err.name === "TypeError")) {
+      throw new ApiHttpError("Unable to connect to server. Please try again later.", undefined, true);
     }
     throw err;
   }
 }
 
+let inFlightMePromise: { token: string; promise: Promise<{ user: SanitizedUser }> } | null = null;
+
 export async function getMeApi(token: string): Promise<{ user: SanitizedUser }> {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  const data: ApiResponse<{ user: SanitizedUser }> = await response.json();
-
-  if (!response.ok || !data.success) {
-    throw new Error(parseErrorMessage(data, "Session expired. Please log in again."));
+  // If a request with the exact same token is already pending, reuse that promise
+  if (inFlightMePromise && inFlightMePromise.token === token) {
+    return inFlightMePromise.promise;
   }
 
-  return data.data!;
+  const fetchPromise = (async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data: ApiResponse<SanitizedUser | { user: SanitizedUser }> = await response.json().catch(() => ({
+        success: false,
+        message: "Invalid response from server",
+      }));
+
+      if (!response.ok || !data.success) {
+        throw new ApiHttpError(
+          parseErrorMessage(data, "Session expired. Please log in again."),
+          response.status,
+        );
+      }
+
+      const rawData = data.data;
+      const userObj = (rawData && typeof rawData === "object" && "user" in rawData
+        ? (rawData as { user: SanitizedUser }).user
+        : rawData) as SanitizedUser;
+
+      return { user: userObj };
+    } catch (err: unknown) {
+      if (err instanceof ApiHttpError) {
+        throw err;
+      }
+      if (err instanceof Error && (err.message.includes("Failed to fetch") || err.name === "TypeError")) {
+        throw new ApiHttpError("Unable to connect to server.", undefined, true);
+      }
+      throw err;
+    } finally {
+      if (inFlightMePromise && inFlightMePromise.token === token) {
+        inFlightMePromise = null;
+      }
+    }
+  })();
+
+  inFlightMePromise = { token, promise: fetchPromise };
+  return fetchPromise;
 }
 
 export async function logoutApi(token: string): Promise<void> {
@@ -219,7 +311,7 @@ export async function logoutApi(token: string): Promise<void> {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Logout API error:", error);
   }
 }
