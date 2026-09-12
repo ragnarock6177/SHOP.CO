@@ -438,7 +438,7 @@ export class OrderService {
             countryCode: addr.countryCode || "IN",
             phone: addr.phone || "",
             isDefault: shouldBeDefault,
-          },
+          } as any,
         });
       }
 

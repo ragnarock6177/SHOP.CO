@@ -74,7 +74,7 @@ export const DashboardSkeleton: React.FC = () => {
           <Skeleton className="h-7 w-56 rounded-md" />
           <Skeleton className="h-3.5 w-72 rounded-md" />
         </div>
-        <Skeleton className="h-9 w-32 rounded-md" />
+        <Skeleton className="h-9 w-36 rounded-md" />
       </div>
 
       {/* 4 Stat Cards */}
@@ -84,7 +84,17 @@ export const DashboardSkeleton: React.FC = () => {
         ))}
       </div>
 
-      {/* 2 Widgets */}
+      {/* Analytics Timeline & Breakdown Widgets */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <WidgetSkeleton rows={5} />
+        </div>
+        <div>
+          <WidgetSkeleton rows={5} />
+        </div>
+      </div>
+
+      {/* 2 Bottom Widgets */}
       <div className="grid gap-6 lg:grid-cols-2">
         <WidgetSkeleton rows={4} />
         <WidgetSkeleton rows={4} />

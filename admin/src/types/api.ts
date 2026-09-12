@@ -43,13 +43,51 @@ export interface AdminQueryParams {
 
 export interface DashboardMetrics {
   grossRevenue: number;
+  netRevenue: number;
+  totalRefunds: number;
+  revenueTrend?: string;
   totalOrders: number;
   todayOrders: number;
+  ordersTrend?: string;
+  totalItemsSold: number;
+  unfulfilledOrders: number;
+  statusBreakdown: Record<string, number>;
   lowStockCount: number;
   outOfStockCount: number;
   pendingReturns: number;
   pendingRefunds: number;
-  activeCustomersCount: number;
+  overduePendingOrdersCount: number;
+  topSellingProducts: Array<{
+    name: string;
+    sku: string;
+    unitsSold: number;
+    revenue: number;
+  }>;
+  paymentDistribution: Array<{
+    provider: string;
+    count: number;
+    amount: number;
+    percentage: number;
+  }>;
+  salesVelocityTimeline: Array<{
+    date: string;
+    label: string;
+    revenue: number;
+    orders: number;
+  }>;
+  lowStockAlerts: Array<{
+    id: string;
+    variantId: string;
+    sku: string;
+    productTitle: string;
+    productImage: string | null;
+    quantityOnHand: number;
+    quantityReserved: number;
+    availableQuantity: number;
+    reorderLevel: number;
+    isLowStock: boolean;
+    isOutOfStock: boolean;
+  }>;
   recentOrders: Array<{
     id: string;
     orderNumber: string;
@@ -57,6 +95,8 @@ export interface DashboardMetrics {
     customerEmail: string;
     totalAmount: number;
     status: string;
+    paymentProvider?: string;
+    paymentStatus?: string;
     createdAt: string;
   }>;
   recentAuditLogs: Array<{

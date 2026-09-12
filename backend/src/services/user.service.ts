@@ -94,14 +94,14 @@ export class UserService {
         userRoles: {
           select: { role: { select: { id: true, name: true, description: true } } },
         },
-      },
+      } as any,
     });
 
     if (!user) {
       throw new NotFoundError("User profile not found");
     }
 
-    return formatUserProfile(user);
+    return formatUserProfile(user as any);
   }
 
   static async updateUserProfile(userId: string, data: UpdateProfileInput) {
@@ -136,10 +136,10 @@ export class UserService {
         userRoles: {
           select: { role: { select: { id: true, name: true, description: true } } },
         },
-      },
+      } as any,
     });
 
-    return formatUserProfile(user);
+    return formatUserProfile(user as any);
   }
 
   static async changePassword(
