@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import prisma from "../lib/prisma.js";
-import { getRazorpayClient, razorpayKeyId, razorpayKeySecret, razorpayWebhookSecret } from "../config/razorpay.js";
+import { razorpay, razorpayKeyId, razorpayKeySecret, razorpayWebhookSecret } from "../config/razorpay.js";
 import { NotFoundError, UnprocessableEntityError, BadRequestError, ForbiddenError } from "../utils/errors.js";
 import { OrderStatus, PaymentStatus, PaymentTransactionType, InvoiceStatus, InventoryMovementType } from "@prisma/client";
 
@@ -59,7 +59,6 @@ export class PaymentService {
 
     let providerPaymentId: string;
     try {
-      const razorpay = getRazorpayClient();
       const rzpOrder = await razorpay.orders.create({
         amount: amountInPaise,
         currency,
@@ -71,11 +70,13 @@ export class PaymentService {
       });
       providerPaymentId = rzpOrder.id;
     } catch (err: any) {
-      console.warn("⚠️ Razorpay API order creation failed, generating local fallback:", err?.message);
-      providerPaymentId = `order_mock_${Date.now()}_${params.orderId.slice(0, 8)}`;
+      console.error("Razorpay order creation error:", err);
+      throw new BadRequestError(
+        err?.error?.description || err?.message || "Failed to create Razorpay order"
+      );
     }
 
-    // Persist or update Payment record
+    // Persist Payment record
     const payment = await prisma.payment.create({
       data: {
         orderId: params.orderId,
@@ -94,16 +95,16 @@ export class PaymentService {
     return {
       paymentId: payment.id,
       razorpay: {
-        keyId: razorpayKeyId || "rzp_test_placeholder",
+        keyId: razorpayKeyId,
         orderId: providerPaymentId,
         amount: amountInPaise,
         currency,
         name: "AIRAVÉ",
         description: `Order #${params.orderNumber}`,
         prefill: {
-          name: params.customerName || "",
-          email: params.customerEmail || "",
-          contact: params.customerPhone || "",
+          name: params.customerName?.trim() || undefined,
+          email: params.customerEmail?.trim() || undefined,
+          contact: params.customerPhone?.trim() || undefined,
         },
       },
     };
@@ -121,13 +122,10 @@ export class PaymentService {
   }) {
     const { orderNumber, razorpayOrderId, razorpayPaymentId, razorpaySignature, userId } = params;
 
-    // 1. Signature Verification
-    const isMock = razorpayOrderId.startsWith("order_mock_");
-    if (!isMock) {
-      const isValid = this.validateSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
-      if (!isValid) {
-        throw new BadRequestError("Invalid payment signature");
-      }
+    // 1. Cryptographic Signature Verification
+    const isValid = this.validateSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+    if (!isValid) {
+      throw new BadRequestError("Invalid payment signature");
     }
 
     // 2. Atomic Verification & Fulfillment Transaction
@@ -468,15 +466,16 @@ export class PaymentService {
 
     let providerRefundId: string;
     try {
-      const razorpay = getRazorpayClient();
       const rzpRefund = await razorpay.payments.refund(payment.providerPaymentId || "", {
         amount: amountInPaise,
         notes: { reason: reason || "Admin requested refund" },
       });
       providerRefundId = rzpRefund.id;
     } catch (err: any) {
-      console.warn("⚠️ Razorpay Refund API call failed, generating fallback:", err?.message);
-      providerRefundId = `rfnd_mock_${Date.now()}`;
+      console.error("Razorpay refund error:", err);
+      throw new BadRequestError(
+        err?.error?.description || err?.message || "Failed to process Razorpay refund"
+      );
     }
 
     return prisma.$transaction(async (tx) => {

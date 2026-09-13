@@ -1,21 +1,13 @@
+import dotenv from "dotenv";
 import Razorpay from "razorpay";
-import { env } from "./env.js";
 
-export const razorpayKeyId = env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || "";
-export const razorpayKeySecret = env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET || "";
-export const razorpayWebhookSecret = env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_WEBHOOK_SECRET || "";
+dotenv.config();
 
-let razorpayInstance: Razorpay | null = null;
+export const razorpayKeyId = process.env.RAZORPAY_KEY_ID || "";
+export const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || "";
+export const razorpayWebhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || "";
 
-export function getRazorpayClient(): Razorpay {
-  if (!razorpayInstance) {
-    if (!razorpayKeyId || !razorpayKeySecret) {
-      console.warn("⚠️ Razorpay credentials not configured in environment. Using test placeholder.");
-    }
-    razorpayInstance = new Razorpay({
-      key_id: razorpayKeyId || "rzp_test_placeholder",
-      key_secret: razorpayKeySecret || "secret_placeholder",
-    });
-  }
-  return razorpayInstance;
-}
+export const razorpay = new Razorpay({
+  key_id: razorpayKeyId || "rzp_test_placeholder",
+  key_secret: razorpayKeySecret || "secret_placeholder",
+});
