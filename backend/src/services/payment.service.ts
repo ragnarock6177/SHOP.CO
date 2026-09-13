@@ -3,6 +3,7 @@ import prisma from "../lib/prisma.js";
 import { razorpay, razorpayKeyId, razorpayKeySecret, razorpayWebhookSecret } from "../config/razorpay.js";
 import { NotFoundError, UnprocessableEntityError, BadRequestError, ForbiddenError } from "../utils/errors.js";
 import { OrderStatus, PaymentStatus, PaymentTransactionType, InvoiceStatus, InventoryMovementType } from "@prisma/client";
+import { restoreInventoryForOrder } from "../utils/inventory.utils.js";
 
 export class PaymentService {
   /**
@@ -332,10 +333,18 @@ export class PaymentService {
       const paymentEntity = payload.payment?.entity;
       const orderId = paymentEntity?.order_id;
       const paymentId = paymentEntity?.id;
+      const failReason = paymentEntity?.error_description || paymentEntity?.error_reason || "Payment failed at gateway";
 
       if (orderId) {
         const paymentRecord = await prisma.payment.findFirst({
           where: { providerPaymentId: orderId },
+          include: {
+            order: {
+              include: {
+                items: true,
+              },
+            },
+          },
         });
 
         if (paymentRecord) {
@@ -356,9 +365,35 @@ export class PaymentService {
             data: {
               status: PaymentStatus.FAILED,
               failureCode: paymentEntity?.error_code || "PAYMENT_FAILED",
-              failureMessage: paymentEntity?.error_description || "Payment failed at gateway",
+              failureMessage: failReason,
             },
           });
+
+          if (paymentRecord.order && paymentRecord.order.status === OrderStatus.PENDING) {
+            await prisma.$transaction(async (tx) => {
+              await tx.order.update({
+                where: { id: paymentRecord.order.id },
+                data: {
+                  status: OrderStatus.FAILED,
+                  statusHistory: {
+                    create: {
+                      oldStatus: paymentRecord.order.status,
+                      newStatus: OrderStatus.FAILED,
+                      reason: failReason,
+                    },
+                  },
+                },
+              });
+
+              await restoreInventoryForOrder(
+                tx,
+                paymentRecord.order.id,
+                paymentRecord.order.orderNumber,
+                paymentRecord.order.items,
+                `Payment failed via webhook: ${failReason}`
+              );
+            });
+          }
         }
       }
     }
@@ -378,7 +413,7 @@ export class PaymentService {
     const { orderNumber, razorpayOrderId, errorCode, errorDescription } = params;
     const order = await prisma.order.findFirst({
       where: { orderNumber, deletedAt: null },
-      include: { payments: true },
+      include: { payments: true, items: true },
     });
 
     if (!order) return null;
@@ -386,6 +421,8 @@ export class PaymentService {
     const payment = razorpayOrderId
       ? order.payments.find((p) => p.providerPaymentId === razorpayOrderId) || order.payments[0]
       : order.payments[0];
+
+    const failReason = errorDescription || "Payment was not completed";
 
     if (payment) {
       await prisma.paymentTransaction.create({
@@ -403,9 +440,36 @@ export class PaymentService {
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
+          status: PaymentStatus.FAILED,
           failureCode: errorCode || "USER_CANCELLED_OR_FAILED",
-          failureMessage: errorDescription || "Payment was not completed",
+          failureMessage: failReason,
         },
+      });
+    }
+
+    if (order.status === OrderStatus.PENDING) {
+      await prisma.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            status: OrderStatus.FAILED,
+            statusHistory: {
+              create: {
+                oldStatus: order.status,
+                newStatus: OrderStatus.FAILED,
+                reason: failReason,
+              },
+            },
+          },
+        });
+
+        await restoreInventoryForOrder(
+          tx,
+          order.id,
+          order.orderNumber,
+          order.items,
+          `Payment failed: ${failReason}`
+        );
       });
     }
 
