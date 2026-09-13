@@ -100,7 +100,7 @@ export class PaymentService {
         orderId: providerPaymentId,
         amount: amountInPaise,
         currency,
-        name: "AIRAVÉ",
+        name: "AIRAVE",
         description: `Order #${params.orderNumber}`,
         prefill: {
           name: params.customerName?.trim() || undefined,

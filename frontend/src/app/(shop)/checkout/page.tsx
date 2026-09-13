@@ -246,7 +246,7 @@ export default function CheckoutPage() {
           key: createdOrder.razorpay.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
           amount: createdOrder.razorpay.amount,
           currency: (createdOrder.razorpay.currency || "INR") as any,
-          name: createdOrder.razorpay.name || "AIRAVÉ",
+          name: createdOrder.razorpay.name || "AIRAVE",
           description: createdOrder.razorpay.description || `Order #${createdOrder.orderNumber}`,
           image: `${origin}/favicon/android-chrome-192x192.png`,
           order_id: createdOrder.razorpay.orderId,
