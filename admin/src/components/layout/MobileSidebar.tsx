@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link.js";
+import Image from "next/image";
 import { usePathname } from "next/navigation.js";
 import {
   LayoutDashboard,
@@ -68,9 +69,13 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ isOpen, onClose })
       <div className="relative flex w-4/5 max-w-xs flex-col border-r border-slate-200 bg-white p-5 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
           <Link href="/" onClick={onClose} className="flex items-center gap-2">
-            <span className="text-base font-black tracking-widest text-slate-900 uppercase">
-              AIRAVÉ
-            </span>
+            <Image
+              src="/main_logo.png"
+              alt="AIRAVÉ"
+              width={100}
+              height={30}
+              className="h-6 w-auto object-contain shrink-0 py-0.5"
+            />
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-700 border border-slate-200">
               Admin
             </span>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -173,9 +174,14 @@ export function Sidebar() {
       {/* Brand Header */}
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 px-6">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <span className="text-xl font-black uppercase tracking-[0.2em] text-slate-900 group-hover:opacity-80 transition-opacity">
-            AIRAVÉ
-          </span>
+          <Image
+            src="/main_logo.png"
+            alt="AIRAVÉ"
+            width={120}
+            height={36}
+            className="h-7 w-auto object-contain shrink-0 py-1"
+            priority
+          />
           <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-slate-700 border border-slate-200/80">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Admin
