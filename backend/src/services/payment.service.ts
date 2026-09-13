@@ -354,6 +354,7 @@ export class PaymentService {
           await prisma.payment.update({
             where: { id: paymentRecord.id },
             data: {
+              status: PaymentStatus.FAILED,
               failureCode: paymentEntity?.error_code || "PAYMENT_FAILED",
               failureMessage: paymentEntity?.error_description || "Payment failed at gateway",
             },
