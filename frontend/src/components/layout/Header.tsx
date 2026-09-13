@@ -30,10 +30,10 @@ export const Header: React.FC<HeaderProps> = ({ initialAnnouncement }) => {
   const [sessionDismissed, setSessionDismissed] = useState(false);
   const [announcementText, setAnnouncementText] = useState(defaultText);
   const [announcementLink, setAnnouncementLink] = useState(defaultLink);
-  const wasAuthenticatedRef = React.useRef(isAuthenticated);
 
-  // Controlled directly by Admin Panel Settings (announcementBar.enabled)
-  const shouldShowAnnouncement = announcementEnabled && !sessionDismissed;
+  // Announcement bar is for logged-out users only (signup/promo CTA).
+  const shouldShowAnnouncement =
+    isHydrated && !isAuthenticated && announcementEnabled && !sessionDismissed;
 
   const ctaLabel = useMemo(() => {
     if (!announcementLink) return null;

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
+import { useSizeSelection } from "@/context/SizeSelectionContext";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ProfileAddressesPanel } from "@/components/address/ProfileAddressesPanel";
@@ -26,7 +27,8 @@ import type { UserAddress } from "@/types/address";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { wishlistProducts, addToCart, toggleWishlist, wishlistCount } = useCart();
+  const { wishlistProducts, toggleWishlist, wishlistCount } = useCart();
+  const { requestAddToCart } = useSizeSelection();
   const { user: authUser, token, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
@@ -359,7 +361,7 @@ export default function ProfilePage() {
                       </div>
 
                       <button
-                        onClick={() => addToCart(prod)}
+                        onClick={() => requestAddToCart(prod, undefined, 1)}
                         className="w-full py-1.5 bg-black hover:bg-neutral-800 text-white font-bold text-[10px] uppercase rounded-full transition-all cursor-pointer"
                       >
                         Add to Cart
