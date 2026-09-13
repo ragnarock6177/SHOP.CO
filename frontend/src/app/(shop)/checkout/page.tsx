@@ -237,12 +237,18 @@ export default function CheckoutPage() {
           if (digits.length >= 10) cleanPrefill.contact = digits.slice(-10);
         }
 
+        const origin =
+          typeof window !== "undefined" && window.location.origin
+            ? window.location.origin
+            : "https://frontend-beta-murex-33.vercel.app";
+
         const options = {
           key: createdOrder.razorpay.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
           amount: createdOrder.razorpay.amount,
           currency: (createdOrder.razorpay.currency || "INR") as any,
           name: createdOrder.razorpay.name || "AIRAVÉ",
           description: createdOrder.razorpay.description || `Order #${createdOrder.orderNumber}`,
+          image: `${origin}/favicon/android-chrome-192x192.png`,
           order_id: createdOrder.razorpay.orderId,
           prefill: Object.keys(cleanPrefill).length > 0 ? cleanPrefill : undefined,
           theme: { color: "#000000" },
