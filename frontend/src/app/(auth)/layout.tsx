@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -9,9 +10,16 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <header className="w-full max-w-7xl flex items-center justify-between py-3 sm:py-4">
         <Link
           href="/"
-          className="font-be-vietnam-pro-black text-2xl sm:text-3xl font-black text-black tracking-tight uppercase hover:opacity-80 transition-opacity"
+          className="flex items-center hover:opacity-85 transition-opacity py-1.5"
         >
-          AIRAVÉ
+          <Image
+            src="/main_logo.png"
+            alt="AIRAVÉ"
+            width={160}
+            height={45}
+            className="h-6.5 sm:h-7.5 lg:h-8.5 w-auto object-contain shrink-0"
+            priority
+          />
         </Link>
         <Link
           href="/"
