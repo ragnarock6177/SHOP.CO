@@ -144,10 +144,10 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
   return (
     <div className={`relative w-full ${disabled ? "opacity-60 pointer-events-none" : ""}`}>
       <div
-        className={`flex items-center rounded-full px-3.5 py-1 transition-all border ${
+        className={`flex items-center rounded-full px-4 sm:px-5 py-1.5 sm:py-2 transition-all border ${
           error
             ? "border-red-500 bg-red-50/40 ring-2 ring-red-500/20 animate-shake shadow-xs shadow-red-500/10"
-            : "border-transparent bg-[#F0F0F0] focus-within:border-black/30 focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white"
+            : "border-transparent bg-[#F4F4F4] focus-within:border-black/30 focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white"
         }`}
       >
         {/* Country Code & SVG Flag Badge Dropdown */}
@@ -156,14 +156,14 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
             type="button"
             disabled={disabled}
             onClick={() => !disabled && setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-1.5 py-2 pr-2.5 font-bold text-xs text-black hover:text-gray-700 cursor-pointer border-r border-gray-300/70 mr-2 select-none focus:outline-none disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 sm:gap-2 py-2 pr-2.5 sm:pr-3 font-bold text-xs sm:text-sm text-black hover:text-gray-700 cursor-pointer border-r border-gray-300/70 mr-2.5 sm:mr-3 select-none focus:outline-none disabled:cursor-not-allowed"
           >
             {ActiveFlagComponent && (
               <div className="w-5 h-3.5 rounded-2xs overflow-hidden shadow-2xs shrink-0 flex items-center">
                 <ActiveFlagComponent title={selectedCountry} />
               </div>
             )}
-            <span className="text-xs font-semibold text-black">
+            <span className="text-xs sm:text-sm font-semibold text-black">
               +{callingCode}
             </span>
             <ChevronDown
@@ -180,18 +180,18 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
                 className="fixed inset-0 z-40"
                 onClick={() => setIsDropdownOpen(false)}
               />
-              <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-2xl shadow-xl p-2 z-50 text-xs">
+              <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-2xl shadow-xl p-2.5 z-50 text-xs">
                 {/* Search Box */}
                 <input
                   type="text"
                   placeholder="Search country or code..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#F0F0F0] rounded-xl px-3 py-2 text-xs text-black placeholder-gray-400 focus:outline-none mb-2"
+                  className="w-full bg-[#F4F4F4] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none mb-2"
                 />
 
                 {/* Country List */}
-                <div className="max-h-52 overflow-y-auto space-y-0.5">
+                <div className="max-h-56 overflow-y-auto space-y-0.5">
                   {filteredCountries.map((cCode) => {
                     const FlagComp = (flags as any)[cCode];
                     const countryName = (enLabels as any)[cCode] || cCode;
@@ -217,9 +217,9 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
                               <FlagComp title={countryName} />
                             </div>
                           )}
-                          <span className="truncate text-xs">{countryName}</span>
+                          <span className="truncate text-xs sm:text-sm">{countryName}</span>
                         </div>
-                        <span className="text-gray-500 text-[11px] shrink-0 ml-2">
+                        <span className="text-gray-500 text-[11px] sm:text-xs shrink-0 ml-2">
                           +{cCodeNum}
                         </span>
                       </button>
@@ -240,13 +240,13 @@ export const RealPhoneInput: React.FC<RealPhoneInputProps> = ({
           value={formattedDisplay}
           onChange={handleInputChange}
           onBlur={onBlur}
-          className="w-full bg-transparent py-2 pr-3 text-xs text-black placeholder-gray-400 focus:outline-none disabled:cursor-not-allowed"
+          className="w-full bg-transparent py-2 pr-3 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none disabled:cursor-not-allowed"
         />
 
         {/* Live Country Digit Progress Counter (e.g. 10/10) */}
         {rawDigits.length > 0 && (
           <span
-            className={`pr-3 text-[10px] font-bold select-none shrink-0 ${
+            className={`pr-3 text-[10px] sm:text-xs font-bold select-none shrink-0 ${
               error ? "text-red-500" : "text-gray-400"
             }`}
           >
