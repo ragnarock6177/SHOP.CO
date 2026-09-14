@@ -1,54 +1,46 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  ShieldCheck,
-  CreditCard,
-  Truck,
-  ShoppingBag,
-  Tag,
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { CheckoutOrderItem } from "@/components/shop/CheckoutOrderItem";
 import {
   AddressCheckoutSection,
   buildCheckoutOrderAddressPayload,
   getCheckoutSummaryLocation,
   type CheckoutAddressState,
 } from "@/components/address/AddressCheckoutSection";
-import { EMPTY_ADDRESS_FORM } from "@/types/address";
-import type { UserAddress } from "@/types/address";
+import { EMPTY_ADDRESS_FORM, type UserAddress } from "@/types/address";
 import { getCartItemsMissingSelection } from "@/lib/productVariants";
 import { toast } from "sonner";
 import {
   getCheckoutSummaryApi,
   placeOrderApi,
-  CheckoutSummaryData,
-  CreateOrderPayload,
+  type CheckoutSummaryData,
+  type CreateOrderPayload,
 } from "@/lib/orderApi";
 import { verifyPaymentApi } from "@/lib/paymentApi";
+import { useRazorpay } from "react-razorpay";
+import { CheckoutShippingSpeed } from "@/components/shop/checkout/CheckoutShippingSpeed";
+import { CheckoutPaymentMethod } from "@/components/shop/checkout/CheckoutPaymentMethod";
+import { CheckoutOrderSummary } from "@/components/shop/checkout/CheckoutOrderSummary";
+import { CheckoutEmptyCart } from "@/components/shop/checkout/CheckoutEmptyCart";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
   const { user, token } = useAuth();
+  const { Razorpay, error: razorpayLoadError } = useRazorpay();
 
+  // Form selections
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
-  const [shippingSpeed, setShippingSpeed] = useState<"STANDARD" | "EXPRESS">(
-    "STANDARD"
-  );
-
-
-  // Promo code state
+  const [shippingSpeed, setShippingSpeed] = useState<"STANDARD" | "EXPRESS">("STANDARD");
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState("");
 
+  // Address state
   const [addressState, setAddressState] = useState<CheckoutAddressState>({
     mode: "saved",
     selectedAddressId: null,
@@ -62,17 +54,17 @@ export default function CheckoutPage() {
       isDefault: true,
     },
   });
-
   const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([]);
 
-  // Server calculation states
+  // Order & summary calculations
   const [summary, setSummary] = useState<CheckoutSummaryData | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
-
-  // Order submission state
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const lastFetchKeyRef = useRef<string>("");
+  const fetchRequestIdRef = useRef<number>(0);
 
   useEffect(() => {
     if (!user) return;
@@ -88,24 +80,46 @@ export default function CheckoutPage() {
     }));
   }, [user]);
 
-  const summaryLocation = React.useMemo(
-    () => getCheckoutSummaryLocation(addressState, savedAddresses),
-    [addressState, savedAddresses],
-  );
-
   useEffect(() => {
     if (cart.length === 0) {
       router.replace("/cart");
     }
   }, [cart.length, router]);
 
-  // Fetch backend calculation summary whenever cart, speed, applied promo, or address changes
+  const summaryLocation = useMemo(
+    () => getCheckoutSummaryLocation(addressState, savedAddresses),
+    [addressState, savedAddresses],
+  );
+
+  const cartKey = useMemo(
+    () => cart.map((i) => `${i.product.id}:${i.quantity}:${i.selectedSize || ""}:${i.selectedColor || ""}`).join("|"),
+    [cart],
+  );
+
+  // Synchronous, deterministic client calculations
+  const subtotal = summary?.subtotal ?? cart.reduce((tot, i) => tot + i.product.price * i.quantity, 0);
+  const discountAmount = summary?.coupon?.applied ? summary.coupon.discountAmount : 0;
+  const shippingAmount = summary?.shipping
+    ? summary.shipping.amount
+    : shippingSpeed === "EXPRESS"
+    ? subtotal >= 1999 ? 150 : 249
+    : subtotal >= 1999 ? 0 : 99;
+  const taxAmount = summary?.taxAmount ?? Math.round((subtotal - discountAmount) * 0.18 * 100) / 100;
+  const totalAmount = summary?.totalAmount ?? Math.round((subtotal - discountAmount + shippingAmount + taxAmount) * 100) / 100;
+
+  // Single deterministic backend summary fetch (without setTimeout)
   useEffect(() => {
-    if (!cart || cart.length === 0) {
+    if (cart.length === 0) {
       setSummary(null);
+      setSummaryLoading(false);
       return;
     }
 
+    const currentKey = `${cartKey}__${shippingSpeed}__${appliedPromo}`;
+    if (lastFetchKeyRef.current === currentKey) return;
+    lastFetchKeyRef.current = currentKey;
+
+    const currentRequestId = ++fetchRequestIdRef.current;
     setSummaryLoading(true);
     setSummaryError(null);
 
@@ -120,39 +134,31 @@ export default function CheckoutPage() {
 
     getCheckoutSummaryApi({
       items: itemsPayload,
-      couponCode: appliedPromo.trim() || undefined,
+      couponCode: appliedPromo || undefined,
       shippingSpeed,
       shippingAddress: summaryLocation,
     })
       .then((res) => {
-        setSummary(res);
+        if (fetchRequestIdRef.current === currentRequestId) {
+          setSummary(res);
+        }
       })
       .catch((err: any) => {
-        setSummaryError(err.message || "Failed to calculate order totals.");
+        if (fetchRequestIdRef.current === currentRequestId) {
+          setSummaryError(err.message || "Failed to calculate order totals.");
+        }
       })
       .finally(() => {
-        setSummaryLoading(false);
+        if (fetchRequestIdRef.current === currentRequestId) {
+          setSummaryLoading(false);
+        }
       });
-  }, [cart, shippingSpeed, appliedPromo, summaryLocation]);
+  }, [cartKey, shippingSpeed, appliedPromo, summaryLocation, cart]);
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
     if (!promoCode.trim()) return;
-    setAppliedPromo(promoCode.trim());
-  };
-
-  const loadRazorpayScript = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (typeof window !== "undefined" && (window as any).Razorpay) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
+    setAppliedPromo(promoCode.trim().toUpperCase());
   };
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
@@ -199,13 +205,10 @@ export default function CheckoutPage() {
     setSubmitError(null);
 
     try {
-      if (paymentMethod === "razorpay") {
-        const loaded = await loadRazorpayScript();
-        if (!loaded) {
-          toast.error("Unable to load Razorpay payment gateway. Please check your connection.");
-          setSubmitting(false);
-          return;
-        }
+      if (paymentMethod === "razorpay" && (razorpayLoadError || !Razorpay)) {
+        toast.error("Unable to load Razorpay payment gateway. Please check your connection or refresh the page.");
+        setSubmitting(false);
+        return;
       }
 
       const itemsPayload = cart.map((i) => ({
@@ -226,14 +229,28 @@ export default function CheckoutPage() {
       const createdOrder = await placeOrderApi(orderPayload, token || undefined);
 
       if (paymentMethod === "razorpay" && createdOrder.razorpay) {
+        const cleanPrefill: Record<string, string> = {};
+        if (createdOrder.razorpay.prefill?.name?.trim()) cleanPrefill.name = createdOrder.razorpay.prefill.name.trim();
+        if (createdOrder.razorpay.prefill?.email?.trim()) cleanPrefill.email = createdOrder.razorpay.prefill.email.trim();
+        if (createdOrder.razorpay.prefill?.contact?.trim()) {
+          const digits = createdOrder.razorpay.prefill.contact.replace(/\D/g, "");
+          if (digits.length >= 10) cleanPrefill.contact = digits.slice(-10);
+        }
+
+        const origin =
+          typeof window !== "undefined" && window.location.origin
+            ? window.location.origin
+            : "https://frontend-beta-murex-33.vercel.app";
+
         const options = {
           key: createdOrder.razorpay.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
           amount: createdOrder.razorpay.amount,
-          currency: createdOrder.razorpay.currency || "INR",
-          name: createdOrder.razorpay.name || "AIRAVÉ",
+          currency: (createdOrder.razorpay.currency || "INR") as any,
+          name: createdOrder.razorpay.name || "AIRAVE",
           description: createdOrder.razorpay.description || `Order #${createdOrder.orderNumber}`,
+          image: `${origin}/favicon/android-chrome-192x192.png`,
           order_id: createdOrder.razorpay.orderId,
-          prefill: createdOrder.razorpay.prefill || {},
+          prefill: Object.keys(cleanPrefill).length > 0 ? cleanPrefill : undefined,
           theme: { color: "#000000" },
           handler: async function (response: any) {
             try {
@@ -269,7 +286,7 @@ export default function CheckoutPage() {
           },
         };
 
-        const rzp = new (window as any).Razorpay(options);
+        const rzp = new Razorpay(options);
         rzp.on("payment.failed", function (response: any) {
           toast.error(response?.error?.description || "Payment failed at gateway.");
           setSubmitError(
@@ -279,7 +296,6 @@ export default function CheckoutPage() {
         });
         rzp.open();
       } else {
-        // COD / Offline flow
         clearCart();
         toast.success("Order placed successfully!");
         router.push(`/orders/${encodeURIComponent(createdOrder.orderNumber)}`);
@@ -289,13 +305,6 @@ export default function CheckoutPage() {
       setSubmitting(false);
     }
   };
-
-
-  const subtotal = summary?.subtotal ?? cart.reduce((tot, i) => tot + i.product.price * i.quantity, 0);
-  const discountAmount = summary?.coupon?.applied ? summary.coupon.discountAmount : 0;
-  const shippingAmount = summary?.shipping ? summary.shipping.amount : (subtotal > 1999 ? 0 : 99);
-  const taxAmount = summary?.taxAmount ?? Math.round((subtotal - discountAmount) * 0.18 * 100) / 100;
-  const totalAmount = summary?.totalAmount ?? Math.round((subtotal - discountAmount + shippingAmount + taxAmount) * 100) / 100;
 
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 py-4 sm:py-6 pb-16 text-black font-be-vietnam-pro gpu-layer">
@@ -321,18 +330,7 @@ export default function CheckoutPage() {
       </div>
 
       {cart.length === 0 ? (
-        <div className="bg-[#F4F4F4] rounded-3xl p-8 sm:p-12 text-center space-y-4 max-w-md mx-auto my-8">
-          <ShoppingBag className="w-10 h-10 text-gray-400 mx-auto" />
-          <h2 className="font-be-vietnam-pro-black text-lg font-bold text-black uppercase">
-            Your Cart is Empty
-          </h2>
-          <Link
-            href="/product"
-            className="inline-block px-7 py-3 bg-black text-white font-extrabold text-xs uppercase rounded-full"
-          >
-            Browse Collections
-          </Link>
-        </div>
+        <CheckoutEmptyCart />
       ) : (
         <form
           onSubmit={handlePlaceOrder}
@@ -361,233 +359,35 @@ export default function CheckoutPage() {
             </div>
 
             {/* Step 2: Shipping Speed Option */}
-            <div className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-7 space-y-4 shadow-2xs">
-              <h3 className="font-be-vietnam-pro-black text-base sm:text-lg font-black text-black uppercase border-b border-gray-100 pb-3">
-                2. Shipping Option
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShippingSpeed("STANDARD")}
-                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                    shippingSpeed === "STANDARD"
-                      ? "border-black bg-black text-white"
-                      : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
-                  }`}
-                >
-                  <span className="font-bold text-xs block">
-                    Standard Delivery
-                  </span>
-                  <span className="text-[11px] opacity-80 block mt-0.5 font-medium">
-                    3-5 Business Days
-                  </span>
-                  <span className="font-black text-xs block mt-1.5">
-                    {subtotal >= 1999 ? "FREE" : "₹99"}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShippingSpeed("EXPRESS")}
-                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                    shippingSpeed === "EXPRESS"
-                      ? "border-black bg-black text-white"
-                      : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
-                  }`}
-                >
-                  <span className="font-bold text-xs block">
-                    Express Priority
-                  </span>
-                  <span className="text-[11px] opacity-80 block mt-0.5 font-medium">
-                    1-2 Business Days
-                  </span>
-                  <span className="font-black text-xs block mt-1.5">
-                    {subtotal >= 1999 ? "₹150" : "₹249"}
-                  </span>
-                </button>
-              </div>
-            </div>
+            <CheckoutShippingSpeed
+              shippingSpeed={shippingSpeed}
+              onChange={setShippingSpeed}
+              subtotal={subtotal}
+            />
 
             {/* Step 3: Payment Method */}
-            <div className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-7 space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 className="font-be-vietnam-pro-black text-base sm:text-lg font-black text-black uppercase">
-                  3. Payment Method
-                </h3>
-                <span className="text-[11px] font-bold text-gray-500 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-black" />
-                  256-Bit Encrypted
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("razorpay")}
-                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                    paymentMethod === "razorpay"
-                      ? "border-black bg-black text-white"
-                      : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-bold text-xs block">Razorpay Secure</span>
-                      <CreditCard className="w-4 h-4 shrink-0" />
-                    </div>
-                    <span className="text-[11px] opacity-80 block font-medium">
-                      UPI, Cards, NetBanking, EMI, Wallets
-                    </span>
-                  </div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-90 mt-2 block">
-                    Instant Gateway Verification
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("cod")}
-                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                    paymentMethod === "cod"
-                      ? "border-black bg-black text-white"
-                      : "border-gray-200 bg-[#F4F4F4] text-black hover:bg-gray-200"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-bold text-xs block">Pay on Delivery (COD)</span>
-                      <Truck className="w-4 h-4 shrink-0" />
-                    </div>
-                    <span className="text-[11px] opacity-80 block font-medium">
-                      Pay cash/UPI when package arrives
-                    </span>
-                  </div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-90 mt-2 block">
-                    Available for all pin codes
-                  </span>
-                </button>
-              </div>
-            </div>
-
+            <CheckoutPaymentMethod
+              paymentMethod={paymentMethod}
+              onChange={setPaymentMethod}
+            />
           </div>
 
           {/* Right Columns: Order Review & Submission */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white border border-gray-200/80 rounded-3xl p-5 sm:p-7 space-y-5 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3.5">
-                <h3 className="font-be-vietnam-pro-black text-lg sm:text-xl font-black text-black uppercase tracking-tight">
-                  Order Review ({cart.length})
-                </h3>
-                {summaryLoading && (
-                  <Loader2 className="w-4 h-4 text-black animate-spin" />
-                )}
-              </div>
-
-              {/* Items Preview List */}
-              <div className="max-h-72 space-y-2.5 overflow-y-auto pr-1">
-                {cart.map((item, idx) => (
-                  <CheckoutOrderItem
-                    key={`${item.product.id}-${item.selectedColor || ""}-${item.selectedSize || ""}-${idx}`}
-                    item={item}
-                  />
-                ))}
-              </div>
-
-              {/* Promo Code Box */}
-              <div className="space-y-1">
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Tag className="w-3.5 h-3.5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Promo Code (SUMMER2026)"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      className="w-full bg-[#F4F4F4] rounded-full pl-9 pr-3 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none uppercase font-bold"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => handleApplyPromo(e)}
-                    className="px-4 py-2.5 bg-black hover:bg-neutral-800 text-white rounded-full text-xs font-bold cursor-pointer transition-colors"
-                  >
-                    Apply
-                  </button>
-                </div>
-
-                {summary?.coupon && (
-                  <p
-                    className={`text-[11px] font-semibold pt-1 ${
-                      summary.coupon.applied ? "text-emerald-700" : "text-rose-600"
-                    }`}
-                  >
-                    {summary.coupon.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Server Calculated Breakdown */}
-              <div className="space-y-2 text-xs text-gray-500 font-medium border-t border-gray-100 pt-3.5">
-                <div className="flex justify-between">
-                  <span>Items Subtotal</span>
-                  <span className="font-bold text-black">
-                    ₹{subtotal.toLocaleString()}
-                  </span>
-                </div>
-
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-700 font-bold">
-                    <span>Coupon Discount</span>
-                    <span>-₹{discountAmount.toLocaleString()}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between">
-                  <span>Shipping Fee</span>
-                  <span className="font-bold text-black">
-                    {shippingAmount === 0 ? (
-                      <span className="text-emerald-700 font-extrabold">FREE</span>
-                    ) : (
-                      `₹${shippingAmount.toLocaleString()}`
-                    )}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>GST Tax (18%)</span>
-                  <span className="font-bold text-black">
-                    ₹{taxAmount.toLocaleString()}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-base font-black text-black pt-2.5 border-t border-gray-100">
-                  <span>Grand Total</span>
-                  <span>₹{totalAmount.toLocaleString()}</span>
-                </div>
-              </div>
-
-              {/* Submit CTA */}
-              <button
-                type="submit"
-                disabled={submitting || summaryLoading}
-                className="w-full py-3.5 rounded-full bg-black hover:bg-neutral-800 disabled:opacity-50 text-white font-extrabold text-xs uppercase transition-all shadow-md active:scale-98 cursor-pointer flex items-center justify-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Placing Order...</span>
-                  </>
-                ) : (
-                  <span>Place Order (₹{totalAmount.toLocaleString()})</span>
-                )}
-              </button>
-
-              <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 font-medium pt-0.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Backend Verified 256-bit SSL Security</span>
-              </div>
-            </div>
+            <CheckoutOrderSummary
+              cart={cart}
+              promoCode={promoCode}
+              onPromoCodeChange={setPromoCode}
+              onApplyPromo={handleApplyPromo}
+              summary={summary}
+              summaryLoading={summaryLoading}
+              submitting={submitting}
+              subtotal={subtotal}
+              discountAmount={discountAmount}
+              shippingAmount={shippingAmount}
+              taxAmount={taxAmount}
+              totalAmount={totalAmount}
+            />
           </div>
         </form>
       )}

@@ -63,6 +63,27 @@ export const metadata: Metadata = {
       "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=1200",
     ],
   },
+  icons: {
+    icon: [
+      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon/favicon.ico" },
+    ],
+    apple: [
+      { url: "/favicon/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "android-chrome-192x192",
+        url: "/favicon/android-chrome-192x192.png",
+      },
+      {
+        rel: "android-chrome-512x512",
+        url: "/favicon/android-chrome-512x512.png",
+      },
+    ],
+  },
+  manifest: "/favicon/site.webmanifest",
   robots: {
     index: true,
     follow: true,
@@ -90,6 +111,13 @@ export default function RootLayout({
       )}
     >
       <head>
+        {/* Favicon Icons */}
+        <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+        <link rel="manifest" href="/favicon/site.webmanifest" />
+
         {/* Preconnect to external origins used for images and API — reduces critical path latency */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://nnuzjdapofveowjrxtkp.supabase.co" />

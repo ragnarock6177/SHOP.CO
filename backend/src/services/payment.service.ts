@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import prisma from "../lib/prisma.js";
-import { getRazorpayClient, razorpayKeyId, razorpayKeySecret, razorpayWebhookSecret } from "../config/razorpay.js";
+import { razorpay, razorpayKeyId, razorpayKeySecret, razorpayWebhookSecret } from "../config/razorpay.js";
 import { NotFoundError, UnprocessableEntityError, BadRequestError, ForbiddenError } from "../utils/errors.js";
 import { OrderStatus, PaymentStatus, PaymentTransactionType, InvoiceStatus, InventoryMovementType } from "@prisma/client";
+import { restoreInventoryForOrder } from "../utils/inventory.utils.js";
 
 export class PaymentService {
   /**
@@ -59,7 +60,6 @@ export class PaymentService {
 
     let providerPaymentId: string;
     try {
-      const razorpay = getRazorpayClient();
       const rzpOrder = await razorpay.orders.create({
         amount: amountInPaise,
         currency,
@@ -71,11 +71,13 @@ export class PaymentService {
       });
       providerPaymentId = rzpOrder.id;
     } catch (err: any) {
-      console.warn("⚠️ Razorpay API order creation failed, generating local fallback:", err?.message);
-      providerPaymentId = `order_mock_${Date.now()}_${params.orderId.slice(0, 8)}`;
+      console.error("Razorpay order creation error:", err);
+      throw new BadRequestError(
+        err?.error?.description || err?.message || "Failed to create Razorpay order"
+      );
     }
 
-    // Persist or update Payment record
+    // Persist Payment record
     const payment = await prisma.payment.create({
       data: {
         orderId: params.orderId,
@@ -94,16 +96,16 @@ export class PaymentService {
     return {
       paymentId: payment.id,
       razorpay: {
-        keyId: razorpayKeyId || "rzp_test_placeholder",
+        keyId: razorpayKeyId,
         orderId: providerPaymentId,
         amount: amountInPaise,
         currency,
-        name: "AIRAVÉ",
+        name: "AIRAVE",
         description: `Order #${params.orderNumber}`,
         prefill: {
-          name: params.customerName || "",
-          email: params.customerEmail || "",
-          contact: params.customerPhone || "",
+          name: params.customerName?.trim() || undefined,
+          email: params.customerEmail?.trim() || undefined,
+          contact: params.customerPhone?.trim() || undefined,
         },
       },
     };
@@ -121,13 +123,10 @@ export class PaymentService {
   }) {
     const { orderNumber, razorpayOrderId, razorpayPaymentId, razorpaySignature, userId } = params;
 
-    // 1. Signature Verification
-    const isMock = razorpayOrderId.startsWith("order_mock_");
-    if (!isMock) {
-      const isValid = this.validateSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
-      if (!isValid) {
-        throw new BadRequestError("Invalid payment signature");
-      }
+    // 1. Cryptographic Signature Verification
+    const isValid = this.validateSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+    if (!isValid) {
+      throw new BadRequestError("Invalid payment signature");
     }
 
     // 2. Atomic Verification & Fulfillment Transaction
@@ -334,10 +333,18 @@ export class PaymentService {
       const paymentEntity = payload.payment?.entity;
       const orderId = paymentEntity?.order_id;
       const paymentId = paymentEntity?.id;
+      const failReason = paymentEntity?.error_description || paymentEntity?.error_reason || "Payment failed at gateway";
 
       if (orderId) {
         const paymentRecord = await prisma.payment.findFirst({
           where: { providerPaymentId: orderId },
+          include: {
+            order: {
+              include: {
+                items: true,
+              },
+            },
+          },
         });
 
         if (paymentRecord) {
@@ -356,10 +363,37 @@ export class PaymentService {
           await prisma.payment.update({
             where: { id: paymentRecord.id },
             data: {
+              status: PaymentStatus.FAILED,
               failureCode: paymentEntity?.error_code || "PAYMENT_FAILED",
-              failureMessage: paymentEntity?.error_description || "Payment failed at gateway",
+              failureMessage: failReason,
             },
           });
+
+          if (paymentRecord.order && paymentRecord.order.status === OrderStatus.PENDING) {
+            await prisma.$transaction(async (tx) => {
+              await tx.order.update({
+                where: { id: paymentRecord.order.id },
+                data: {
+                  status: OrderStatus.FAILED,
+                  statusHistory: {
+                    create: {
+                      oldStatus: paymentRecord.order.status,
+                      newStatus: OrderStatus.FAILED,
+                      reason: failReason,
+                    },
+                  },
+                },
+              });
+
+              await restoreInventoryForOrder(
+                tx,
+                paymentRecord.order.id,
+                paymentRecord.order.orderNumber,
+                paymentRecord.order.items,
+                `Payment failed via webhook: ${failReason}`
+              );
+            });
+          }
         }
       }
     }
@@ -379,7 +413,7 @@ export class PaymentService {
     const { orderNumber, razorpayOrderId, errorCode, errorDescription } = params;
     const order = await prisma.order.findFirst({
       where: { orderNumber, deletedAt: null },
-      include: { payments: true },
+      include: { payments: true, items: true },
     });
 
     if (!order) return null;
@@ -387,6 +421,8 @@ export class PaymentService {
     const payment = razorpayOrderId
       ? order.payments.find((p) => p.providerPaymentId === razorpayOrderId) || order.payments[0]
       : order.payments[0];
+
+    const failReason = errorDescription || "Payment was not completed";
 
     if (payment) {
       await prisma.paymentTransaction.create({
@@ -404,9 +440,36 @@ export class PaymentService {
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
+          status: PaymentStatus.FAILED,
           failureCode: errorCode || "USER_CANCELLED_OR_FAILED",
-          failureMessage: errorDescription || "Payment was not completed",
+          failureMessage: failReason,
         },
+      });
+    }
+
+    if (order.status === OrderStatus.PENDING) {
+      await prisma.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            status: OrderStatus.FAILED,
+            statusHistory: {
+              create: {
+                oldStatus: order.status,
+                newStatus: OrderStatus.FAILED,
+                reason: failReason,
+              },
+            },
+          },
+        });
+
+        await restoreInventoryForOrder(
+          tx,
+          order.id,
+          order.orderNumber,
+          order.items,
+          `Payment failed: ${failReason}`
+        );
       });
     }
 
@@ -468,15 +531,16 @@ export class PaymentService {
 
     let providerRefundId: string;
     try {
-      const razorpay = getRazorpayClient();
       const rzpRefund = await razorpay.payments.refund(payment.providerPaymentId || "", {
         amount: amountInPaise,
         notes: { reason: reason || "Admin requested refund" },
       });
       providerRefundId = rzpRefund.id;
     } catch (err: any) {
-      console.warn("⚠️ Razorpay Refund API call failed, generating fallback:", err?.message);
-      providerRefundId = `rfnd_mock_${Date.now()}`;
+      console.error("Razorpay refund error:", err);
+      throw new BadRequestError(
+        err?.error?.description || err?.message || "Failed to process Razorpay refund"
+      );
     }
 
     return prisma.$transaction(async (tx) => {

@@ -196,10 +196,15 @@ export const Navbar: React.FC = () => {
               <Menu className="w-6 h-6" />
             </button>
 
-            <Link href="/" className="flex items-center min-w-0">
-              <span className="font-be-vietnam-pro-black text-xl sm:text-2xl lg:text-3xl font-black tracking-tighter text-black truncate">
-                AIRAVÉ
-              </span>
+            <Link href="/" className="flex items-center min-w-0 group py-1.5">
+              <Image
+                src="/main_logo.png"
+                alt="AIRAVÉ"
+                width={160}
+                height={45}
+                className="h-6.5 sm:h-7.5 lg:h-8.5 w-auto object-contain shrink-0 group-hover:opacity-85 transition-opacity"
+                priority
+              />
             </Link>
           </div>
 
@@ -561,10 +566,14 @@ export const Navbar: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
-            <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-              <span className="font-be-vietnam-pro-black text-2xl font-black text-black">
-                AIRAVÉ
-              </span>
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center">
+              <Image
+                src="/main_logo.png"
+                alt="AIRAVÉ"
+                width={140}
+                height={40}
+                className="h-7 sm:h-8 w-auto object-contain shrink-0"
+              />
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen(false)}

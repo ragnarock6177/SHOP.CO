@@ -341,22 +341,22 @@ function SignUpFormContent() {
   return (
     <>
       <div id="recaptcha-container-signup" />
-      <div className="max-w-md mx-auto px-3.5 py-6 sm:py-10 space-y-5 text-black font-be-vietnam-pro">
+      <div className="space-y-6 sm:space-y-8 text-black font-be-vietnam-pro">
         {/* Header */}
-        <div className="text-center space-y-1.5">
-          <h1 className="font-be-vietnam-pro-black text-xl sm:text-2xl lg:text-3xl font-black text-black uppercase tracking-tight">
+        <div className="text-center space-y-2">
+          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl lg:text-4xl font-black text-black uppercase tracking-tight">
             JOIN AIRAVÉ
           </h1>
-          <p className="text-xs text-gray-500 font-medium max-w-xs mx-auto">
+          <p className="text-xs sm:text-sm text-gray-500 font-medium max-w-sm mx-auto leading-relaxed">
             Create your account and enjoy 20% off your first fashion order.
           </p>
         </div>
 
-        <div className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-7 space-y-5 shadow-xs">
+        <div className="bg-white border border-gray-100 rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 lg:p-12 space-y-6 sm:space-y-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           {step === "details" && (
             <>
               {Object.keys(errors).length > 0 && (
-                <div className="bg-red-50 border border-red-200/80 text-red-700 rounded-2xl p-3 text-xs font-medium flex items-center gap-2 animate-fade-in-up">
+                <div className="bg-red-50 border border-red-200/80 text-red-700 rounded-2xl p-3.5 text-xs sm:text-sm font-medium flex items-center gap-2.5 animate-fade-in-up">
                   <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
                   <span>Please correct the highlighted fields below to continue.</span>
                 </div>
@@ -364,38 +364,38 @@ function SignUpFormContent() {
 
               <form
                 onSubmit={handleSubmit(onValidDetailsSubmit)}
-                className="space-y-3.5"
+                className="space-y-4 sm:space-y-5"
                 noValidate
               >
                 {/* First Name & Last Name Grid */}
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700 block mb-2">
                       First Name
                     </label>
                     <div className="relative">
-                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <User className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                       <input
                         type="text"
                         placeholder="First name"
                         {...register("firstName")}
-                        className="w-full bg-[#F4F4F4] rounded-full pl-9 pr-3 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
+                        className="w-full bg-[#F4F4F4] rounded-full pl-11 pr-4 py-3 sm:py-3.5 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white border border-transparent focus:border-black/30 transition-all"
                       />
                     </div>
                     <FormFieldError message={errors.firstName?.message} />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700 block mb-2">
                       Last Name
                     </label>
                     <div className="relative">
-                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <User className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                       <input
                         type="text"
                         placeholder="Last name"
                         {...register("lastName")}
-                        className="w-full bg-[#F4F4F4] rounded-full pl-9 pr-3 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
+                        className="w-full bg-[#F4F4F4] rounded-full pl-11 pr-4 py-3 sm:py-3.5 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white border border-transparent focus:border-black/30 transition-all"
                       />
                     </div>
                     <FormFieldError message={errors.lastName?.message} />
@@ -404,16 +404,16 @@ function SignUpFormContent() {
 
                 {/* Email Address */}
                 <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700 block mb-2">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Mail className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="email"
                       placeholder="Enter email address"
                       {...register("email")}
-                      className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-3 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
+                      className="w-full bg-[#F4F4F4] rounded-full pl-11 pr-4 py-3 sm:py-3.5 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white border border-transparent focus:border-black/30 transition-all"
                     />
                   </div>
                   <FormFieldError message={errors.email?.message} />
@@ -421,7 +421,7 @@ function SignUpFormContent() {
 
                 {/* Real Phone Input */}
                 <div>
-                  <label className="text-[11px] font-extrabold uppercase text-gray-700 block mb-1">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700 block mb-2">
                     Mobile Number
                   </label>
                   <Controller
@@ -443,29 +443,29 @@ function SignUpFormContent() {
 
                 {/* Password */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
                       Password
                     </label>
                     {passwordVal.length > 0 && (
-                      <span className="text-[10px] font-bold text-gray-400">
+                      <span className="text-xs font-bold text-gray-400">
                         {passwordVal.length}/16
                       </span>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Lock className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type={showPassword ? "text" : "password"}
                       maxLength={16}
                       placeholder="Create password"
                       {...register("password")}
-                      className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-10 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
+                      className="w-full bg-[#F4F4F4] rounded-full pl-11 pr-11 py-3 sm:py-3.5 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white border border-transparent focus:border-black/30 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer"
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -479,31 +479,31 @@ function SignUpFormContent() {
 
                 {/* Confirm Password */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] font-extrabold uppercase text-gray-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
                       Confirm Password
                     </label>
                     {confirmPasswordVal.length > 0 && (
-                      <span className="text-[10px] font-bold text-gray-400">
+                      <span className="text-xs font-bold text-gray-400">
                         {confirmPasswordVal.length}/16
                       </span>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Lock className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       maxLength={16}
                       placeholder="Confirm password"
                       {...register("confirmPassword")}
-                      className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-10 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
+                      className="w-full bg-[#F4F4F4] rounded-full pl-11 pr-11 py-3 sm:py-3.5 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white border border-transparent focus:border-black/30 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer"
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -516,12 +516,12 @@ function SignUpFormContent() {
                 </div>
 
                 {/* Terms Checkbox */}
-                <div className="pt-0.5">
-                  <label className="flex items-start gap-2 cursor-pointer text-[11px] text-gray-500">
+                <div className="pt-1">
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs text-gray-500">
                     <input
                       type="checkbox"
                       {...register("agreeTerms")}
-                      className="accent-black rounded mt-0.5"
+                      className="accent-black rounded mt-0.5 w-3.5 h-3.5"
                     />
                     <span>
                       I agree to the{" "}
@@ -542,7 +542,7 @@ function SignUpFormContent() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 mt-5 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
+                  className="w-full py-4 sm:py-4.5 mt-4 font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-900 transition-all shadow-lg shadow-black/10 hover:shadow-black/20 hover:scale-[1.008] active:scale-[0.99] cursor-pointer"
                 >
                   <span>
                     {isLoading ? "Sending OTP..." : "Get OTP Verification"}
@@ -555,15 +555,15 @@ function SignUpFormContent() {
 
           {/* Step 2: OTP Verification */}
           {step === "otp" && (
-            <div className="space-y-5">
-              <div className="text-center space-y-1.5">
-                <div className="w-12 h-12 bg-black/5 text-black rounded-full flex items-center justify-center mx-auto mb-1">
-                  <KeyRound className="w-5 h-5" />
+            <div className="space-y-6 sm:space-y-7">
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 bg-black/5 text-black rounded-full flex items-center justify-center mx-auto mb-1">
+                  <KeyRound className="w-6 h-6" />
                 </div>
-                <h2 className="font-be-vietnam-pro-black text-lg font-bold text-black uppercase">
+                <h2 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black uppercase">
                   OTP VERIFICATION
                 </h2>
-                <p className="text-xs text-gray-500 leading-relaxed max-w-xs mx-auto">
+                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-sm mx-auto">
                   Enter the 6-digit verification code sent to{" "}
                   <span className="font-bold text-black">
                     {getValues("mobileNumber")}
@@ -573,14 +573,14 @@ function SignUpFormContent() {
               </div>
 
               {otpError && (
-                <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-2.5 text-xs font-medium text-center flex items-center justify-center gap-1.5 animate-shake">
+                <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-3 text-xs sm:text-sm font-medium text-center flex items-center justify-center gap-2 animate-shake">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{otpError}</span>
                 </div>
               )}
 
-              <form onSubmit={handleVerifyOtp} className="space-y-5">
-                <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+              <form onSubmit={handleVerifyOtp} className="space-y-6">
+                <div className="flex items-center justify-center gap-2 sm:gap-3">
                   {otp.map((digit, index) => (
                     <input
                       key={index}
@@ -594,12 +594,12 @@ function SignUpFormContent() {
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
                       onPaste={handleOtpPaste}
-                      className="w-9 h-11 sm:w-11 sm:h-13 text-center text-base sm:text-lg font-bold text-black bg-[#F4F4F4] border border-transparent rounded-xl focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none transition-all"
+                      className="w-11 h-14 sm:w-14 sm:h-16 text-center text-lg sm:text-2xl font-black text-black bg-[#F4F4F4] border border-transparent rounded-2xl focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none transition-all"
                     />
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-gray-500 px-1">
+                <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 px-1">
                   <span>Didn't receive code?</span>
                   {resendTimer > 0 ? (
                     <span className="font-semibold text-black">
@@ -617,11 +617,11 @@ function SignUpFormContent() {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3.5 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
+                    className="w-full py-4 sm:py-4.5 font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-900 transition-all shadow-lg shadow-black/10 hover:shadow-black/20 hover:scale-[1.008] active:scale-[0.99] cursor-pointer"
                   >
                     <span>
                       {isLoading
@@ -638,7 +638,7 @@ function SignUpFormContent() {
                       setConfirmationResult(null);
                       setStep("details");
                     }}
-                    className="w-full py-2 text-xs font-semibold text-gray-500 hover:text-black flex items-center justify-center gap-1 cursor-pointer"
+                    className="w-full py-2.5 text-xs sm:text-sm font-semibold text-gray-500 hover:text-black flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Edit Mobile Number
@@ -650,22 +650,22 @@ function SignUpFormContent() {
 
           {/* Step 3: Success */}
           {step === "success" && (
-            <div className="text-center py-4 space-y-4">
-              <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-8 h-8" />
+            <div className="text-center py-6 space-y-6">
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-9 h-9" />
               </div>
-              <div className="space-y-1">
-                <h2 className="font-be-vietnam-pro-black text-xl font-black text-black uppercase">
+              <div className="space-y-2">
+                <h2 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black uppercase">
                   WELCOME, {getValues("firstName").toUpperCase()}!
                 </h2>
-                <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                <p className="text-xs sm:text-sm text-gray-500 max-w-sm mx-auto">
                   Your account has been successfully verified & created. You can
                   now shop AIRAVÉ collection.
                 </p>
               </div>
               <Link
                 href={redirectUrl !== "/" ? redirectUrl : "/product"}
-                className="inline-flex w-full py-3.5 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                className="inline-flex w-full py-4 sm:py-4.5 bg-black hover:bg-neutral-900 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full items-center justify-center gap-2 shadow-lg shadow-black/10 transition-all cursor-pointer hover:scale-[1.008] active:scale-[0.99]"
               >
                 <span>{redirectUrl !== "/" ? "Continue Shopping" : "Explore Collection"}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -675,9 +675,9 @@ function SignUpFormContent() {
 
           {/* Switch to Login */}
           {step === "details" && (
-            <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+            <div className="text-center text-xs sm:text-sm text-gray-500 pt-5 sm:pt-6 border-t border-gray-100 font-medium">
               Already have an account?{" "}
-              <Link href={buildLoginUrl(redirectUrl)} className="font-bold text-black underline">
+              <Link href={buildLoginUrl(redirectUrl)} className="font-bold text-black underline hover:text-gray-700 ml-1">
                 Log In
               </Link>
             </div>

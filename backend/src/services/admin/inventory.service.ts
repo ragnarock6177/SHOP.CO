@@ -1,7 +1,8 @@
 import prisma from "../../lib/prisma.js";
 import { parseAdminQueryParams } from "../../utils/adminQueryParams.js";
-import { InventoryMovementType } from "@prisma/client";
+import { InventoryMovementType, OrderStatus, PaymentStatus } from "@prisma/client";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import { restoreInventoryForOrder } from "../../utils/inventory.utils.js";
 
 export class AdminInventoryService {
   static async getInventory(query: Record<string, any>) {
@@ -326,10 +327,6 @@ export class AdminInventoryService {
       },
     });
 
-    if (expiredReservations.length === 0) {
-      return { releasedCount: 0 };
-    }
-
     let releasedCount = 0;
 
     for (const res of expiredReservations) {
@@ -373,7 +370,73 @@ export class AdminInventoryService {
       }
     }
 
-    return { releasedCount };
+    // 2. Auto-sweep abandoned PENDING orders older than 15 minutes (Order Not Placed / Expired)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const expiredPendingOrders = await prisma.order.findMany({
+      where: {
+        status: OrderStatus.PENDING,
+        createdAt: { lte: fifteenMinutesAgo },
+      },
+      include: {
+        payments: true,
+        items: true,
+      },
+    });
+
+    let expiredOrdersCount = 0;
+
+    for (const order of expiredPendingOrders) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          const checkOrder = await tx.order.findUnique({ where: { id: order.id } });
+          if (!checkOrder || checkOrder.status !== OrderStatus.PENDING) return;
+
+          const failReason = "Order not placed: Payment window expired after 15 minutes of inactivity";
+
+          // A. Mark Order as FAILED
+          await tx.order.update({
+            where: { id: order.id },
+            data: {
+              status: OrderStatus.FAILED,
+              statusHistory: {
+                create: {
+                  oldStatus: OrderStatus.PENDING,
+                  newStatus: OrderStatus.FAILED,
+                  reason: failReason,
+                },
+              },
+            },
+          });
+
+          // B. Mark Payment as FAILED
+          await tx.payment.updateMany({
+            where: {
+              orderId: order.id,
+              status: PaymentStatus.PENDING,
+            },
+            data: {
+              status: PaymentStatus.FAILED,
+              failureCode: "PAYMENT_TIMED_OUT",
+              failureMessage: failReason,
+            },
+          });
+
+          // C. Restore physical / reserved stock
+          await restoreInventoryForOrder(
+            tx,
+            order.id,
+            order.orderNumber,
+            order.items,
+            failReason
+          );
+        });
+        expiredOrdersCount++;
+      } catch (orderErr) {
+        console.error(`Failed to expire pending order ${order.orderNumber}:`, orderErr);
+      }
+    }
+
+    return { releasedCount, expiredOrdersCount };
   }
 
   static async updateReorderLevel(variantId: string, reorderLevel: number) {

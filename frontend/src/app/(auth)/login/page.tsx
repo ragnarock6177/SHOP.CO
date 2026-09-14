@@ -380,17 +380,17 @@ function LoginForm() {
   return (
     <>
       <div id="recaptcha-container-login" />
-      <div className="space-y-4">
+      <div className="space-y-6 sm:space-y-8">
         {/* Page Header */}
-        <div className="text-center space-y-1">
-          <h1 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black uppercase tracking-tight">
+        <div className="text-center space-y-2">
+          <h1 className="font-be-vietnam-pro-black text-2xl sm:text-3xl lg:text-4xl font-black text-black uppercase tracking-tight">
             {step === "otp"
               ? "VERIFY OTP"
               : step === "password"
                 ? "ENTER PASSWORD"
                 : "WELCOME BACK"}
           </h1>
-          <p className="text-xs text-gray-500 font-medium max-w-xs mx-auto">
+          <p className="text-xs sm:text-sm text-gray-500 font-medium max-w-sm mx-auto leading-relaxed">
             {step === "otp"
               ? "We sent a 6-digit OTP code to your mobile number."
               : step === "password"
@@ -400,18 +400,18 @@ function LoginForm() {
         </div>
 
         {/* Card Container */}
-        <div className="bg-white border border-gray-200/80 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xs">
+        <div className="bg-white border border-gray-100 rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 lg:p-12 space-y-6 sm:space-y-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           {/* STEP: SUCCESS */}
           {step === "success" ? (
-            <div className="text-center py-4 space-y-4">
-              <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-8 h-8" />
+            <div className="text-center py-6 space-y-6">
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-9 h-9" />
               </div>
-              <div className="space-y-1">
-                <h2 className="font-be-vietnam-pro-black text-lg font-black text-black uppercase">
+              <div className="space-y-2">
+                <h2 className="font-be-vietnam-pro-black text-xl sm:text-2xl font-black text-black uppercase">
                   LOGGED IN SUCCESSFULLY!
                 </h2>
-                <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                <p className="text-xs sm:text-sm text-gray-500 max-w-sm mx-auto">
                   Welcome back to AIRAVÉ. You are signed in as{" "}
                   <span className="font-bold text-black">
                     {savedIdentifier || "User"}
@@ -421,7 +421,7 @@ function LoginForm() {
               </div>
               <Link
                 href={redirectUrl !== "/" ? redirectUrl : "/profile"}
-                className="inline-flex w-full py-3.5 bg-black hover:bg-gray-800 text-white font-bold text-xs uppercase rounded-full items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                className="inline-flex w-full py-4 sm:py-4.5 bg-black hover:bg-neutral-900 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full items-center justify-center gap-2 shadow-lg shadow-black/10 transition-all cursor-pointer hover:scale-[1.008] active:scale-[0.99]"
               >
                 <span>{redirectUrl !== "/" ? "Continue Shopping" : "Go to My Profile"}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -429,11 +429,11 @@ function LoginForm() {
             </div>
           ) : step === "otp" ? (
             /* STEP: OTP VERIFICATION */
-            <div className="space-y-4">
+            <div className="space-y-6 sm:space-y-7">
               {/* Top Edit Number Header */}
-              <div className="bg-[#F4F4F4] rounded-2xl p-3 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 truncate">
-                  <Phone className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+              <div className="bg-[#F4F4F4] rounded-2xl p-4 flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center gap-2.5 truncate">
+                  <Phone className="w-4 h-4 text-gray-600 shrink-0" />
                   <span className="text-gray-500">Sent to:</span>
                   <span className="font-bold text-black truncate">
                     {savedIdentifier}
@@ -442,19 +442,19 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={handleGoBack}
-                  className="text-[11px] font-bold text-black underline flex items-center gap-1 hover:text-gray-600 shrink-0 ml-2 cursor-pointer"
+                  className="text-xs font-bold text-black underline flex items-center gap-1 hover:text-gray-600 shrink-0 ml-3 cursor-pointer"
                 >
-                  <Edit2 className="w-3 h-3" />
+                  <Edit2 className="w-3.5 h-3.5" />
                   <span>Edit</span>
                 </button>
               </div>
 
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <form onSubmit={handleVerifyOtp} className="space-y-6">
                 <div>
-                  <label className="text-[10px] font-extrabold uppercase text-gray-700 block mb-2 text-center">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700 block mb-3 text-center">
                     Enter 6-Digit OTP Code
                   </label>
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="flex items-center justify-center gap-2 sm:gap-3">
                     {otpValues.map((digit, idx) => (
                       <input
                         key={idx}
@@ -468,14 +468,14 @@ function LoginForm() {
                         onChange={(e) => handleOtpChange(idx, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                         onPaste={idx === 0 ? handleOtpPaste : undefined}
-                        className="w-9 h-11 sm:w-10 sm:h-12 text-center text-base sm:text-lg font-bold text-black bg-[#F4F4F4] border border-transparent rounded-xl focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none transition-all"
+                        className="w-11 h-14 sm:w-14 sm:h-16 text-center text-lg sm:text-2xl font-black text-black bg-[#F4F4F4] border border-transparent rounded-2xl focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 focus:outline-none transition-all"
                       />
                     ))}
                   </div>
                 </div>
 
                 {/* Resend Code Section */}
-                <div className="text-center text-xs text-gray-500">
+                <div className="text-center text-xs sm:text-sm text-gray-500">
                   {resendTimer > 0 ? (
                     <p>
                       Resend code in{" "}
@@ -498,7 +498,7 @@ function LoginForm() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
+                  className="w-full py-4 sm:py-4.5 font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-900 transition-all shadow-lg shadow-black/10 hover:shadow-black/20 hover:scale-[1.008] active:scale-[0.99] cursor-pointer"
                 >
                   <span>{isLoading ? "Verifying..." : "Verify & Continue"}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -507,11 +507,11 @@ function LoginForm() {
             </div>
           ) : step === "password" ? (
             /* STEP: PASSWORD FOR EMAIL */
-            <div className="space-y-4">
+            <div className="space-y-6 sm:space-y-7">
               {/* Top Edit Email Header */}
-              <div className="bg-[#F4F4F4] rounded-2xl p-3 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 truncate">
-                  <Mail className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+              <div className="bg-[#F4F4F4] rounded-2xl p-4 flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center gap-2.5 truncate">
+                  <Mail className="w-4 h-4 text-gray-600 shrink-0" />
                   <span className="text-gray-500">Email:</span>
                   <span className="font-bold text-black truncate">
                     {savedIdentifier}
@@ -520,9 +520,9 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={handleGoBack}
-                  className="text-[11px] font-bold text-black underline flex items-center gap-1 hover:text-gray-600 shrink-0 ml-2 cursor-pointer"
+                  className="text-xs font-bold text-black underline flex items-center gap-1 hover:text-gray-600 shrink-0 ml-3 cursor-pointer"
                 >
-                  <Edit2 className="w-3 h-3" />
+                  <Edit2 className="w-3.5 h-3.5" />
                   <span>Edit</span>
                 </button>
               </div>
@@ -530,33 +530,33 @@ function LoginForm() {
               {/* Password Form */}
               <form
                 onSubmit={handleSubmitPassword(onPasswordSubmit, onPasswordInvalid)}
-                className="space-y-3.5"
+                className="space-y-5"
                 noValidate
               >
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[10px] font-extrabold uppercase text-gray-700 block">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700 block">
                       Password
                     </label>
                     {passwordVal.length > 0 && (
-                      <span className="text-[10px] font-bold text-gray-400">
+                      <span className="text-xs font-bold text-gray-400">
                         {passwordVal.length}/16
                       </span>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Lock className="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type={showPassword ? "text" : "password"}
                       maxLength={16}
                       placeholder="Enter your password"
                       {...registerPassword("password")}
-                      className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-10 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
+                      className="w-full bg-[#F4F4F4] rounded-full pl-12 pr-12 py-3.5 sm:py-4 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white border border-transparent focus:border-black/30 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer"
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer"
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -568,22 +568,22 @@ function LoginForm() {
                 </div>
 
                 {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
-                  <label className="flex items-center gap-1.5 cursor-pointer">
+                <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="accent-black rounded"
+                      className="accent-black rounded w-3.5 h-3.5"
                     />
-                    <span>Remember me</span>
+                    <span className="font-medium">Remember me</span>
                   </label>
                   <button
                     type="button"
                     onClick={() => {
                       toast.info("Password reset link sent to your email.");
                     }}
-                    className="hover:text-black font-semibold text-xs cursor-pointer"
+                    className="hover:text-black font-bold text-xs sm:text-sm cursor-pointer"
                   >
                     Forgot Password?
                   </button>
@@ -593,7 +593,7 @@ function LoginForm() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 mt-3 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
+                  className="w-full py-4 sm:py-4.5 mt-4 font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-900 transition-all shadow-lg shadow-black/10 hover:shadow-black/20 hover:scale-[1.008] active:scale-[0.99] cursor-pointer"
                 >
                   <span>{isLoading ? "Signing in..." : "Log In"}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -609,9 +609,9 @@ function LoginForm() {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
-                  className="w-full py-3 px-4 rounded-full border border-gray-200 flex items-center justify-center gap-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-full border border-gray-200/90 flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-gray-800 hover:bg-neutral-50/80 hover:border-gray-300 transition-all shadow-2xs cursor-pointer disabled:opacity-50 hover:scale-[1.005] active:scale-[0.99]"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
                       d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
@@ -633,9 +633,9 @@ function LoginForm() {
                 </button>
               </div>
 
-              <div className="relative flex items-center justify-center my-2">
-                <div className="border-t border-gray-200 w-full" />
-                <span className="bg-white px-2.5 text-[10px] font-bold uppercase text-gray-400 absolute">
+              <div className="relative flex items-center justify-center my-6 sm:my-8">
+                <div className="border-t border-gray-200/80 w-full" />
+                <span className="bg-white px-3.5 text-[11px] font-extrabold uppercase tracking-wider text-gray-400 absolute">
                   OR
                 </span>
               </div>
@@ -643,12 +643,12 @@ function LoginForm() {
               {/* Step 1 Input Form */}
               <form
                 onSubmit={handleSubmitStep1(onStep1Submit, onStep1Invalid)}
-                className="space-y-3.5"
+                className="space-y-5"
                 noValidate
               >
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[10px] font-extrabold uppercase tracking-wider text-gray-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
                       {inputMode === "mobile"
                         ? "Mobile Number"
                         : "Email Address"}
@@ -657,16 +657,16 @@ function LoginForm() {
                       type="button"
                       onClick={handleToggleInputMode}
                       disabled={isLoading}
-                      className="text-[9px] sm:text-[10px] font-extrabold text-black hover:text-gray-700 flex items-center gap-1 bg-[#F4F4F4] hover:bg-gray-200 px-2 py-0.5 rounded-full transition-all cursor-pointer shrink-0"
+                      className="text-xs font-extrabold text-black hover:text-neutral-700 flex items-center gap-1.5 bg-[#F4F4F4] hover:bg-gray-200 px-3 py-1 rounded-full transition-all cursor-pointer shrink-0"
                     >
                       {inputMode === "mobile" ? (
                         <>
-                          <Mail className="w-3 h-3 text-gray-600" />
+                          <Mail className="w-3.5 h-3.5 text-gray-600" />
                           <span>Login with Email</span>
                         </>
                       ) : (
                         <>
-                          <Phone className="w-3 h-3 text-gray-600" />
+                          <Phone className="w-3.5 h-3.5 text-gray-600" />
                           <span>Login with Mobile</span>
                         </>
                       )}
@@ -692,13 +692,13 @@ function LoginForm() {
                       />
                     ) : (
                       <>
-                        <Mail className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Mail className="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                           type="email"
                           disabled={isLoading}
                           placeholder="Enter your email address"
                           {...registerStep1("identifier")}
-                          className="w-full bg-[#F4F4F4] rounded-full pl-10 pr-4 py-2.5 text-xs text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white transition-all"
+                          className="w-full bg-[#F4F4F4] rounded-full pl-12 pr-5 py-3.5 sm:py-4 text-xs sm:text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/10 focus:bg-white border border-transparent focus:border-black/30 transition-all"
                         />
                       </>
                     )}
@@ -709,7 +709,7 @@ function LoginForm() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 mt-3 font-extrabold text-xs uppercase rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-800 transition-all shadow-md cursor-pointer"
+                  className="w-full py-4 sm:py-4.5 mt-4 font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full flex items-center justify-center gap-2 disabled:opacity-50 bg-black text-white hover:bg-neutral-900 transition-all shadow-lg shadow-black/10 hover:shadow-black/20 hover:scale-[1.008] active:scale-[0.99] cursor-pointer"
                 >
                   <span>{isLoading ? "Checking..." : "Continue"}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -720,11 +720,11 @@ function LoginForm() {
 
           {/* Switch to SignUp */}
           {step === "input" && (
-            <div className="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+            <div className="text-center text-xs sm:text-sm text-gray-500 pt-5 sm:pt-6 border-t border-gray-100 font-medium">
               Don't have an account yet?{" "}
               <Link
                 href={buildSignupUrl(redirectUrl)}
-                className="font-bold text-black underline"
+                className="font-bold text-black underline hover:text-gray-700 ml-1"
               >
                 Sign Up
               </Link>
